@@ -583,17 +583,17 @@ void TJSNativeDebuggerBreak()
 	// debugger, or the program may cause an unhandled debugger breakpoint
 	// exception.
 
-#if defined(__WIN32__)
-	#if defined(_M_IX86)
-		#ifdef __BORLANDC__
-				__emit__ (0xcc); // int 3 (Raise debugger breakpoint exception)
-		#else
-				_asm _emit 0xcc; // int 3 (Raise debugger breakpoint exception)
-		#endif
-	#else
+// #if defined(__WIN32__)
+// 	#if defined(_M_IX86)
+// 		#ifdef __BORLANDC__
+// 				__emit__ (0xcc); // int 3 (Raise debugger breakpoint exception)
+// 		#else
+// 				_asm _emit 0xcc; // int 3 (Raise debugger breakpoint exception)
+// 		#endif
+// 	#else
 		__debugbreak();
-	#endif
-#endif
+// 	#endif
+// #endif
 }
 //---------------------------------------------------------------------------
 

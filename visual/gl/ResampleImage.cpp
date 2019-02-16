@@ -219,7 +219,7 @@ void tTVPResampleClipping::setClipping( const tTVPRect &cliprect, const tTVPRect
 template<typename TWeight=float, int NAlign=4>
 struct AxisParam {
 	typedef TWeight weight_t;
-	typedef std::vector<weight_t,aligned_allocator<weight_t,NAlign> > weight_vector_t;
+	typedef std::vector<weight_t > weight_vector_t;
 	static const int ALIGN_DIV = (NAlign/4);
 	static const int ALIGN_OFFSET = ALIGN_DIV-1;
 
@@ -705,14 +705,14 @@ void TVPResampleImage( const tTVPRect &cliprect, tTVPBaseBitmap *dest, const tTV
 
 	tjs_uint32 CpuFeature = TVPGetCPUType();
 	try {
-#ifdef _WIN32
-		if( (CpuFeature & TVP_CPU_HAS_AVX2) ) {
-			TVPResampleImageAVX2( clip, func, dest, destrect, src, srcrect, type, typeopt );
-		} else if( (CpuFeature & TVP_CPU_HAS_SSE2) ) {
-			// TODO SSE2版は、Android でもx86の時使えるが、x86のandroid intel止めてしまったから不要か？
-			TVPResampleImageSSE2( clip, func, dest, destrect, src, srcrect, type, typeopt );
-		} else
-#endif
+// #ifdef _WIN32
+// 		if( (CpuFeature & TVP_CPU_HAS_AVX2) ) {
+// 			TVPResampleImageAVX2( clip, func, dest, destrect, src, srcrect, type, typeopt );
+// 		} else if( (CpuFeature & TVP_CPU_HAS_SSE2) ) {
+// 			// TODO SSE2版は、Android でもx86の時使えるが、x86のandroid intel止めてしまったから不要か？
+// 			TVPResampleImageSSE2( clip, func, dest, destrect, src, srcrect, type, typeopt );
+// 		} else
+// #endif
 		{
 			 // Cバージョンは固定小数点版なし。遅くなる。
 			switch( type ) {

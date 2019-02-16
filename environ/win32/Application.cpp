@@ -313,7 +313,7 @@ const tjs_char* SECodeToMessage( unsigned int code ) {
 }
 
 bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
-	_set_se_translator(se_translator_function);
+	// _set_se_translator(se_translator_function);
 
 	ArgC = argc;
 	ArgV = argv;

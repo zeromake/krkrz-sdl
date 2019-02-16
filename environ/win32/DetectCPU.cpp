@@ -59,22 +59,22 @@ static void TVPGetCPUTypeForOne()
 
 	// check OSFXSR WinXP以降ならサポートしているので、もうこのチェックは無意味かな
 #ifndef TJS_64BIT_OS
-	if(TVPCPUFeatures & TVP_CPU_HAS_SSE)
-	{
-		__try {
-			//__emit__(0x0f, 0x57, 0xc0); // xorps xmm0, xmm0   (SSE)
-			__asm xorps xmm0, xmm0
-		} __except(EXCEPTION_EXECUTE_HANDLER) {
-			// exception had been ocured
-			// execution of 'xorps' is failed (XMM registers not available)
-			TVPCPUFeatures &=~ TVP_CPU_HAS_SSE;
-			TVPCPUFeatures &=~ TVP_CPU_HAS_SSE2;
-			TVPCPUFeatures &=~ TVP_CPU_HAS_SSE3;
-			TVPCPUFeatures &=~ TVP_CPU_HAS_SSSE3;
-			TVPCPUFeatures &=~ TVP_CPU_HAS_SSE41;
-			TVPCPUFeatures &=~ TVP_CPU_HAS_SSE42;
-		}
-	}
+	// if(TVPCPUFeatures & TVP_CPU_HAS_SSE)
+	// {
+	// 	__try {
+	// 		//__emit__(0x0f, 0x57, 0xc0); // xorps xmm0, xmm0   (SSE)
+	// 		__asm xorps xmm0, xmm0
+	// 	} __except(EXCEPTION_EXECUTE_HANDLER) {
+	// 		// exception had been ocured
+	// 		// execution of 'xorps' is failed (XMM registers not available)
+	// 		TVPCPUFeatures &=~ TVP_CPU_HAS_SSE;
+	// 		TVPCPUFeatures &=~ TVP_CPU_HAS_SSE2;
+	// 		TVPCPUFeatures &=~ TVP_CPU_HAS_SSE3;
+	// 		TVPCPUFeatures &=~ TVP_CPU_HAS_SSSE3;
+	// 		TVPCPUFeatures &=~ TVP_CPU_HAS_SSE41;
+	// 		TVPCPUFeatures &=~ TVP_CPU_HAS_SSE42;
+	// 	}
+	// }
 #endif
 }
 //---------------------------------------------------------------------------
