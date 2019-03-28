@@ -160,56 +160,58 @@ void tTJSNI_VideoOverlay::Open(const ttstr &_name)
 	// 'istream' is an IStream instance at this point
 
 	// create video overlay object
-	// try
-	// {
-	// 	{
-	// 		if(Mode == vomLayer)
-	// 			GetVideoLayerObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
-	// 		else if(Mode == vomMixer)
-	// 			GetMixingVideoOverlayObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
-	// 		else if(Mode == vomMFEVR)
-	// 			GetMFVideoOverlayObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
-	// 		else
-	// 			GetVideoOverlayObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
-	// 	}
+#if 0
+	try
+	{
+		{
+			if(Mode == vomLayer)
+				GetVideoLayerObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
+			else if(Mode == vomMixer)
+				GetMixingVideoOverlayObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
+			else if(Mode == vomMFEVR)
+				GetMFVideoOverlayObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
+			else
+				GetVideoOverlayObject(EventQueue.GetOwner(), istream, name.c_str(), ext.c_str(), size, &VideoOverlay);
+		}
 
-	// 	if( (Mode == vomOverlay) || (Mode == vomMixer) || (Mode == vomMFEVR) )
-	// 	{
-	// 		ResetOverlayParams();
-	// 	}
-	// 	else
-	// 	{	// set font and back buffer to layerVideo
-	// 		long	width, height;
-	// 		long			size;
-	// 		VideoOverlay->GetVideoSize( &width, &height );
+		if( (Mode == vomOverlay) || (Mode == vomMixer) || (Mode == vomMFEVR) )
+		{
+			ResetOverlayParams();
+		}
+		else
+		{	// set font and back buffer to layerVideo
+			long	width, height;
+			long			size;
+			VideoOverlay->GetVideoSize( &width, &height );
 			
-	// 		if( width <= 0 || height <= 0 )
-	// 			TVPThrowExceptionMessage(TVPErrorInKrMovieDLL, (const tjs_char*)TVPInvalidVideoSize);
+			if( width <= 0 || height <= 0 )
+				TVPThrowExceptionMessage(TVPErrorInKrMovieDLL, (const tjs_char*)TVPInvalidVideoSize);
 
-	// 		size = width * height * 4;
-	// 		if( Bitmap[0] != NULL )
-	// 			delete Bitmap[0];
-	// 		if( Bitmap[1] != NULL )
-	// 			delete Bitmap[1];
-	// 		Bitmap[0] = new tTVPBaseBitmap( width, height, 32 );
-	// 		Bitmap[1] = new tTVPBaseBitmap( width, height, 32 );
+			size = width * height * 4;
+			if( Bitmap[0] != NULL )
+				delete Bitmap[0];
+			if( Bitmap[1] != NULL )
+				delete Bitmap[1];
+			Bitmap[0] = new tTVPBaseBitmap( width, height, 32 );
+			Bitmap[1] = new tTVPBaseBitmap( width, height, 32 );
 
-	// 		BmpBits[0] = static_cast<BYTE*>(Bitmap[0]->GetBitmap()->GetScanLine( Bitmap[0]->GetBitmap()->GetHeight()-1 ));
-	// 		BmpBits[1] = static_cast<BYTE*>(Bitmap[1]->GetBitmap()->GetScanLine( Bitmap[1]->GetBitmap()->GetHeight()-1 ));
-	// 		//BmpBits[0] = static_cast<BYTE*>(Bitmap[0]->GetBitmap()->GetScanLine( 0 ));
-	// 		//BmpBits[1] = static_cast<BYTE*>(Bitmap[1]->GetBitmap()->GetScanLine( 0 ));
+			BmpBits[0] = static_cast<BYTE*>(Bitmap[0]->GetBitmap()->GetScanLine( Bitmap[0]->GetBitmap()->GetHeight()-1 ));
+			BmpBits[1] = static_cast<BYTE*>(Bitmap[1]->GetBitmap()->GetScanLine( Bitmap[1]->GetBitmap()->GetHeight()-1 ));
+			//BmpBits[0] = static_cast<BYTE*>(Bitmap[0]->GetBitmap()->GetScanLine( 0 ));
+			//BmpBits[1] = static_cast<BYTE*>(Bitmap[1]->GetBitmap()->GetScanLine( 0 ));
 
-	// 		VideoOverlay->SetVideoBuffer( BmpBits[0], BmpBits[1], size );
-	// 	}
-	// }
-	// catch(...)
-	// {
-	// 	if(istream) istream->Release();
-	// 	Close();
-	// 	throw;
-	// }
-	// if(istream) istream->Release();
+			VideoOverlay->SetVideoBuffer( BmpBits[0], BmpBits[1], size );
+		}
+	}
+	catch(...)
+	{
+		if(istream) istream->Release();
+		Close();
+		throw;
+	}
+	if(istream) istream->Release();
 
+#endif
 	// set Status
 	ClearWndProcMessages();
 	SetStatus(tTVPVideoOverlayStatus::Stop);

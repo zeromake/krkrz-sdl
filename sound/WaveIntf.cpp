@@ -21,12 +21,14 @@
 
 
 
-// #define TVP_OPUS_DECODER_IMPLEMENT
+#if 0
+#define TVP_OPUS_DECODER_IMPLEMENT
 
-// extern void TVPQueueSoundSetGlobalVolume(tjs_int v);
-// extern tjs_int TVPQueueSoundGetGlobalVolume();
-// extern void TVPQueueSoundSetGlobalFocusMode(tTVPSoundGlobalFocusMode b);
-// extern tTVPSoundGlobalFocusMode TVPQueueSoundGetGlobalFocusMode();
+extern void TVPQueueSoundSetGlobalVolume(tjs_int v);
+extern tjs_int TVPQueueSoundGetGlobalVolume();
+extern void TVPQueueSoundSetGlobalFocusMode(tTVPSoundGlobalFocusMode b);
+extern tTVPSoundGlobalFocusMode TVPQueueSoundGetGlobalFocusMode();
+#endif
 
 #ifdef _WIN32
 extern tTJSNativeClass * TVPCreateNativeClass_WaveSoundBuffer();
@@ -37,10 +39,17 @@ extern void TVPSoundSetGlobalFocusMode(tTVPSoundGlobalFocusMode b);
 extern tTVPSoundGlobalFocusMode TVPSoundGetGlobalFocusMode();
 #endif
 
+#if 0
+static void (*TVPSetGlobalVolume)(tjs_int v) = TVPQueueSoundSetGlobalVolume;
+static tjs_int (*TVPGetGlobalVolume)() = TVPQueueSoundGetGlobalVolume;
+static void (*TVPSetGlobalFocusMode)(tTVPSoundGlobalFocusMode b) = TVPQueueSoundSetGlobalFocusMode;
+static tTVPSoundGlobalFocusMode (*TVPGetGlobalFocusMode)() = TVPQueueSoundGetGlobalFocusMode;
+#else
 static void (*TVPSetGlobalVolume)(tjs_int v) = TVPSoundSetGlobalVolume;
 static tjs_int (*TVPGetGlobalVolume)() = TVPSoundGetGlobalVolume;
 static void (*TVPSetGlobalFocusMode)(tTVPSoundGlobalFocusMode b) = TVPSoundSetGlobalFocusMode;
 static tTVPSoundGlobalFocusMode (*TVPGetGlobalFocusMode)() = TVPSoundGetGlobalFocusMode;
+#endif
 
 //---------------------------------------------------------------------------
 // PCM related constants / definitions
@@ -129,19 +138,19 @@ static void TVPConvertFloatPCMTo16bits(tjs_int16 *output, const float *input,
 	if(!downmix)
 	{
 		tjs_int total = channels * count;
-// #if defined(_M_IX86)||defined(_M_X64)
-// 		bool use_sse =
-// 				(TVPCPUType & TVP_CPU_HAS_MMX) &&
-// 				(TVPCPUType & TVP_CPU_HAS_SSE) &&
-// 				(TVPCPUType & TVP_CPU_HAS_CMOV);
+#if 0 && defined(_M_IX86)||defined(_M_X64)
+		bool use_sse =
+				(TVPCPUType & TVP_CPU_HAS_MMX) &&
+				(TVPCPUType & TVP_CPU_HAS_SSE) &&
+				(TVPCPUType & TVP_CPU_HAS_CMOV);
 
-// 		if(use_sse)
-// 			PCMConvertLoopFloat32ToInt16_sse(output, input, total);
-// 		else
-// 			PCMConvertLoopFloat32ToInt16(output, input, total);
-// #else
+		if(use_sse)
+			PCMConvertLoopFloat32ToInt16_sse(output, input, total);
+		else
+			PCMConvertLoopFloat32ToInt16(output, input, total);
+#else
 		PCMConvertLoopFloat32ToInt16(output, input, total);
-// #endif
+#endif
 	}
 	else
 	{
@@ -375,20 +384,20 @@ static void TVPConvertIntegerPCMToFloat(float *output, const void *input,
 
 		if(validbits == 16)
 		{
-// #if defined(_M_IX86)||defined(_M_X64)
-// 			// most popular
-// 			bool use_sse =
-// 					(TVPCPUType & TVP_CPU_HAS_MMX) &&
-// 					(TVPCPUType & TVP_CPU_HAS_SSE) &&
-// 					(TVPCPUType & TVP_CPU_HAS_CMOV);
+#if 0 && defined(_M_IX86)||defined(_M_X64)
+			// most popular
+			bool use_sse =
+					(TVPCPUType & TVP_CPU_HAS_MMX) &&
+					(TVPCPUType & TVP_CPU_HAS_SSE) &&
+					(TVPCPUType & TVP_CPU_HAS_CMOV);
 
-// 			if(use_sse)
-// 				PCMConvertLoopInt16ToFloat32_sse(output, p, total);
-// 			else
-// 				PCMConvertLoopInt16ToFloat32(output, p, total);
-// #else
+			if(use_sse)
+				PCMConvertLoopInt16ToFloat32_sse(output, p, total);
+			else
+				PCMConvertLoopInt16ToFloat32(output, p, total);
+#else
 			PCMConvertLoopInt16ToFloat32(output, p, total);
-// #endif
+#endif
 		}
 		else
 		{
@@ -1806,20 +1815,23 @@ extern tTJSNativeClass * TVPCreateNativeClass_QueueSoundBuffer();
 
 tTJSNativeClass * TVPCreateNativeClass_SoundBuffer()
 {
-#ifdef _WIN32
-	// if( TVPHasXAudio2DLL() ) {
-	// 	TVPSetGlobalVolume = TVPQueueSoundSetGlobalVolume;
-	// 	TVPGetGlobalVolume = TVPQueueSoundGetGlobalVolume;
-	// 	TVPSetGlobalFocusMode = TVPQueueSoundSetGlobalFocusMode;
-	// 	TVPGetGlobalFocusMode = TVPQueueSoundGetGlobalFocusMode;
-	// 	return TVPCreateNativeClass_QueueSoundBuffer();
-	// } else {
+#if 1 || defined(_WIN32)
+#if 0
+	if( TVPHasXAudio2DLL() ) {
+		TVPSetGlobalVolume = TVPQueueSoundSetGlobalVolume;
+		TVPGetGlobalVolume = TVPQueueSoundGetGlobalVolume;
+		TVPSetGlobalFocusMode = TVPQueueSoundSetGlobalFocusMode;
+		TVPGetGlobalFocusMode = TVPQueueSoundGetGlobalFocusMode;
+		return TVPCreateNativeClass_QueueSoundBuffer();
+	} else 
+#endif
+	{
 		TVPSetGlobalVolume = TVPSoundSetGlobalVolume;
 		TVPGetGlobalVolume = TVPSoundGetGlobalVolume;
 		TVPSetGlobalFocusMode = TVPSoundSetGlobalFocusMode;
 		TVPGetGlobalFocusMode = TVPSoundGetGlobalFocusMode;
 		return TVPCreateNativeClass_WaveSoundBuffer();
-	// }
+	}
 #else
 	return TVPCreateNativeClass_QueueSoundBuffer();
 #endif
