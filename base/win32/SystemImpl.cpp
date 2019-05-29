@@ -141,10 +141,14 @@ ttstr TVPGetOSName()
 	}
 	if( isGetVersion == false ) {
 		// Probably do not call on Windows NT
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4996)
+#endif
 		::GetVersionEx((OSVERSIONINFO*)&ovi);
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 	}
 	tjs_char buf[256];
 	const tjs_char *osname = NULL;
