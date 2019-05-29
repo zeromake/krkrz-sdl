@@ -7,13 +7,13 @@ WINDRES := i686-w64-mingw32-windres
 # CFLAGS_OPT := -O0
 CFLAGS_OPT := -Ofast
 GIT_TAG := $(shell git describe --abbrev=0 --tags)
-INCFLAGS += -I. -Ibase -Ibase/win32 -Ienviron -Ienviron/win32 -Iextension -Iexternal -Iexternal/angle/include -Iexternal/baseclasses -Iexternal/freetype/include -Iexternal/freetype/src -Iexternal/freetype/devel -Iexternal/freetype/src/gzip -Iexternal/glm -Iexternal/jxrlib/image/sys -Iexternal/jxrlib/jxrgluelib -Iexternal/libjpeg-turbo -Iexternal/libjpeg-turbo/simd -Iexternal/libjpeg-turbo/vcproj -Iexternal/libjpeg-turbo/win -Iexternal/libogg/include -Iexternal/lpng -Iexternal/onig -Iexternal/onig/src -Iexternal/opus/include -Iexternal/opusfile/include -Iexternal/zlib -Imovie/win32 -Imsg -Imsg/win32 -Iplatform/win32 -Isound -Isound/win32 -Itjs2 -Iutils -Iutils/win32 -Ivcproj -Ivisual -Ivisual/IA32 -Ivisual/gl -Ivisual/opengl -Ivisual/win32
+INCFLAGS += -I. -Ibase -Ibase/win32 -Ienviron -Ienviron/win32 -Iextension -Iexternal -Iexternal/angle/include -Iexternal/baseclasses -Iexternal/freetype/include -Iexternal/freetype/src -Iexternal/freetype/devel -Iexternal/glm -Iexternal/jxrlib/image/sys -Iexternal/jxrlib/jxrgluelib -Iexternal/libjpeg-turbo -Iexternal/libjpeg-turbo/simd -Iexternal/libjpeg-turbo/vcproj -Iexternal/libjpeg-turbo/win -Iexternal/libogg/include -Iexternal/lpng -Iexternal/onig -Iexternal/onig/src -Iexternal/opus/include -Iexternal/opusfile/include -Iexternal/zlib -Imovie/win32 -Imsg -Imsg/win32 -Iplatform/win32 -Isound -Isound/win32 -Itjs2 -Iutils -Iutils/win32 -Ivcproj -Ivisual -Ivisual/IA32 -Ivisual/gl -Ivisual/opengl -Ivisual/win32
 ASMFLAGS += $(INCFLAGS) -fwin32 -DWIN32
 # CFLAGS += -gstabs -D_DEBUG -DDEBUG -DENABLE_DEBUGGER 
 CFLAGS += -march=ivybridge -mfpmath=sse
 CFLAGS += -gstabs -DNDEBUG -D_NDEBUG
 CFLAGS += -flto -fno-delete-null-pointer-checks -fno-strict-aliasing
-CFLAGS += $(INCFLAGS) -DGIT_TAG=L\"$(GIT_TAG)\" -DWIN32 -D_WINDOWS -DNO_STRICT -DHAVE_CONFIG_H -DPCRE_STATIC -DFT2_BUILD_LIBRARY -DMINGW_HAS_SECURE_API -DUNICODE -D_UNICODE -DCMAKE_INTDIR=\"Release\" -DWITH_SIMD
+CFLAGS += $(INCFLAGS) -DGIT_TAG=L\"$(GIT_TAG)\" -DWIN32 -D_WINDOWS -DNO_STRICT -DHAVE_CONFIG_H -DFT2_BUILD_LIBRARY -DMINGW_HAS_SECURE_API -DUNICODE -D_UNICODE -DWITH_SIMD
 CFLAGS += -DTVP_REPORT_HW_EXCEPTION -DTVP_LOG_TO_COMMANDLINE_CONSOLE -DTJS_TEXT_OUT_CRLF -DTJS_JP_LOCALIZED -DTJS_DEBUG_DUMP_STRING
 CXXFLAGS += $(CFLAGS) -fpermissive
 LDFLAGS += -static -static-libstdc++ -static-libgcc -municode
