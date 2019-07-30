@@ -1815,16 +1815,17 @@ extern tTJSNativeClass * TVPCreateNativeClass_QueueSoundBuffer();
 
 tTJSNativeClass * TVPCreateNativeClass_SoundBuffer()
 {
-#if 1 || defined(_WIN32)
+#ifdef _WIN32
+	//if( TVPHasXAudio2DLL() ) {	// TODO XAudio2 の時どうも status が stop に変わらないケースがある模様
+	if( false ) {
 #if 0
-	if( TVPHasXAudio2DLL() ) {
 		TVPSetGlobalVolume = TVPQueueSoundSetGlobalVolume;
 		TVPGetGlobalVolume = TVPQueueSoundGetGlobalVolume;
 		TVPSetGlobalFocusMode = TVPQueueSoundSetGlobalFocusMode;
 		TVPGetGlobalFocusMode = TVPQueueSoundGetGlobalFocusMode;
 		return TVPCreateNativeClass_QueueSoundBuffer();
-	} else 
 #endif
+	} else 
 	{
 		TVPSetGlobalVolume = TVPSoundSetGlobalVolume;
 		TVPGetGlobalVolume = TVPSoundGetGlobalVolume;

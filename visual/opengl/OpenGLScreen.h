@@ -31,6 +31,7 @@ class tTVPOpenGLScreen {
 	//EGLNativeWindowType mNativeWindow;	// HWND
 	EGLNativeDisplayType mNativeDisplay;// HDC
 #endif
+	void GetConfigAttribute( EGLConfig config );
 public:
 	tTVPOpenGLScreen( void* nativeHandle );
 
@@ -50,6 +51,7 @@ public:
 	EGLint GetSurfaceHeight() const;
 
 	static bool CheckEGLErrorAndLog();
+	static bool CheckGLErrorAndLog(const tjs_char* funcname=nullptr);
 
 	void SetScissorRect( const tTVPRect& rect );
 	void DisableScissorRect();

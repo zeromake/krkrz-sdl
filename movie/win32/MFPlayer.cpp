@@ -23,12 +23,14 @@
 #include "krmovie.h"
 #include "MFPlayer.h"
 #include "DShowException.h"
+#include "DebugIntf.h"
+#include "DShowException.h"
 
 #pragma comment( lib, "propsys.lib" )
-//#pragma comment( lib, "Mfplat.lib" )
-#pragma comment( lib, "Mfplat_vista.lib" )
-//#pragma comment( lib, "Mf.lib" )
-#pragma comment( lib, "Mf_vista.lib" )
+#pragma comment( lib, "Mfplat.lib" )
+//#pragma comment( lib, "Mfplat_vista.lib" )
+#pragma comment( lib, "Mf.lib" )
+//#pragma comment( lib, "Mf_vista.lib" )
 #pragma comment( lib, "Mfuuid.lib" )
 //#pragma comment( lib, "d3d9.lib" )
 //#pragma comment( lib, "dxva2.lib" )
@@ -184,15 +186,54 @@ void __stdcall tTVPMFPlayer::BuildGraph( HWND callbackwin, IStream *stream,
 
 	HRESULT hr = S_OK;
 	// MFCreateMFByteStreamOnStream は、Windows 7 以降にのみある API なので、動的ロードして Vista での起動に支障がないようにする
+	// Vista は非サポートとなったので、直接使用するように変更。
+	/*
 	if( MfplatDLL.IsLoaded() == false ) MfplatDLL.Load(TJS_W("mfplat.dll"));
 	typedef HRESULT (WINAPI *FuncMFCreateMFByteStreamOnStream)(IStream *pStream,IMFByteStream **ppByteStream);
 	FuncMFCreateMFByteStreamOnStream pCreateMFByteStream = (FuncMFCreateMFByteStreamOnStream)MfplatDLL.GetProcAddress("MFCreateMFByteStreamOnStream");
 	if( pCreateMFByteStream == NULL ) {
 		TVPThrowExceptionMessage(TJS_W("Faild to retrieve MFCreateMFByteStreamOnStream from mfplat.dll."));
 	}
-	if( FAILED(hr = pCreateMFByteStream( stream, &ByteStream )) ) {
+	*/
+	if( FAILED(hr = MFCreateMFByteStreamOnStream( stream, &ByteStream )) ) {
 		TVPThrowExceptionMessage(TJS_W("Faild to create stream."));
 	}
+	ContentType = tjs_string( ParseVideoType( type ) );
+/*
+	CComPtr<IMFAttributes> pAttribute;
+	if( SUCCEEDED( hr = ByteStream.QueryInterface( &pAttribute ) ) ) {
+		bool hasContentType = false;
+		UINT32 len;
+		if( SUCCEEDED( hr = pAttribute->GetString( MF_BYTESTREAM_CONTENT_TYPE, NULL, 0, &len ) ) ) {
+			std::unique_ptr<WCHAR[]> contentType( new WCHAR[len + 1] );
+			if( SUCCEEDED( hr = pAttribute->GetString( MF_BYTESTREAM_CONTENT_TYPE, (LPWSTR)contentType.get(), len + 1, NULL ) ) ) {
+				hasContentType = true;
+			}
+		}
+		if( hasContentType == false ) {
+			const tjs_char *ctype = ParseVideoType( type );
+			if( FAILED( hr = pAttribute->SetString( MF_BYTESTREAM_CONTENT_TYPE, ctype ) ) ) {
+				ThrowDShowException( TJS_W( "Faild to set content type." ), hr );
+			}
+		}
+	}
+*/
+}
+
+//----------------------------------------------------------------------------
+//! @brief	  	拡張子からムービーのタイプを判別します
+//! @param		type : ムービーファイルの拡張子
+//----------------------------------------------------------------------------
+const tjs_char * tTVPMFPlayer::ParseVideoType( const tjs_char *type ) {
+	if( _wcsicmp( type, TJS_W( ".mp4" ) ) == 0 )
+		return TJS_W( "video/mp4" );
+	else if( _wcsicmp( type, TJS_W( ".wmv" ) ) == 0 )
+		return TJS_W("video/x-ms-wmv");
+	else if( _wcsicmp( type, TJS_W( ".avi" ) ) == 0 )
+		return TJS_W( "video/x-msvideo" );
+	else
+		TVPThrowExceptionMessage( TJS_W( "Unknown video format extension." ) ); // unknown format
+	return nullptr;
 }
 /*
 HRESULT tTVPMFPlayer::GetPresentationDescriptorFromTopology( IMFPresentationDescriptor **ppPD ) {
@@ -230,10 +271,13 @@ void tTVPMFPlayer::OnTopologyStatus(UINT32 status) {
 		CComPtr<IMFGetService> pGetService;
 		if( SUCCEEDED(hr = MediaSession->QueryInterface( &pGetService )) ) {
 			if( FAILED(hr = pGetService->GetService( MR_VIDEO_RENDER_SERVICE, IID_IMFVideoDisplayControl, (void**)&VideoDisplayControl )) ) {
+				TVPAddLog( TJS_W( "MF : Cannot retrieve IID_IMFVideoDisplayControl." ) );
 			}
 			if( FAILED(hr = pGetService->GetService( MR_STREAM_VOLUME_SERVICE, IID_IMFAudioStreamVolume, (void**)&AudioVolume )) ) {
+				TVPAddLog(TJS_W("MF : Cannot retrieve IID_IMFAudioStreamVolume."));
 			}
 			if( FAILED(hr = pGetService->GetService( MR_POLICY_VOLUME_SERVICE, IID_IMFSimpleAudioVolume, (void**)&SimpleAudioVolume )) ) {
+				TVPAddLog( TJS_W( "MF : Cannot retrieve IID_IMFSimpleAudioVolume." ) );
 			}
 			pGetService->GetService( MF_RATE_CONTROL_SERVICE, IID_IMFRateControl, (void**)&RateControl );
 			pGetService->GetService( MF_RATE_CONTROL_SERVICE, IID_IMFRateSupport, (void**)&RateSupport );
@@ -270,52 +314,68 @@ HRESULT tTVPMFPlayer::CreateVideoPlayer() {
 		return E_FAIL;
 
 	if( FAILED(hr = MFCreateMediaSession( NULL, &MediaSession )) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to create Media session."));
+		ThrowDShowException(TJS_W("Faild to create Media session."), hr);
 	}
 	if( FAILED(hr = MediaSession->BeginGetEvent( PlayerCallback, NULL )) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to begin get event."));
+		ThrowDShowException(TJS_W("Faild to begin get event."), hr);
+	}
+	CComPtr<IMFAttributes> pAttribute;
+	if( SUCCEEDED( hr = ByteStream.QueryInterface( &pAttribute ) ) ) {
+		bool hasContentType = false;
+		UINT32 len;
+		if( SUCCEEDED( hr = pAttribute->GetString( MF_BYTESTREAM_CONTENT_TYPE, NULL, 0, &len ) ) ) {
+			std::unique_ptr<WCHAR[]> contentType( new WCHAR[len + 1] );
+			if( SUCCEEDED( hr = pAttribute->GetString( MF_BYTESTREAM_CONTENT_TYPE, (LPWSTR)contentType.get(), len + 1, NULL ) ) ) {
+				hasContentType = true;
+			}
+		}
+		if( hasContentType == false ) {
+			if( FAILED( hr = pAttribute->SetString( MF_BYTESTREAM_CONTENT_TYPE, ContentType.c_str() ) ) ) {
+				ThrowDShowException( TJS_W( "Faild to set content type." ), hr );
+			}
+		}
 	}
 	CComPtr<IMFSourceResolver> pSourceResolver;
 	if( FAILED(hr = MFCreateSourceResolver(&pSourceResolver)) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to create source resolver."));
+		ThrowDShowException(TJS_W("Faild to create source resolver."), hr);
 	}
 	MF_OBJECT_TYPE ObjectType = MF_OBJECT_INVALID;
 	CComPtr<IUnknown> pSource;
 	if( FAILED(hr = pSourceResolver->CreateObjectFromByteStream( ByteStream, StreamName.c_str(), MF_RESOLUTION_MEDIASOURCE, NULL, &ObjectType, (IUnknown**)&pSource )) ) {
 	//if( FAILED(hr = pSourceResolver->CreateObjectFromURL( TJS_W("C:\\krkrz\\bin\\win32\\data\\test.mp4"),
 	//	MF_RESOLUTION_MEDIASOURCE, NULL, &ObjectType, (IUnknown**)&pSource)) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to open stream."));
+		ThrowDShowException(TJS_W("Faild to open stream."), hr );
 	}
 	if( ObjectType != MF_OBJECT_MEDIASOURCE ) {
 		TVPThrowExceptionMessage(TJS_W("Invalid media source."));
 	}
 	//CComPtr<IMFMediaSource> pMediaSource;
 	if( FAILED(hr = pSource.QueryInterface(&MediaSource)) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to query Media source."));
+		ThrowDShowException(TJS_W("Faild to query Media source."), hr );
 	}
 	if( FAILED(hr = MFCreateTopology(&Topology)) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to create Topology."));
+		ThrowDShowException(TJS_W("Faild to create Topology."), hr );
 	}
 	CComPtr<IMFPresentationDescriptor> pPresentationDescriptor;
 	if( FAILED(hr = MediaSource->CreatePresentationDescriptor(&pPresentationDescriptor)) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to create Presentation Descriptor."));
+		ThrowDShowException(TJS_W("Faild to create Presentation Descriptor."), hr );
 	}
 	DWORD streamCount;
 	if( FAILED(hr = pPresentationDescriptor->GetStreamDescriptorCount(&streamCount)) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to get stream count."));
+		ThrowDShowException(TJS_W("Faild to get stream count."), hr );
 	}
 	if( streamCount < 1 ) {
 		TVPThrowExceptionMessage(TJS_W("Not found media stream."));
 	}
 	for( DWORD i = 0; i < streamCount; i++ ) {
 		if( FAILED(hr = AddBranchToPartialTopology(Topology, MediaSource, pPresentationDescriptor, i, hWnd)) ) {
-			TVPThrowExceptionMessage(TJS_W("Faild to add nodes."));
+			ThrowDShowException(TJS_W("Faild to add nodes."), hr );
 		}
 	}
 	pPresentationDescriptor->GetUINT64(MF_PD_DURATION, (UINT64*)&HnsDuration);
 	
 	if( FAILED(hr = MediaSession->SetTopology( 0, Topology )) ) {
-		TVPThrowExceptionMessage(TJS_W("Faild to set topology."));
+		ThrowDShowException(TJS_W("Faild to set topology."), hr );
 	}
 	return hr;
 }
@@ -554,15 +614,21 @@ void tTVPMFPlayer::OnPlay() {
 //----------------------------------------------------------------------------
 void __stdcall tTVPMFPlayer::SetWindow(HWND window) {
 	HRESULT hr = E_FAIL;
-	OwnerWindow = window;
-	PlayWindow::SetOwner( window );
-	if( VideoDisplayControl.p ) {
-		hr = VideoDisplayControl->SetVideoWindow( window );
-		if( FAILED(hr) ) {
-			TVPThrowExceptionMessage(TJS_W("Faild to call SetVideoWindow."));
+	// 吉里吉里ZではWindowハンドルが変わらないはずなので、NULLの時は何もしない
+	if( window == NULL ) return;
+
+	if( OwnerWindow != window ) {
+		OwnerWindow = window;
+		PlayWindow::SetOwner( window );
+		if( VideoDisplayControl.p ) {
+			//hr = VideoDisplayControl->SetVideoWindow( window );
+			hr = VideoDisplayControl->SetVideoWindow( GetChildWindow() );
+			if( FAILED( hr ) ) {
+				TVPThrowExceptionMessage( TJS_W( "Faild to call SetVideoWindow." ) );
+			}
 		}
+		CreateVideoPlayer();
 	}
-	CreateVideoPlayer();
 }
 void __stdcall tTVPMFPlayer::SetMessageDrainWindow(HWND window) {
 	PlayWindow::SetMessageDrainWindow( window );
@@ -578,6 +644,7 @@ void __stdcall tTVPMFPlayer::SetRect(RECT *rect) {
 		vr.right = rect->right - rect->left;
 		vr.bottom = rect->bottom - rect->top;
 		// MF では、ソース矩形も指定可能になっている
+		VideoDisplayControl->SetAspectRatioMode( MFVideoARMode_PreservePicture );
 		HRESULT hr = VideoDisplayControl->SetVideoPosition( NULL, &vr );
 		if( FAILED(hr) ) {
 			TVPThrowExceptionMessage(TJS_W("Faild to set rect."));
