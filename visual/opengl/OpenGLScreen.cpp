@@ -5,10 +5,12 @@
 #include "DebugIntf.h"
 #include "GLTexture.h"
 
+#if 0
 #ifdef WIN32
 #include <d3d9.h>
 #include <atlbase.h>
 #include "CDLLLoader.h"
+#endif
 #endif
 
 extern int TVPOpenGLESVersion;
