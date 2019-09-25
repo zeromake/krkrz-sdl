@@ -10,7 +10,7 @@ GIT_TAG := $(shell git describe --abbrev=0 --tags)
 INCFLAGS += -I. -Ibase -Ibase/win32 -Ienviron -Ienviron/win32 -Iextension -Iexternal -Iexternal/angle/include -Iexternal/baseclasses -Iexternal/freetype/include -Iexternal/freetype/src -Iexternal/freetype/devel -Iexternal/glm -Iexternal/jxrlib/image/sys -Iexternal/jxrlib/jxrgluelib -Iexternal/libjpeg-turbo -Iexternal/libjpeg-turbo/simd -Iexternal/libjpeg-turbo/vcproj -Iexternal/libjpeg-turbo/win -Iexternal/libogg/include -Iexternal/lpng -Iexternal/onig -Iexternal/onig/src -Iexternal/libogg/include -Iexternal/opus/celt -Iexternal/opus/include -Iexternal/opus/win32 -Iexternal/opus/silk -Iexternal/opus/silk/fixed -Iexternal/opus/silk/float -Iexternal/opusfile/include -Iexternal/opusfile/src -Iexternal/zlib -Imovie/win32 -Imsg -Imsg/win32 -Iplatform/win32 -Isound -Isound/win32 -Itjs2 -Iutils -Iutils/win32 -Ivcproj -Ivisual -Ivisual/IA32 -Ivisual/gl -Ivisual/opengl -Ivisual/win32
 ASMFLAGS += $(INCFLAGS) -fwin32 -DWIN32
 # CFLAGS += -gstabs -D_DEBUG -DDEBUG -DENABLE_DEBUGGER 
-CFLAGS += -march=ivybridge -mfpmath=sse
+CFLAGS += -march=pentium4 -mfpmath=sse
 CFLAGS += -gstabs -DNDEBUG -D_NDEBUG
 CFLAGS += -fno-delete-null-pointer-checks -fno-strict-aliasing
 CFLAGS += $(INCFLAGS) -DGIT_TAG=L\"$(GIT_TAG)\" -DWIN32 -D_WINDOWS -DNO_STRICT -DHAVE_CONFIG_H -DFT2_BUILD_LIBRARY -DUSE_ALLOCA -DOPUS_BUILD -DHAVE_LRINTF -DHAVE_LRINT -DFLOAT_APPROX -DMINGW_HAS_SECURE_API -DUNICODE -D_UNICODE -DWITH_SIMD
