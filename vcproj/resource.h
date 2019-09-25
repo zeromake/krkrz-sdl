@@ -46,3 +46,8 @@
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
+
+// workaround for MinGW-w64 missing define
+#ifndef LANG_CHINESE_TRADITIONAL
+#define LANG_CHINESE_TRADITIONAL  0x7c04
+#endif
