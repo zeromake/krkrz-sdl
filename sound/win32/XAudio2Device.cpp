@@ -17,6 +17,9 @@
 
 //#pragma comment(lib,"XAudio2.lib")
 bool TVPHasXAudio2DLL() {
+#if 1
+	return false;
+#else
 	HMODULE hModule = nullptr;
 	hModule = ::LoadLibrary( TJS_W("XAudio2_9.dll") );
 	if( hModule == nullptr ) {
@@ -27,6 +30,7 @@ bool TVPHasXAudio2DLL() {
 		::FreeLibrary(hModule);
 	}
 	return result;
+#endif
 }
 class XAudio2Stream;
 class XAudio2Device : public iTVPAudioDevice {
