@@ -1816,17 +1816,13 @@ extern tTJSNativeClass * TVPCreateNativeClass_QueueSoundBuffer();
 tTJSNativeClass * TVPCreateNativeClass_SoundBuffer()
 {
 #ifdef _WIN32
-	//if( TVPHasXAudio2DLL() ) {	// TODO XAudio2 の時どうも status が stop に変わらないケースがある模様
-	if( false ) {
-#if 0
+	if( TVPHasXAudio2DLL() ) {	// TODO オプションでXAudio2かDirectSoundのどちらを使うか選べる方が好ましい、Wasapiに対応できればもっといい。オプション追加した場合、DS用オプションが色々あるのでその辺りも検討必要。
 		TVPSetGlobalVolume = TVPQueueSoundSetGlobalVolume;
 		TVPGetGlobalVolume = TVPQueueSoundGetGlobalVolume;
 		TVPSetGlobalFocusMode = TVPQueueSoundSetGlobalFocusMode;
 		TVPGetGlobalFocusMode = TVPQueueSoundGetGlobalFocusMode;
 		return TVPCreateNativeClass_QueueSoundBuffer();
-#endif
-	} else 
-	{
+	} else {
 		TVPSetGlobalVolume = TVPSoundSetGlobalVolume;
 		TVPGetGlobalVolume = TVPSoundGetGlobalVolume;
 		TVPSetGlobalFocusMode = TVPSoundSetGlobalFocusMode;
