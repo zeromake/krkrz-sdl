@@ -21,7 +21,7 @@
 
 
 
-#if 0
+#if 1
 #define TVP_OPUS_DECODER_IMPLEMENT
 
 extern void TVPQueueSoundSetGlobalVolume(tjs_int v);
