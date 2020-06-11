@@ -16,8 +16,10 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#if 0
 #include <x86intrin.h>
 #include "xmmlib.h"
+#endif
 
 
 //---------------------------------------------------------------------------
@@ -169,6 +171,7 @@ void  InterleaveOverlappingWindow(float * __restrict dest,
 //---------------------------------------------------------------------------
 
 
+#if 0
 //---------------------------------------------------------------------------
 
 
@@ -575,6 +578,7 @@ void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __r
 void  InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __restrict const * __restrict src,
 					float * __restrict win, int numch, size_t srcofs, size_t len);
 //---------------------------------------------------------------------------
+#endif
 #endif
 
 

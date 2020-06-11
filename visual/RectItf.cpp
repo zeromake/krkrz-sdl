@@ -3,8 +3,10 @@
 
 #include "RectItf.h"
 #include "MsgIntf.h"
+#if 0
 #include <glm/glm.hpp>
 #include "Matrix32Intf.h"
+#endif
 
 tTJSNI_Rect::tTJSNI_Rect() : Rect(0,0,0,0) {
 }
@@ -36,6 +38,7 @@ tjs_error TJS_INTF_METHOD
 }
 void TJS_INTF_METHOD tTJSNI_Rect::Invalidate() {
 }
+#if 0
 // Crossing Number Algorithmで判定
 bool tTJSNI_Rect::Included( tjs_real x, tjs_real y, const class tTJSNI_Matrix32* matrix ) const {
 	glm::vec2 vtx[4]{{(float)Rect.left, (float)Rect.top },
@@ -58,6 +61,7 @@ bool tTJSNI_Rect::Included( tjs_real x, tjs_real y, const class tTJSNI_Matrix32*
 	}
 	return (count % 2) != 0;
 }
+#endif
 
 
 tjs_uint32 tTJSNC_Rect::ClassID = -1;
@@ -205,11 +209,13 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/includedPos)
 	tjs_int ret = 0;
 	if( numparams < 3 ) {
 		ret = _this->Included( *param[0], *param[1] ) ? 1 : 0;
+#if 0
 	} else {
 		tTJSNI_Matrix32* matrix = (tTJSNI_Matrix32*)TJSGetNativeInstance( tTJSNC_Matrix32::ClassID, param[2] );
 		if( matrix ) {
 			ret = _this->Included( *param[0], *param[1], matrix ) ? 1 : 0;
 		}
+#endif
 	}
 	if(result) *result = ret;
 	return TJS_S_OK;

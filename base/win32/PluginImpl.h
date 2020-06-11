@@ -12,10 +12,13 @@
 #define PluginImplH
 //---------------------------------------------------------------------------
 #include <memory.h>
+#if 0
 #include <objidl.h> // for IStream
+#endif
 
 #include "PluginIntf.h"
 
+#if 0
 #ifdef TVP_SUPPORT_KPI
 	#include "kmp_pi.h"
 #endif
@@ -157,6 +160,7 @@ TJS_EXP_FUNC_DEF(bool, TVPGetFileVersionOf, (const tjs_char* module_filename, tj
 
 //---------------------------------------------------------------------------
 extern bool TVPPluginUnloadedAtSystemExit;
+#endif
 extern void TVPLoadPluigins(void);
 //---------------------------------------------------------------------------
 

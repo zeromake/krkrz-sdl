@@ -31,6 +31,8 @@ extern tTVPSoundGlobalFocusMode TVPQueueSoundGetGlobalFocusMode();
 #endif
 
 #ifdef _WIN32
+#endif
+#if 1
 extern tTJSNativeClass * TVPCreateNativeClass_WaveSoundBuffer();
 extern bool TVPHasXAudio2DLL();
 extern void TVPSoundSetGlobalVolume(tjs_int v);
@@ -108,9 +110,11 @@ tjs_uint8 TVP_GUID_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT[16] =
 //---------------------------------------------------------------------------
 
 
+#if 0
 #include "DetectCPU.h"
 #if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 #include "tvpgl_ia32_intf.h"
+#endif
 #endif
 
 //---------------------------------------------------------------------------
@@ -118,9 +122,11 @@ tjs_uint8 TVP_GUID_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT[16] =
 //---------------------------------------------------------------------------
 extern void PCMConvertLoopInt16ToFloat32(void * __restrict dest, const void * __restrict src, size_t numsamples);
 extern void PCMConvertLoopFloat32ToInt16(void * __restrict dest, const void * __restrict src, size_t numsamples);
+#if 0
 #if defined(_M_IX86)||defined(_M_X64)
 extern void PCMConvertLoopInt16ToFloat32_sse(void * __restrict dest, const void * __restrict src, size_t numsamples);
 extern void PCMConvertLoopFloat32ToInt16_sse(void * __restrict dest, const void * __restrict src, size_t numsamples);
+#endif
 #endif
 
 
@@ -839,6 +845,80 @@ tTVPWaveDecoder *  TVPCreateWaveDecoder(const ttstr & storagename)
 
 
 
+//---------------------------------------------------------------------------
+// sound format convert filter
+//---------------------------------------------------------------------------
+class iSoundBufferConvertToPCM16 : public tTJSDispatch, // could be hold by tFilterObjectAndInterface
+	public iTVPBasicWaveFilter, public tTVPSampleAndLabelSource
+{
+protected:
+	tTVPSampleAndLabelSource * Source; // source filter
+	tTVPWaveFormat OutputFormat;
+
+public:
+	virtual tTVPSampleAndLabelSource * Recreate(tTVPSampleAndLabelSource * source) {
+		Source = source;
+		OutputFormat = source->GetFormat();
+		OutputFormat.IsFloat = false;
+		OutputFormat.BitsPerSample = 16;
+		OutputFormat.BytesPerSample = 2;
+		return this;
+	}
+	virtual ~iSoundBufferConvertToPCM16() {}
+	virtual void Clear(void) { Source = nullptr; }
+	virtual void Update(void) {};
+	virtual void Reset(void) {};
+
+	virtual const tTVPWaveFormat & GetFormat() const { return OutputFormat; }
+};
+//---------------------------------------------------------------------------
+class SoundBufferConvertFloatToPCM16 : public iSoundBufferConvertToPCM16 {
+	std::vector<float> buffer;
+	virtual void Decode(void *dest, tjs_uint samples, tjs_uint &written,
+		tTVPWaveSegmentQueue &segments) {
+		tjs_uint numsamples = samples * OutputFormat.Channels;
+		if (buffer.size() < numsamples) buffer.resize(numsamples);
+		float *p = &buffer[0];
+		Source->Decode(p, samples, written, segments);
+		numsamples = written * OutputFormat.Channels;
+		PCMConvertLoopFloat32ToInt16(dest, p, numsamples);
+	}
+};
+//---------------------------------------------------------------------------
+class SoundBufferConvertPCM24ToPCM16 : public iSoundBufferConvertToPCM16 {
+	std::vector<char> buffer;
+	virtual void Decode(void *dest, tjs_uint samples, tjs_uint &written,
+		tTVPWaveSegmentQueue &segments) {
+		tjs_uint numsamples = samples * OutputFormat.Channels;
+		if (buffer.size() < numsamples * 3) buffer.resize(numsamples * 3);
+		char *p = &buffer[0]; int16_t *d = (int16_t *)dest;
+		Source->Decode(p, samples, written, segments);
+		numsamples = written * OutputFormat.Channels;
+		for (int i = 0; i < numsamples; ++i) {
+			d[i] = *(int16_t*)(p + 1);
+			p += 3;
+		}
+	}
+};
+//---------------------------------------------------------------------------
+class SoundBufferConvertPCM32ToPCM16 : public iSoundBufferConvertToPCM16 {
+	std::vector<int32_t> buffer;
+	virtual void Decode(void *dest, tjs_uint samples, tjs_uint &written,
+		tTVPWaveSegmentQueue &segments) {
+		tjs_uint numsamples = samples * OutputFormat.Channels;
+		if (buffer.size() < numsamples) buffer.resize(numsamples);
+		char *p = (char *)&buffer[0]; int16_t *d = (int16_t *)dest;
+		Source->Decode(p, samples, written, segments);
+		numsamples = written * OutputFormat.Channels;
+		for (int i = 0; i < numsamples; ++i) {
+			d[i] = *(int16_t*)(p + 2);
+			p += 4;
+		}
+	}
+};
+//---------------------------------------------------------------------------
+
+
 
 
 //---------------------------------------------------------------------------
@@ -925,7 +1005,10 @@ void tTJSNI_BaseWaveSoundBuffer::RebuildFilterChain()
 		iTVPBasicWaveFilter * filter =
 			reinterpret_cast<iTVPBasicWaveFilter *>((tjs_intptr_t)(tjs_int64)iface_v);
 		// save to the backupped array
+#if 0
 		FilterInterfaces.push_back(tFilterObjectAndInterface(v, filter));
+#endif
+		FilterInterfaces.emplace_back(v, filter);
 	}
 
 	// reset filter output
@@ -937,6 +1020,24 @@ void tTJSNI_BaseWaveSoundBuffer::RebuildFilterChain()
 	{
 		// recreate filter
 		FilterOutput = i->Interface->Recreate(FilterOutput);
+	}
+
+	const tTVPWaveFormat &filteredFormat = FilterOutput->GetFormat();
+	if (filteredFormat.IsFloat) {
+		SoundBufferConvertFloatToPCM16 *filter = new SoundBufferConvertFloatToPCM16;
+		FilterInterfaces.emplace_back(filter, filter);
+		FilterOutput = filter->Recreate(FilterOutput);
+		filter->Release();
+	} else if (filteredFormat.BitsPerSample == 24) {
+		SoundBufferConvertPCM24ToPCM16 *filter = new SoundBufferConvertPCM24ToPCM16;
+		FilterInterfaces.emplace_back(filter, filter);
+		FilterOutput = filter->Recreate(FilterOutput);
+		filter->Release();
+	} else if (filteredFormat.BitsPerSample == 32) {
+		SoundBufferConvertPCM32ToPCM16 *filter = new SoundBufferConvertPCM32ToPCM16;
+		FilterInterfaces.emplace_back(filter, filter);
+		FilterOutput = filter->Recreate(FilterOutput);
+		filter->Release();
 	}
 }
 //---------------------------------------------------------------------------
@@ -1815,6 +1916,7 @@ extern tTJSNativeClass * TVPCreateNativeClass_QueueSoundBuffer();
 
 tTJSNativeClass * TVPCreateNativeClass_SoundBuffer()
 {
+#if 0
 #ifdef _WIN32
 	if( TVPHasXAudio2DLL() ) {	// TODO オプションでXAudio2かDirectSoundのどちらを使うか選べる方が好ましい、Wasapiに対応できればもっといい。オプション追加した場合、DS用オプションが色々あるのでその辺りも検討必要。
 		TVPSetGlobalVolume = TVPQueueSoundSetGlobalVolume;
@@ -1832,5 +1934,11 @@ tTJSNativeClass * TVPCreateNativeClass_SoundBuffer()
 #else
 	return TVPCreateNativeClass_QueueSoundBuffer();
 #endif
+#endif
+	TVPSetGlobalVolume = TVPSoundSetGlobalVolume;
+	TVPGetGlobalVolume = TVPSoundGetGlobalVolume;
+	TVPSetGlobalFocusMode = TVPSoundSetGlobalFocusMode;
+	TVPGetGlobalFocusMode = TVPSoundGetGlobalFocusMode;
+	return TVPCreateNativeClass_WaveSoundBuffer();
 }
 //---------------------------------------------------------------------------

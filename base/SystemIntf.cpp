@@ -23,7 +23,9 @@
 #include "ScriptMgnIntf.h"
 #include "DebugIntf.h"
 
+#if 0
 extern int TVPGetOpenGLESVersion();
+#endif
 
 //---------------------------------------------------------------------------
 // TVPFireOnApplicationActivateEvent
@@ -481,6 +483,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(isAndroid) {
 }
 TJS_END_NATIVE_STATIC_PROP_DECL(isAndroid)
 //----------------------------------------------------------------------
+#if 0
 TJS_BEGIN_NATIVE_PROP_DECL(openGLESVersion) {
 	TJS_BEGIN_NATIVE_PROP_GETTER {
 		*result = (tjs_int)TVPGetOpenGLESVersion();
@@ -490,6 +493,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(openGLESVersion) {
 	TJS_DENY_NATIVE_PROP_SETTER
 }
 TJS_END_NATIVE_STATIC_PROP_DECL(openGLESVersion)
+#endif
 //----------------------------------------------------------------------
 	TJS_END_NATIVE_MEMBERS
 

@@ -3,7 +3,9 @@
 #ifndef __VIRTUAL_KEY_H__
 #define __VIRTUAL_KEY_H__
 
+#if 0
 #include <android/keycodes.h>
+#endif
 
 /**
  * システム定義のキーコード

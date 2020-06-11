@@ -13,13 +13,16 @@
 
 #define DIRECTSOUND_VERSION 0x0300
 
+#if 0
 #include <mmsystem.h>
 #include <dsound.h>
 #include <ks.h>
 #include <ksmedia.h>
+#endif
 
 #include "WaveIntf.h"
 #include "WaveLoopManager.h"
+#include "WaveMixer.h"
 
 /*[*/
 //---------------------------------------------------------------------------
@@ -49,10 +52,12 @@ extern void TVPResetVolumeToAllSoundBuffer();
 extern void TVPSetWaveSoundBufferUse3DMode(bool b);
 extern bool TVPGetWaveSoundBufferUse3DMode();
 extern void TVPWaveSoundBufferCommitSettings();
+#if 0
 extern tjs_int TVPVolumeToDSAttenuate(tjs_int volume);
 extern tjs_int TVPDSAttenuateToVolume(tjs_int att);
 extern tjs_int TVPPanToDSAttenuate(tjs_int volume);
 extern tjs_int TVPDSAttenuateToPan(tjs_int att);
+#endif
 //---------------------------------------------------------------------------
 
 
@@ -74,8 +79,10 @@ public:
 
 	//-- buffer management ------------------------------------------------
 private:
-	LPDIRECTSOUNDBUFFER SoundBuffer;
+	iTVPSoundBuffer* SoundBuffer;
+#if 0
 	LPDIRECTSOUND3DBUFFER Sound3DBuffer;
+#endif
 
 	void ThrowSoundBufferException(const ttstr &reason);
 	void TryCreateSoundBuffer(bool use3d);
@@ -84,7 +91,9 @@ private:
 	void ResetSoundBuffer();
 	void ResetSamplePositions();
 
+#if 0
 	WAVEFORMATEXTENSIBLE Format;
+#endif
 
 	tTVPWaveFormat C_InputFormat;
 	tTVPWaveFormat InputFormat;
@@ -173,7 +182,7 @@ public:
 	bool FillBuffer(bool firstwrite = false, bool allowpause = true);
 
 private:
-	void ResetLastCheckedDecodePos(DWORD pp = (DWORD)-1);
+	void ResetLastCheckedDecodePos(uint32_t pp = (uint32_t) - 1);
 
 public:
 	tjs_int FireLabelEventsAndGetNearestLabelEventStep(tjs_int64 tick);
@@ -187,16 +196,21 @@ private:
 public:
 	void Play();
 	void Stop();
+	void SetBufferPaused(bool bPaused);
 
 	bool GetPaused() const { return Paused; }
 	void SetPaused(bool b);
 
 	tjs_int GetBitsPerSample() const {
+		return InputFormat.BitsPerSample;
+#if 0
 		if(Format.Format.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
 			return Format.Samples.wValidBitsPerSample;
 		else
-			return Format.Format.wBitsPerSample; }
-	tjs_int GetChannels() const { return Format.Format.nChannels; }
+			return Format.Format.wBitsPerSample;
+#endif
+	}
+	tjs_int GetChannels() const { return InputFormat.Channels; }
 
 protected:
 	void TimerBeatHandler(); // override

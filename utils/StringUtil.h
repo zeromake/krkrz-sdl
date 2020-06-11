@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <locale>
 
+#if 0
 struct equal_char_ignorecase {
 	inline bool operator()(char x, char y) const {
 		std::locale loc;
@@ -39,6 +40,7 @@ struct equal_wchar_ignorecase {
 inline bool icomp( const tjs_string& x, const tjs_string& y ) {
 	return x.size() == y.size() && std::equal(x.begin(), x.end(), y.begin(), equal_wchar_ignorecase());
 }
+#endif
 
 inline std::string Trim( const std::string& val ) {
 	static const char* TRIM_STR=" \01\02\03\04\05\06\a\b\t\n\v\f\r\x0E\x0F\x7F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F";

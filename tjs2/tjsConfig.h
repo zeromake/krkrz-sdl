@@ -149,7 +149,7 @@ void TJS_debug_out( const tjs_char *format, ... );
 #endif
 
 
-#ifdef ANDROID
+#if 1
 #define MAX_PATH 256
 #endif
 

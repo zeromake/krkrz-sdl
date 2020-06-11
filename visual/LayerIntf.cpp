@@ -39,7 +39,7 @@
 #include "FontSystem.h"
 #include "tjsDictionary.h"
 
-#ifdef __ANDROID__
+#ifndef _WIN32
 #include "VirtualKey.h"
 #endif
 
@@ -9521,7 +9521,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(mainImageBuffer)
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Layer);;
-		*result = reinterpret_cast<tjs_intptr_t>(_this->GetMainImagePixelBuffer());
+		*result = (tTVInteger)reinterpret_cast<tjs_intptr_t>(_this->GetMainImagePixelBuffer());
 		return TJS_S_OK;
 	}
 	TJS_END_NATIVE_PROP_GETTER
@@ -9535,7 +9535,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(mainImageBufferForWrite)
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Layer);;
-		*result = reinterpret_cast<tjs_intptr_t>(_this->GetMainImagePixelBufferForWrite());
+		*result = (tTVInteger)reinterpret_cast<tjs_intptr_t>(_this->GetMainImagePixelBufferForWrite());
 		return TJS_S_OK;
 	}
 	TJS_END_NATIVE_PROP_GETTER
@@ -9563,7 +9563,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(provinceImageBuffer)
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Layer);;
-		*result = reinterpret_cast<tjs_intptr_t>(_this->GetProvinceImagePixelBuffer());
+		*result = (tTVInteger)reinterpret_cast<tjs_intptr_t>(_this->GetProvinceImagePixelBuffer());
 		return TJS_S_OK;
 	}
 	TJS_END_NATIVE_PROP_GETTER
@@ -9577,7 +9577,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(provinceImageBufferForWrite)
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Layer);;
-		*result = reinterpret_cast<tjs_intptr_t>(_this->GetProvinceImagePixelBufferForWrite());
+		*result = (tTVInteger)reinterpret_cast<tjs_intptr_t>(_this->GetProvinceImagePixelBufferForWrite());
 		return TJS_S_OK;
 	}
 	TJS_END_NATIVE_PROP_GETTER

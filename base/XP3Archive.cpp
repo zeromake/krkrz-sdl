@@ -18,7 +18,7 @@
 #include "UtilStreams.h"
 #include "SysInitIntf.h"
 
-#ifdef ANDROID
+#if 1
 #include <zlib.h>
 #else
 #include <zlib/zlib.h>

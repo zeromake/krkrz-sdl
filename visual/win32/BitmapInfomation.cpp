@@ -4,8 +4,8 @@
 #include "MsgIntf.h"
 
 BitmapInfomation::BitmapInfomation( tjs_uint width, tjs_uint height, int bpp, bool unpadding ) {
-	BitmapInfoSize = sizeof(BITMAPINFOHEADER) + ((bpp==8)?sizeof(RGBQUAD)*256 : 0);
-	BitmapInfo = (BITMAPINFO*)GlobalAlloc(GPTR, BitmapInfoSize);
+	BitmapInfoSize = sizeof(TVPBITMAPINFOHEADER) + ((bpp == 8) ? sizeof(TVPRGBQUAD) * 256 : 0);
+	BitmapInfo = (TVPBITMAPINFO*)malloc(BitmapInfoSize);
 	if(!BitmapInfo) TVPThrowExceptionMessage(TVPCannotAllocateBitmapBits,
 		TJS_W("allocating BITMAPINFOHEADER"), ttstr((tjs_int)BitmapInfoSize));
 
@@ -29,12 +29,12 @@ BitmapInfomation::BitmapInfomation( tjs_uint width, tjs_uint height, int bpp, bo
 			PitchBytes = bitmap_width * 4;
 		}
 	}
-	BitmapInfo->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	BitmapInfo->bmiHeader.biSize = sizeof(BitmapInfo->bmiHeader);
 	BitmapInfo->bmiHeader.biWidth = bitmap_width;
 	BitmapInfo->bmiHeader.biHeight = height;
 	BitmapInfo->bmiHeader.biPlanes = 1;
 	BitmapInfo->bmiHeader.biBitCount = bpp;
-	BitmapInfo->bmiHeader.biCompression = BI_RGB;
+	BitmapInfo->bmiHeader.biCompression = /*BI_RGB*/0;
 	BitmapInfo->bmiHeader.biSizeImage = PitchBytes * height;
 	BitmapInfo->bmiHeader.biXPelsPerMeter = 0;
 	BitmapInfo->bmiHeader.biYPelsPerMeter = 0;
@@ -43,16 +43,16 @@ BitmapInfomation::BitmapInfomation( tjs_uint width, tjs_uint height, int bpp, bo
 
 	// create grayscale palette
 	if(bpp == 8) {
-		RGBQUAD *pal = (RGBQUAD*)((tjs_uint8*)BitmapInfo + sizeof(BITMAPINFOHEADER));
+		TVPRGBQUAD *pal = (TVPRGBQUAD*)((tjs_uint8*)BitmapInfo + sizeof(TVPBITMAPINFOHEADER));
 		for( tjs_int i=0; i<256; i++ ) {
-			pal[i].rgbBlue = pal[i].rgbGreen = pal[i].rgbRed = (BYTE)i;
+			pal[i].rgbBlue = pal[i].rgbGreen = pal[i].rgbRed = (tjs_uint8)i;
 			pal[i].rgbReserved = 0;
 		}
 	}
 }
 
 BitmapInfomation::~BitmapInfomation() {
-	::GlobalFree((HGLOBAL)BitmapInfo);
+	free(BitmapInfo);
 	BitmapInfo = NULL;
 }
 

@@ -18,7 +18,7 @@
 #include "LayerManager.h"
 #include "WindowIntf.h"
 #include "DebugIntf.h"
-#ifdef WIN32
+#if 1
 #include "BasicDrawDevice.h"
 #endif
 #include "NullDrawDevice.h"
@@ -28,7 +28,7 @@
 // オプション
 //---------------------------------------------------------------------------
 static bool TVPDrawDeviceOptionInit = false;
-static bool TVPEnableDrawDevice = false;
+static bool TVPEnableDrawDevice = true;
 //---------------------------------------------------------------------------
 static void TVPInitDrawDeviceOptions()
 {
@@ -49,7 +49,7 @@ static void TVPInitDrawDeviceOptions()
 //---------------------------------------------------------------------------
 tTJSNativeClass* TVPCreateDefaultDrawDevice() {
 	TVPInitDrawDeviceOptions();
-#ifdef WIN32
+#if 1
 	if( TVPEnableDrawDevice )
 		return new tTJSNC_BasicDrawDevice();
 	else

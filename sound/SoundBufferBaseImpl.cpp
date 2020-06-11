@@ -12,7 +12,7 @@
 
 #include <algorithm>
 #include "SoundBufferBaseImpl.h"
-#ifdef WIN32
+#if 1 || defined(WIN32)
 #include "WaveImpl.h"
 #endif
 #ifdef ANDROID

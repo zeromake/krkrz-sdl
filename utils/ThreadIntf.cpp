@@ -290,6 +290,9 @@ void DrawThreadPool::PoolThread( tjs_int taskNum ) {
 		th->StartTread();
 #ifdef _WIN32
 		::SetThreadIdealProcessor( th->GetHandle(), processor_ids[workers.size() % processor_ids.size()] );
+#elif defined( __MACH__ )
+		thread_affinity_policy_data_t policy = { static_cast<int>(workers.size()) };
+		thread_policy_set( pthread_mach_thread_np( th->GetHandle() ), THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);
 #elif !defined( ANDROID )
 		// for pthread(!android)
 		cpu_set_t cpuset;

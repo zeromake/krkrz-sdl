@@ -20,16 +20,23 @@
 #include "LayerBitmapIntf.h"
 #include "SysInitIntf.h"
 #include "StorageImpl.h"
+#if 0
 #include "krmovie.h"
+#endif
 #include "PluginImpl.h"
 #include "WaveImpl.h"  // for DirectSound attenuate <-> TVP volume
+#if 0
 #include <evcode.h>
+#endif
 
 #include "Application.h"
 #if 0
 #include "TVPVideoOverlay.h"
 #endif
+#define TVPDSAttenuateToPan(x) x
+#define TVPDSAttenuateToVolume(x) x
 
+#if 0
 //---------------------------------------------------------------------------
 class tTVPVideoModule
 {
@@ -150,6 +157,7 @@ static tTVPVideoModule * TVPGetFlashVideoModule()
 
 	return TVPFlashVideoModule;
 }
+#endif
 //---------------------------------------------------------------------------
 static std::vector<tTJSNI_VideoOverlay *> TVPVideoOverlayVector;
 //---------------------------------------------------------------------------
@@ -175,8 +183,10 @@ static void TVPShutdownVideoOverlay()
 		(*i)->Shutdown();
 	}
 
+#if 0
 	if(TVPMovieVideoModule) delete TVPMovieVideoModule, TVPMovieVideoModule = NULL;
 	if(TVPFlashVideoModule) delete TVPFlashVideoModule, TVPFlashVideoModule = NULL;
+#endif
 }
 static tTVPAtExit TVPShutdownVideoOverlayAtExit
 	(TVP_ATEXIT_PRI_PREPARE, TVPShutdownVideoOverlay);
@@ -191,13 +201,17 @@ static tTVPAtExit TVPShutdownVideoOverlayAtExit
 tTJSNI_VideoOverlay::tTJSNI_VideoOverlay()
 : EventQueue(this,&tTJSNI_VideoOverlay::WndProc)
 {
+#if 0
 	VideoOverlay = NULL;
+#endif
 	Rect.left = 0;
 	Rect.top = 0;
 	Rect.right = 320;
 	Rect.bottom = 240;
 	Visible = false;
+#if 0
 	OwnerWindow = NULL;
+#endif
 	LocalTempStorageHolder = NULL;
 
 	EventQueue.Allocate();
@@ -212,8 +226,10 @@ tTJSNI_VideoOverlay::tTJSNI_VideoOverlay()
 	IsEventPast = false;
 	EventFrame = -1;
 
+#if 0
 	Bitmap[0] = Bitmap[1] = NULL;
 	BmpBits[0] = BmpBits[1] = NULL;
+#endif
 }
 //---------------------------------------------------------------------------
 tjs_error TJS_INTF_METHOD
@@ -237,6 +253,7 @@ void TJS_INTF_METHOD tTJSNI_VideoOverlay::Invalidate()
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::Open(const ttstr &_name)
 {
+#if 0
 	// open
 
 	// first, close
@@ -393,10 +410,12 @@ void tTJSNI_VideoOverlay::Open(const ttstr &_name)
 	// set Status
 	ClearWndProcMessages();
 	SetStatus(tTVPVideoOverlayStatus::Stop);
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::Close()
 {
+#if 0
 	// close
 	// release VideoOverlay object
 	if(VideoOverlay)
@@ -416,10 +435,12 @@ void tTJSNI_VideoOverlay::Close()
 
 	Bitmap[0] = Bitmap[1] = NULL;
 	BmpBits[0] = BmpBits[1] = NULL;
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::Shutdown()
 {
+#if 0
 	// shutdown the system
 	// this functions closes the overlay object, but must not fire any events.
 	bool c = CanDeliverEvents;
@@ -435,6 +456,7 @@ void tTJSNI_VideoOverlay::Shutdown()
 		throw;
 	}
 	CanDeliverEvents = c;
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::Disconnect()
@@ -447,6 +469,7 @@ void tTJSNI_VideoOverlay::Disconnect()
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::Play()
 {
+#if 0
 	// start playing
 	if(VideoOverlay)
 	{
@@ -454,10 +477,12 @@ void tTJSNI_VideoOverlay::Play()
 		ClearWndProcMessages();
 		if( Mode != vomMFEVR ) SetStatus(tTVPVideoOverlayStatus::Play);
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::Stop()
 {
+#if 0
 	// stop playing
 	if(VideoOverlay)
 	{
@@ -465,10 +490,12 @@ void tTJSNI_VideoOverlay::Stop()
 		ClearWndProcMessages();
 		if( Mode != vomMFEVR ) SetStatus(tTVPVideoOverlayStatus::Stop);
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::Pause()
 {
+#if 0
 	// pause playing
 	if(VideoOverlay)
 	{
@@ -476,9 +503,11 @@ void tTJSNI_VideoOverlay::Pause()
 //		ClearWndProcMessages();
 		if( Mode != vomMFEVR ) SetStatus(tTVPVideoOverlayStatus::Pause);
 	}
+#endif
 }
 void tTJSNI_VideoOverlay::Rewind()
 {
+#if 0
 	// rewind playing
 	if(VideoOverlay)
 	{
@@ -488,9 +517,11 @@ void tTJSNI_VideoOverlay::Rewind()
 		if( EventFrame >= 0 && IsEventPast )
 			IsEventPast = false;
 	}
+#endif
 }
 void tTJSNI_VideoOverlay::Prepare()
 {	// prepare movie
+#if 0
 	if( VideoOverlay && (Mode == vomLayer) )
 	{
 		Pause();
@@ -498,6 +529,7 @@ void tTJSNI_VideoOverlay::Prepare()
 		IsPrepare = true;
 		Play();
 	}
+#endif
 }
 void tTJSNI_VideoOverlay::SetSegmentLoop( int comeFrame, int goFrame )
 {
@@ -516,6 +548,7 @@ void tTJSNI_VideoOverlay::SetPeriodEvent( int eventFrame )
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::SetRectangleToVideoOverlay()
 {
+#if 0
 	// set Rectangle to video overlay
 	if(VideoOverlay && OwnerWindow)
 	{
@@ -533,6 +566,7 @@ void tTJSNI_VideoOverlay::SetRectangleToVideoOverlay()
 		RECT rect = {l + ofsx, t + ofsy, r + ofsx, b + ofsy};
 		VideoOverlay->SetRect(&rect);
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::SetPosition(tjs_int left, tjs_int top)
@@ -612,6 +646,7 @@ void tTJSNI_VideoOverlay::SetHeight(tjs_int h)
 void tTJSNI_VideoOverlay::SetVisible(bool b)
 {
 	Visible = b;
+#if 0
 	if(VideoOverlay)
 	{
 		if( Mode == vomLayer )
@@ -624,10 +659,12 @@ void tTJSNI_VideoOverlay::SetVisible(bool b)
 			VideoOverlay->SetVisible(Visible);
 		}
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::ResetOverlayParams()
 {
+#if 0
 	// retrieve new window information from owner window and
 	// set video owner window / message drain window.
 	// also sets rectangle and visible state.
@@ -644,31 +681,37 @@ void tTJSNI_VideoOverlay::ResetOverlayParams()
 		// set Visible
 		VideoOverlay->SetVisible(Visible);
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::DetachVideoOverlay()
 {
+#if 0
 	if(VideoOverlay && Window && (Mode == vomOverlay || Mode == vomMixer || Mode == vomMFEVR) )
 	{
 		VideoOverlay->SetWindow(NULL);
 		VideoOverlay->SetMessageDrainWindow(EventQueue.GetOwner());
 			// once set to util window
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::SetRectOffset(tjs_int ofsx, tjs_int ofsy)
 {
+#if 0
 	if(VideoOverlay)
 	{
 		RECT r = {Rect.left + ofsx, Rect.top + ofsy,
 			Rect.right + ofsx, Rect.bottom + ofsy};
 		VideoOverlay->SetRect(&r);
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 //void __fastcall tTJSNI_VideoOverlay::WndProc(Messages::TMessage &Msg)
 void tTJSNI_VideoOverlay::WndProc( NativeEvent& ev )
 {
+#if 0
 	// EventQueue's message procedure
 	if(VideoOverlay)
 	{
@@ -847,26 +890,32 @@ void tTJSNI_VideoOverlay::WndProc( NativeEvent& ev )
 	}
 
 	EventQueue.HandlerDefault(ev);
+#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::SetTimePosition( tjs_uint64 p )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetPosition( p );
 	}
+#endif
 }
 tjs_uint64 tTJSNI_VideoOverlay::GetTimePosition()
 {
 	tjs_uint64	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetPosition( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::SetFrame( tjs_int f )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetFrame( f );
@@ -874,64 +923,79 @@ void tTJSNI_VideoOverlay::SetFrame( tjs_int f )
 		if( EventFrame >= f && IsEventPast )
 			IsEventPast = false;
 	}
+#endif
 }
 tjs_int tTJSNI_VideoOverlay::GetFrame()
 {
 	tjs_int	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetFrame( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::SetStopFrame( tjs_int f )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetStopFrame( f );
 	}
+#endif
 }
 void tTJSNI_VideoOverlay::SetDefaultStopFrame()
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetDefaultStopFrame();
 	}
+#endif
 }
 tjs_int tTJSNI_VideoOverlay::GetStopFrame()
 {
 	tjs_int	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetStopFrame( &result );
 	}
+#endif
 	return result;
 }
 tjs_real tTJSNI_VideoOverlay::GetFPS()
 {
 	tjs_real	result = 0.0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetFPS( &result );
 	}
+#endif
 	return result;
 }
 tjs_int tTJSNI_VideoOverlay::GetNumberOfFrame()
 {
 	tjs_int	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetNumberOfFrame( &result );
 	}
+#endif
 	return result;
 }
 tjs_int64 tTJSNI_VideoOverlay::GetTotalTime()
 {
 	tjs_int64	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetTotalTime( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::SetLoop( bool b )
@@ -948,122 +1012,151 @@ void tTJSNI_VideoOverlay::SetLayer2( tTJSNI_BaseLayer *l )
 }
 void tTJSNI_VideoOverlay::SetMode( tTVPVideoOverlayMode m )
 {
+#if 0
 	// ビデオオープン後のモード変更は禁止
 	if( !VideoOverlay )
 	{
 		Mode = m;
 	}
+#endif
 }
 
 tjs_real tTJSNI_VideoOverlay::GetPlayRate()
 {
 	tjs_real	result = 0.0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetPlayRate( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::SetPlayRate(tjs_real r)
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetPlayRate( r );
 	}
+#endif
 }
 
 tjs_int tTJSNI_VideoOverlay::GetAudioBalance()
 {
 	long	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetAudioBalance( &result );
 	}
+#endif
 	return TVPDSAttenuateToPan( result );
 }
 void tTJSNI_VideoOverlay::SetAudioBalance(tjs_int b)
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetAudioBalance( TVPPanToDSAttenuate( b ) );
 	}
+#endif
 }
 tjs_int tTJSNI_VideoOverlay::GetAudioVolume()
 {
 	long	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetAudioVolume( &result );
 	}
+#endif
 	return TVPDSAttenuateToVolume( result );
 }
 void tTJSNI_VideoOverlay::SetAudioVolume(tjs_int b)
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetAudioVolume( TVPVolumeToDSAttenuate( b ) );
 	}
+#endif
 }
 tjs_uint tTJSNI_VideoOverlay::GetNumberOfAudioStream()
 {
 	unsigned long	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetNumberOfAudioStream( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::SelectAudioStream(tjs_uint n)
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SelectAudioStream( n );
 	}
+#endif
 }
 tjs_int tTJSNI_VideoOverlay::GetEnabledAudioStream()
 {
 	long		result = -1;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetEnableAudioStreamNum( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::DisableAudioStream()
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->DisableAudioStream();
 	}
+#endif
 }
 
 tjs_uint tTJSNI_VideoOverlay::GetNumberOfVideoStream()
 {
 	unsigned long	result = 0;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetNumberOfVideoStream( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::SelectVideoStream(tjs_uint n)
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SelectVideoStream( n );
 	}
+#endif
 }
 tjs_int tTJSNI_VideoOverlay::GetEnabledVideoStream()
 {
 	long		result = -1;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetEnableVideoStreamNum( &result );
 	}
+#endif
 	return result;
 }
 void tTJSNI_VideoOverlay::SetMixingLayer( tTJSNI_BaseLayer *l )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		if( l )
@@ -1105,44 +1198,55 @@ void tTJSNI_VideoOverlay::SetMixingLayer( tTJSNI_BaseLayer *l )
 			VideoOverlay->ResetMixingBitmap();
 		}
 	}
+#endif
 }
 void tTJSNI_VideoOverlay::ResetMixingBitmap()
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->ResetMixingBitmap();
 	}
+#endif
 }
 void tTJSNI_VideoOverlay::SetMixingMovieAlpha( tjs_real a )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetMixingMovieAlpha( static_cast<float>(a) );
 	}
+#endif
 }
 tjs_real tTJSNI_VideoOverlay::GetMixingMovieAlpha()
 {
 	float	ret = 0.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetMixingMovieAlpha( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 void tTJSNI_VideoOverlay::SetMixingMovieBGColor( tjs_uint col )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetMixingMovieBGColor( col );
 	}
+#endif
 }
 tjs_uint tTJSNI_VideoOverlay::GetMixingMovieBGColor()
 {
 	unsigned long	ret;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetMixingMovieBGColor( &ret );
 	}
+#endif
 	return static_cast<tjs_uint>(ret);
 }
 
@@ -1151,221 +1255,273 @@ tjs_uint tTJSNI_VideoOverlay::GetMixingMovieBGColor()
 tjs_real tTJSNI_VideoOverlay::GetContrastRangeMin()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetContrastRangeMin( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetContrastRangeMax()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetContrastRangeMax( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetContrastDefaultValue()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetContrastDefaultValue( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetContrastStepSize()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetContrastStepSize( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetContrast()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetContrast( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 void tTJSNI_VideoOverlay::SetContrast( tjs_real v )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetContrast( static_cast<float>(v) );
 	}
+#endif
 }
 tjs_real tTJSNI_VideoOverlay::GetBrightnessRangeMin()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetBrightnessRangeMin( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetBrightnessRangeMax()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetBrightnessRangeMax( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetBrightnessDefaultValue()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetBrightnessDefaultValue( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetBrightnessStepSize()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetBrightnessStepSize( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetBrightness()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetBrightness( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 void tTJSNI_VideoOverlay::SetBrightness( tjs_real v )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetBrightness( static_cast<float>(v) );
 	}
+#endif
 }
 
 tjs_real tTJSNI_VideoOverlay::GetHueRangeMin()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetHueRangeMin( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetHueRangeMax()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetHueRangeMax( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetHueDefaultValue()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetHueDefaultValue( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetHueStepSize()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetHueStepSize( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetHue()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetHue( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 void tTJSNI_VideoOverlay::SetHue( tjs_real v )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetHue( static_cast<float>(v) );
 	}
+#endif
 }
 
 tjs_real tTJSNI_VideoOverlay::GetSaturationRangeMin()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetSaturationRangeMin( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetSaturationRangeMax()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetSaturationRangeMax( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetSaturationDefaultValue()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetSaturationDefaultValue( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetSaturationStepSize()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetSaturationStepSize( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 tjs_real tTJSNI_VideoOverlay::GetSaturation()
 {
 	float ret = -1.0f;
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->GetSaturation( &ret );
 	}
+#endif
 	return static_cast<tjs_real>(ret);
 }
 void tTJSNI_VideoOverlay::SetSaturation( tjs_real v )
 {
+#if 0
 	if(VideoOverlay)
 	{
 		VideoOverlay->SetSaturation( static_cast<float>(v) );
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 tjs_int tTJSNI_VideoOverlay::GetOriginalWidth()
 {
 	// retrieve original (coded in the video stream) width size
+#if 0
 	if(!VideoOverlay) return 0;
+#endif
 
 	long	width, height;
+#if 0
 	VideoOverlay->GetVideoSize( &width, &height );
+#endif
 
 	return (tjs_int)width;
 }
@@ -1375,13 +1531,16 @@ tjs_int tTJSNI_VideoOverlay::GetOriginalHeight()
 	// retrieve original (coded in the video stream) height size
 
 	long	width, height;
+#if 0
 	VideoOverlay->GetVideoSize( &width, &height );
+#endif
 
 	return (tjs_int)height;
 }
 //---------------------------------------------------------------------------
 void tTJSNI_VideoOverlay::ClearWndProcMessages()
 {
+#if 0
 	// clear WndProc's message queue
 	MSG msg;
 	while(PeekMessage(&msg, EventQueue.GetOwner(), WM_GRAPHNOTIFY, WM_GRAPHNOTIFY+2, PM_REMOVE))
@@ -1396,6 +1555,7 @@ void tTJSNI_VideoOverlay::ClearWndProcMessages()
 				VideoOverlay->FreeEventParams( evcode, p1, p2 );
 		}
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 

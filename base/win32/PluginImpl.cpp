@@ -26,9 +26,12 @@
 #include "tjsArray.h"
 #include "tjsDictionary.h"
 #include "DebugIntf.h"
+#if 0
 #include "FuncStubs.h"
+#endif
 #include "tjs.h"
 
+#if 0
 #ifdef TVP_SUPPORT_OLD_WAVEUNPACKER
 	#include "oldwaveunpacker.h"
 #endif
@@ -41,11 +44,15 @@
 #ifdef TVP_SUPPORT_KPI
 	#include "kmp_pi.h"
 #endif
+#endif
 
 #include "FilePathUtil.h"
 #include "Application.h"
+#include "SysInitImpl.h"
+#include <set>
 
 
+#if 0
 //---------------------------------------------------------------------------
 // export table
 //---------------------------------------------------------------------------
@@ -135,10 +142,12 @@ void TVPThrowPluginUnboundFunctionError(const tjs_char *funcname)
 	TVPThrowExceptionMessage(TVPPluginUnboundFunctionError, funcname);
 }
 //---------------------------------------------------------------------------
+#endif
 
 
 
 
+#if 0
 //---------------------------------------------------------------------------
 // implementation of IStorageProvider
 //---------------------------------------------------------------------------
@@ -436,10 +445,15 @@ static void TVPDestroyPluginVector(void)
 }
 tTVPAtExit TVPDestroyPluginVectorAtExit
 	(TVP_ATEXIT_PRI_RELEASE, TVPDestroyPluginVector);
+#endif
 //---------------------------------------------------------------------------
+bool TVPLoadInternalPlugin(const ttstr &_name);
+extern std::set<ttstr> TVPRegisteredPlugins;
 static bool TVPPluginLoading = false;
 void TVPLoadPlugin(const ttstr & name)
 {
+	TVPLoadInternalPlugin(name);
+#if 0
 	// load plugin
 	if(TVPPluginLoading)
 		TVPThrowExceptionMessage(TVPCannnotLinkPluginWhilePluginLinking);
@@ -469,12 +483,14 @@ void TVPLoadPlugin(const ttstr & name)
 	}
 
 	TVPPluginVector.Vector.push_back(p);
+#endif
 }
 //---------------------------------------------------------------------------
 bool TVPUnloadPlugin(const ttstr & name)
 {
 	// unload plugin
 
+#if 0
 	tTVPPluginVectorType::iterator i;
 	for(i = TVPPluginVector.Vector.begin();
 		i != TVPPluginVector.Vector.end(); i++)
@@ -489,6 +505,8 @@ bool TVPUnloadPlugin(const ttstr & name)
 	}
 	TVPThrowExceptionMessage(TVPNotLoadedPlugin, name);
 	return false;
+#endif
+	return true;
 }
 //---------------------------------------------------------------------------
 
@@ -496,6 +514,7 @@ bool TVPUnloadPlugin(const ttstr & name)
 
 
 
+#if 0
 //---------------------------------------------------------------------------
 // plug-in autoload support
 //---------------------------------------------------------------------------
@@ -527,9 +546,13 @@ static void TVPSearchPluginsAt(std::vector<tTVPFoundPlugin> &list, tjs_string fo
 		FindClose(handle);
 	}
 }
+#endif
 
+void TVPLoadInternalPlugins();
 void TVPLoadPluigins(void)
 {
+	TVPLoadInternalPlugins();
+#if 0
 	// This function searches plugins which have an extension of ".tpm"
 	// in the default path: 
 	//    1. a folder which holds kirikiri executable
@@ -562,7 +585,9 @@ void TVPLoadPluigins(void)
 		TVPAddImportantLog(ttstr(TJS_W("(info) Loading ")) + ttstr(i->Name));
 		TVPLoadPlugin(i->Path + i->Name);
 	}
+#endif
 }
+#if 0
 //---------------------------------------------------------------------------
 tjs_int TVPGetAutoLoadPluginCount() { return TVPAutoLoadPluginCount; }
 //---------------------------------------------------------------------------
@@ -935,6 +960,7 @@ bool TVPGetFileVersionOf(const tjs_char* module_filename, tjs_int &major, tjs_in
 	return got;
 }
 //---------------------------------------------------------------------------
+#endif
 
 
 
@@ -985,6 +1011,12 @@ TJS_BEGIN_NATIVE_METHOD_DECL(getList)
 	iTJSDispatch2 * array = TJSCreateArrayObject();
 	try
 	{
+		tjs_int idx = 0;
+		for (ttstr name : TVPRegisteredPlugins) {
+			tTJSVariant val(name);
+			array->PropSetByNum(TJS_MEMBERENSURE, idx++, &val, array);
+		}
+#if 0
 		tTVPPluginVectorType::iterator i;
 		tjs_int idx = 0;
 		for(i = TVPPluginVector.Vector.begin(); i != TVPPluginVector.Vector.end(); i++)
@@ -993,6 +1025,7 @@ TJS_BEGIN_NATIVE_METHOD_DECL(getList)
 			array->PropSetByNum(TJS_MEMBERENSURE, idx++, &val, array);
 		}
 	
+#endif
 		if (result) *result = tTJSVariant(array, array);
 	}
 	catch(...)

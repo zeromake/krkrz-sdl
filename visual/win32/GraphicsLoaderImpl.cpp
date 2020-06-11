@@ -102,6 +102,7 @@ void tTVPGraphicHandlerType::Header( tTJSBinaryStream *src, iTJSDispatch2** dic 
 	}
 }
 #endif
+#if 0
 /*
 	support of SPI for archive files is in StorageImpl.cpp
 */
@@ -403,4 +404,5 @@ void TVPUnloadPictureSPI(HINSTANCE inst)
 	delete *p;
 }
 //---------------------------------------------------------------------------
+#endif
 

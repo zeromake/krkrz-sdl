@@ -26,7 +26,9 @@ public:
 	void TJS_INTF_METHOD Invalidate();
 
 
+#if 0
 	HRGN CreateMaskRgn(tjs_uint threshold);
+#endif
 };
 //---------------------------------------------------------------------------
 #endif

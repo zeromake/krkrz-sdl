@@ -13,9 +13,12 @@
 #include "EventIntf.h"
 #include "WindowImpl.h"
 
+#if 0
 #include <d3d9.h>
 #include <mmsystem.h>
+#endif
 #include <algorithm>
+#define ZeroMemory(p,n) memset(p, 0, n);
 
 //---------------------------------------------------------------------------
 // オプション
@@ -68,15 +71,19 @@ tTVPBasicDrawDevice::~tTVPBasicDrawDevice()
 }
 //---------------------------------------------------------------------------
 void tTVPBasicDrawDevice::DestroyD3DDevice() {
+#if 0
 	DestroyTexture();
 	if(Direct3DDevice) Direct3DDevice->Release(), Direct3DDevice = NULL;
 	if(Direct3D) Direct3D = NULL;
+#endif
 }
 //---------------------------------------------------------------------------
+#if 0
 void tTVPBasicDrawDevice::DestroyTexture() {
 	if(TextureBuffer && Texture) Texture->UnlockRect(0), TextureBuffer = NULL;
 	if(Texture) Texture->Release(), Texture = NULL;
 }
+#endif
 //---------------------------------------------------------------------------
 void tTVPBasicDrawDevice::InvalidateAll()
 {
@@ -84,6 +91,7 @@ void tTVPBasicDrawDevice::InvalidateAll()
 	// サーフェースが lost した際に内容を再構築する目的で用いる
 	RequestInvalidation(tTVPRect(0, 0, DestRect.get_width(), DestRect.get_height()));
 }
+#if 0
 //---------------------------------------------------------------------------
 void tTVPBasicDrawDevice::CheckMonitorMoved() {
 	UINT iCurrentMonitor = GetMonitorNumber( TargetWindow );
@@ -477,6 +485,7 @@ void tTVPBasicDrawDevice::ErrorToLog( HRESULT hr ) {
 		break;
 	}
 }
+#endif
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::AddLayerManager(iTVPLayerManager * manager)
 {
@@ -492,10 +501,12 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::AddLayerManager(iTVPLayerManager * man
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::SetTargetWindow(HWND wnd, bool is_main)
 {
+#if 0
 	TVPInitBasicDrawDeviceOptions();
 	DestroyD3DDevice();
 	TargetWindow = wnd;
 	IsMainWindow = is_main;
+#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::SetDestRectangle(const tTVPRect & rect)
@@ -507,13 +518,16 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::SetDestRectangle(const tTVPRect & rect
 		inherited::SetDestRectangle(rect);
 	} else {
 		// サイズも違う
+#if 0
 		if( rect.get_width() > (tjs_int)D3dPP.BackBufferWidth || rect.get_height() > (tjs_int)D3dPP.BackBufferHeight ) {
 			// バックバッファサイズよりも大きいサイズが指定された場合一度破棄する。後のEnsureDeviceで再生成される。
 			DestroyD3DDevice();
 		}
 		bool success = true;
+#endif
 		inherited::SetDestRectangle(rect);
 
+#if 0
 		try {
 			EnsureDevice();
 		} catch(const eTJS & e) {
@@ -526,6 +540,7 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::SetDestRectangle(const tTVPRect & rect
 		if( success == false ) {
 			DestroyD3DDevice();
 		}
+#endif
 	}
 }
 //---------------------------------------------------------------------------
@@ -536,11 +551,20 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::NotifyLayerResize(iTVPLayerManager * m
 	BackBufferDirty = true;
 
 	// テクスチャを捨てて作り直す。
+#if 0
 	CreateTexture();
+#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::Show()
 {
+	if (Window) {
+		TTVPWindowForm *form = ((tTJSNI_Window*)Window)->GetForm();
+		if (form) {
+			form->Show();
+		}
+	}
+#if 0
 	if(!TargetWindow) return;
 	if(!Texture) return;
 	if(!Direct3DDevice) return;
@@ -570,8 +594,10 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::Show()
 		ErrorToLog( hr );
 		TVPAddImportantLog( TVPFormatMessage(TVPBasicDrawDeviceInfDirect3DDevicePresentFailed,TJSInt32ToHex(hr, 8)) );
 	}
+#endif
 }
 //---------------------------------------------------------------------------
+#if 0
 bool TJS_INTF_METHOD tTVPBasicDrawDevice::WaitForVBlank( tjs_int* in_vblank, tjs_int* delayed )
 {
 	if( Direct3DDevice == NULL ) return false;
@@ -609,9 +635,11 @@ bool TJS_INTF_METHOD tTVPBasicDrawDevice::WaitForVBlank( tjs_int* in_vblank, tjs
 	*in_vblank = inVsync ? 1 : 0;
 	return true;
 }
+#endif
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::StartBitmapCompletion(iTVPLayerManager * manager)
 {
+#if 0
 	EnsureDevice();
 
 	if( Texture && TargetWindow ) {
@@ -636,12 +664,20 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::StartBitmapCompletion(iTVPLayerManager
 			TexturePitch = rt.Pitch;
 		}
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::NotifyBitmapCompleted(iTVPLayerManager * manager,
 	tjs_int x, tjs_int y, const void * bits, const class BitmapInfomation * bmpinfo,
 	const tTVPRect &cliprect, tTVPLayerType type, tjs_int opacity)
 {
+	if (Window) {
+		TTVPWindowForm *form = ((tTJSNI_Window*)Window)->GetForm();
+		if (form) {
+			form->NotifyBitmapCompleted(manager, x, y, bits, bmpinfo, cliprect, type, opacity);
+		}
+	}
+#if 0
 	const BITMAPINFO *bitmapinfo = bmpinfo->GetBITMAPINFO();
 
 	// bits, bitmapinfo で表されるビットマップの cliprect の領域を、x, y に描画
@@ -692,11 +728,13 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::NotifyBitmapCompleted(iTVPLayerManager
 			memcpy(destp, srcp, width_bytes);
 		}
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::EndBitmapCompletion(iTVPLayerManager * manager)
 {
 	if(!TargetWindow) return;
+#if 0
 	if(!Texture) return;
 	if(!Direct3DDevice) return;
 
@@ -814,6 +852,7 @@ got_error:
 		ErrorToLog( hr );
 		TVPAddImportantLog( TVPFormatMessage(TVPBasicDrawDeviceInfPolygonDrawingFailed,TJSInt32ToHex(hr, 8)) );
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::SetShowUpdateRect(bool b)
@@ -823,6 +862,7 @@ void TJS_INTF_METHOD tTVPBasicDrawDevice::SetShowUpdateRect(bool b)
 //---------------------------------------------------------------------------
 bool TJS_INTF_METHOD tTVPBasicDrawDevice::SwitchToFullScreen( HWND window, tjs_uint w, tjs_uint h, tjs_uint bpp, tjs_uint color, bool changeresolution )
 {
+#if 0
 	// フルスクリーン化の処理はなにも行わない、互換性のためにウィンドウを全画面化するのみで処理する
 	// Direct3D9 でフルスクリーン化するとフォーカスを失うとデバイスをロストするので、そのたびにリセットor作り直しが必要になる。
 	// モーダルウィンドウを使用するシステムでは、これは困るので常にウィンドウモードで行う。
@@ -830,14 +870,17 @@ bool TJS_INTF_METHOD tTVPBasicDrawDevice::SwitchToFullScreen( HWND window, tjs_u
 	BackBufferDirty = true;
 	ShouldShow = true;
 	CheckMonitorMoved();
+#endif
 	return true;
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTVPBasicDrawDevice::RevertFromFullScreen( HWND window, tjs_uint w, tjs_uint h, tjs_uint bpp, tjs_uint color )
 {
+#if 0
 	BackBufferDirty = true;
 	ShouldShow = true;
 	CheckMonitorMoved();
+#endif
 }
 //---------------------------------------------------------------------------
 
@@ -871,8 +914,10 @@ TJS_END_NATIVE_CONSTRUCTOR_DECL(/*TJS class name*/BasicDrawDevice)
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/recreate)
 {
 	TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_BasicDrawDevice);
+#if 0
 	_this->GetDevice()->SetToRecreateDrawer();
 	_this->GetDevice()->EnsureDevice();
+#endif
 	return TJS_S_OK;
 }
 TJS_END_NATIVE_METHOD_DECL(/*func. name*/recreate)

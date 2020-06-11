@@ -21,6 +21,7 @@ bool TVPClipboardHasFormat(tTVPClipboardFormat format)
 	switch(format) {
 		case cbfText: {
 		bool result = false;
+#if 0
 		if( ::OpenClipboard(0) ) {
 			result = 0 != ::IsClipboardFormatAvailable(CF_TEXT);
 			if( result == false ) {
@@ -28,6 +29,7 @@ bool TVPClipboardHasFormat(tTVPClipboardFormat format)
 			}
 			::CloseClipboard();
 		}
+#endif
 		return result; // ANSI text or UNICODE text
 		}
 	default:
@@ -37,6 +39,7 @@ bool TVPClipboardHasFormat(tTVPClipboardFormat format)
 //---------------------------------------------------------------------------
 void TVPClipboardSetText(const ttstr & text)
 {
+#if 0
 	if( ::OpenClipboard(0) ) {
 		HGLOBAL ansihandle = NULL;
 		HGLOBAL unicodehandle = NULL;
@@ -72,10 +75,12 @@ void TVPClipboardSetText(const ttstr & text)
 		}
 		::CloseClipboard();
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 bool TVPClipboardGetText(ttstr & text)
 {
+#if 0
 	if(!::OpenClipboard(NULL)) return false;
 
 	bool result = false;
@@ -140,6 +145,8 @@ bool TVPClipboardGetText(ttstr & text)
 	::CloseClipboard();
 
 	return result;
+#endif
+	return false;
 }
 //---------------------------------------------------------------------------
 

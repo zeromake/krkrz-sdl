@@ -282,7 +282,7 @@ void tTVPLogStreamHolder::Open(const tjs_char *mode)
 		{
 			// no log location specified
 			TJS_strcpy(filename, TVPNativeLogLocation);
-			TJS_strcat(filename, TJS_W("\\krkr.console.log"));
+			TJS_strcat(filename, TJS_W("/krkr.console.log"));
 			TVPEnsureDataPathDirectory();
 			Stream.Open( filename, mode );
 			if(!Stream.IsOpen()) OpenFailed = true;
@@ -383,6 +383,7 @@ void tTVPLogStreamHolder::Log(const ttstr & text)
 //---------------------------------------------------------------------------
 void TVPAddLog(const ttstr &line, bool appendtoimportant)
 {
+#if 0
 	// add a line to the log.
 	// exceeded lines over TVPLogMaxLines are eliminated.
 	// this function is not thread-safe ...
@@ -443,6 +444,8 @@ void TVPAddLog(const ttstr &line, bool appendtoimportant)
 #endif
 
 	if(TVPLoggingToFile) TVPLogStreamHolder.Log(buf);
+#endif
+	Application->PrintConsole( line.c_str(), line.length(), appendtoimportant );
 }
 //---------------------------------------------------------------------------
 void TVPAddLog(const ttstr &line)
@@ -817,8 +820,10 @@ TJS_END_NATIVE_STATIC_PROP_DECL(clearLogFileOnError)
 	TJS_END_NATIVE_MEMBERS
 
 	// put version information to DMS
+#if 0
 	TVPAddImportantLog(TVPGetVersionInformation());
 	TVPAddImportantLog(ttstr(TVPVersionInformation2));
+#endif
 } // end of tTJSNC_Debug::tTJSNC_Debug
 //---------------------------------------------------------------------------
 tTJSNativeInstance *tTJSNC_Debug::CreateNativeInstance()
@@ -881,6 +886,7 @@ class tTVPTJS2DumpOutputGateway : public iTJSConsoleOutput
 //---------------------------------------------------------------------------
 void TVPTJS2StartDump()
 {
+#if 0
 	tjs_char filename[MAX_PATH];
 #ifndef ANDROID
 	TJS_strcpy(filename, ExePath().c_str());
@@ -895,15 +901,18 @@ void TVPTJS2StartDump()
 		// TODO: 32-bit unicode support
 		TVPDumpOutFile.Write( TJS_N("\xff\xfe"), 2 ); // indicate unicode text
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void TVPTJS2EndDump()
 {
+#if 0
 	if(TVPDumpOutFile.IsOpen())
 	{
 		TVPDumpOutFile.Close();
 		TVPAddLog(ttstr(TJS_W("Dumped to ")) + TVPDumpOutFileName);
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 

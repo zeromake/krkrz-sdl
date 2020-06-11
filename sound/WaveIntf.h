@@ -14,6 +14,7 @@
 #include "tjsNative.h"
 #include "SoundBufferBaseIntf.h"
 #include "tjsUtils.h"
+typedef float D3DVALUE;
 
 
 /*[*/
@@ -98,6 +99,8 @@ public:
 			Seek to "samplepos". "samplepos" must be given in unit of sample granule.
 			returns whether the seeking is succeeded.
 		*/
+
+	virtual bool DesiredFormat(const tTVPWaveFormat & format) { return false; }
 };
 //---------------------------------------------------------------------------
 class tTVPWaveDecoderCreator

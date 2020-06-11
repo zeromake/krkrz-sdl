@@ -12,12 +12,14 @@
 #ifndef tjsStringH
 #define tjsStringH
 
+#include <string>
 #include "tjsConfig.h"
 #ifdef TJS_SUPPORT_VCL
 	#include <vcl.h>
 #endif
 #include "tjsVariantString.h"
 
+#if 0
 #if defined (__clang__) && (ANDROID)
 template<typename T>
 tjs_string to_format_str( T value, const tjs_char* format ) {
@@ -48,6 +50,7 @@ inline tjs_string to_tjs_string( unsigned long value ) { return to_format_str( v
 inline tjs_string to_tjs_string( unsigned long long value ) { return to_format_str( value, TJS_W("%llu") ); }
 inline tjs_string to_tjs_string( float value ) { return to_format_str( value, TJS_W("%f") ); }
 inline tjs_string to_tjs_string( double value ) { return to_format_str( value, TJS_W("%lf") ); }
+#endif
 
 
 namespace TJS
@@ -148,7 +151,7 @@ public:
 	const tjs_string AsStdString() const
 	{
 		if(!Ptr) return tjs_string(TJS_W(""));
-#ifdef UNICODE
+#if 1 || defined(UNICODE)
 		return tjs_string(c_str());
 #else
 			// this constant string value must match std::string in type

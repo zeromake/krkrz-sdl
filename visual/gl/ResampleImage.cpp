@@ -20,9 +20,11 @@
 #ifdef _WIN32
 #include "tvpgl_ia32_intf.h"
 #else
+#if 0
 #include "DetectCPU.h"
 #endif
 #include "DetectCPU.h"
+#endif
 #include "LayerBitmapIntf.h"
 #include "LayerBitmapImpl.h"
 #include "WeightFunctor.h"
@@ -32,6 +34,7 @@
 #include "ResampleImageInternal.h"
 
 
+#if 0
 extern void TVPResampleImageAVX2( const tTVPResampleClipping &clip, const tTVPImageCopyFuncBase* blendfunc,
 	tTVPBaseBitmap *dest, const tTVPRect &destrect, const tTVPBaseBitmap *src, const tTVPRect &srcrect,
 	tTVPBBStretchType type, tjs_real typeopt );
@@ -39,6 +42,7 @@ extern void TVPResampleImageAVX2( const tTVPResampleClipping &clip, const tTVPIm
 extern void TVPResampleImageSSE2( const tTVPResampleClipping &clip, const tTVPImageCopyFuncBase* blendfunc,
 	tTVPBaseBitmap *dest, const tTVPRect &destrect, const tTVPBaseBitmap *src, const tTVPRect &srcrect,
 	tTVPBBStretchType type, tjs_real typeopt );
+#endif
 
 void tTVPBlendParameter::setFunctionFromParam() {
 #define TVP_BLEND_4(basename) /* blend for 4 types (normal, opacity, HDA, HDA opacity) */ \
@@ -703,7 +707,9 @@ void TVPResampleImage( const tTVPRect &cliprect, tTVPBaseBitmap *dest, const tTV
 		}
 	}
 
+#if 0
 	tjs_uint32 CpuFeature = TVPGetCPUType();
+#endif
 	try {
 #if 0 && defined(_WIN32)
 		if( (CpuFeature & TVP_CPU_HAS_AVX2) ) {

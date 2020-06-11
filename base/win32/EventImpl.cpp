@@ -18,7 +18,9 @@
 #include "SysInitIntf.h"
 #include "DebugIntf.h"
 #include "WindowImpl.h"
+#if 0
 #include <mmsystem.h>
+#endif
 
 #include "Application.h"
 #include "NativeEventQueue.h"
@@ -107,13 +109,18 @@ bool TVPGetBreathing()
 //---------------------------------------------------------------------------
 void TVPSetSystemEventDisabledState(bool en)
 {
+#if 0
 	TVPSystemControl->SetEventEnabled( !en );
 	if(!en) TVPDeliverAllEvents();
+#endif
 }
 //---------------------------------------------------------------------------
 bool TVPGetSystemEventDisabledState()
 {
+#if 0
 	return !TVPSystemControl->GetEventEnabled();
+#endif
+	return false;
 }
 //---------------------------------------------------------------------------
 
@@ -186,7 +193,7 @@ void tTVPContinuousHandlerCallLimitThread::Execute()
 	while(!GetTerminated())
 	{
 		tjs_uint64 curtick = TVPGetTickCount() << TVP_SUBMILLI_FRAC_BITS;
-		DWORD sleeptime;
+		tjs_uint32 sleeptime;
 
 		{	// thread-protected
 			tTJSCriticalSectionHolder holder(CS);
@@ -200,7 +207,7 @@ void tTVPContinuousHandlerCallLimitThread::Execute()
 					while(NextEventTick <= curtick) NextEventTick += Interval;
 				}
 				tjs_uint64 sleeptime_64 = NextEventTick - curtick;
-				sleeptime = (DWORD)(sleeptime_64 >> TVP_SUBMILLI_FRAC_BITS) +
+				sleeptime = (tjs_uint32)(sleeptime_64 >> TVP_SUBMILLI_FRAC_BITS) +
 						((sleeptime_64 & ((1<<TVP_SUBMILLI_FRAC_BITS)-1))?1:0);
 							// add 1 if fraction exists
 			}
@@ -254,7 +261,9 @@ void TVPBeginContinuousEvent()
 		}
 	}
 
+#if 0
 	if(!TVPIsWaitVSync())
+#endif
 	{
 		if(TVPContinousHandlerLimitFrequency == 0)
 		{

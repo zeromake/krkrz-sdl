@@ -1,6 +1,7 @@
 
 #ifndef __BITMAP_BITS_ALLOC_H__
 #define __BITMAP_BITS_ALLOC_H__
+#include <stdint.h>
 
 //---------------------------------------------------------------------------
 // memory allocation class
@@ -15,7 +16,7 @@ public:
 // heap allocation functions for bitmap bits
 //---------------------------------------------------------------------------
 class tTVPBitmapBitsAlloc {
-	typedef DWORD tTJSPointerSizedInteger;
+	typedef intptr_t tTJSPointerSizedInteger;
 	// this must be a integer type that has the same size with the normal
 	// pointer ( void *)
 	//---------------------------------------------------------------------------

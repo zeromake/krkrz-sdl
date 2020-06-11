@@ -12,6 +12,7 @@
 #ifndef __TJSTYPES_H__
 #define __TJSTYPES_H__
 
+#include <stddef.h>
 #include <stdint.h>
 
 #if 0 && defined(HAVE_CONFIG_H)
@@ -129,10 +130,10 @@ typedef uintptr_t tjs_uintptr_t;
 #endif
 
 #ifdef __cplusplus
-// typedef char16_t tjs_char;
-// typedef std::u16string tjs_string;
-typedef wchar_t tjs_char;
-typedef std::wstring tjs_string;
+typedef char16_t tjs_char;
+typedef std::u16string tjs_string;
+//typedef wchar_t tjs_char;
+//typedef std::wstring tjs_string;
 #else
 typedef unsigned short tjs_char;
 #endif
@@ -157,19 +158,11 @@ typedef uintptr_t tjs_uintptr_t;
 	#define TJS_HOST_IS_LITTLE_ENDIAN 1
 #endif
 
-// #define TJS_INTF_METHOD
-// #define TJS_USERENTRY
+#define TJS_INTF_METHOD
+#define TJS_USERENTRY
 
-#ifndef TJS_INTF_METHOD
-#define TJS_INTF_METHOD __cdecl
-	/* TJS_INTF_METHOD is "cdecl" (by default)
-		since TJS2 2.4.14 (kirikir2 2.25 beta 1) */
-#endif
-
-#define TJS_USERENTRY __cdecl
-
-// #define TJS_W(X) u##X
-#define TJS_W(X) L##X
+#define TJS_W(X) u##X
+//#define TJS_W(X) L##X
 
 #endif /* end of defined(_WIN32) && !defined(__GNUC__) */
 /*]*/

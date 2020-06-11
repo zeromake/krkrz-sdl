@@ -14,6 +14,7 @@
 #define WindowImplH
 
 #include "WindowIntf.h"
+#include "TVPWindow.h"
 
 
 /*[*/
@@ -21,6 +22,7 @@
 // window message receivers
 //---------------------------------------------------------------------------
 enum tTVPWMRRegMode { wrmRegister=0, wrmUnregister=1 };
+#if 0
 #pragma pack(push, 4)
 struct tTVPWindowMessage
 {
@@ -37,6 +39,7 @@ typedef bool (__stdcall * tTVPWindowMessageReceiver)
 #define TVP_WM_ATTACH (WM_USER+107)  // after re-generating the window
 #define TVP_WM_FULLSCREEN_CHANGING (WM_USER+108)  // before full-screen or window changing
 #define TVP_WM_FULLSCREEN_CHANGED  (WM_USER+109)  // after full-screen or window changing
+#endif
 
 
 /*]*/
@@ -109,6 +112,7 @@ extern tjs_int TVPGetCursor(const ttstr & name);
 TJS_EXP_FUNC_DEF(tjs_uint32, TVPGetCurrentShiftKeyState, ());
 
 // implement for Application
+#if 0
 TJS_EXP_FUNC_DEF(void, TVPRegisterAcceleratorKey, (HWND hWnd, char virt, short key, short cmd) );
 TJS_EXP_FUNC_DEF(void, TVPUnregisterAcceleratorKey, (HWND hWnd, short cmd));
 TJS_EXP_FUNC_DEF(void, TVPDeleteAcceleratorKeyTable, (HWND hWnd));
@@ -220,6 +224,7 @@ struct IDirect3D9;
 TJS_EXP_FUNC_DEF(IDirect3D9 *,  TVPGetDirect3DObjectNoAddRef, ());
 extern void TVPMinimizeFullScreenWindowAtInactivation();
 extern void TVPRestoreFullScreenWindowAtActivation();
+#endif
 //---------------------------------------------------------------------------
 
 
@@ -240,7 +245,9 @@ class tTJSNI_BaseLayer;
 class tTJSNI_Window : public tTJSNI_BaseWindow
 {
 	TTVPWindowForm *Form;
+#if 0
 	class tTVPVSyncTimingThread *VSyncTimingThread;
+#endif
 
 public:
 	tTJSNI_Window();
@@ -296,8 +303,10 @@ public:
 
 //-- interface to VideoOverlay object
 public:
+#if 0
 	HWND GetSurfaceWindowHandle();
 	HWND GetWindowHandle();
+#endif
 	void GetVideoOffset(tjs_int &ofsx, tjs_int &ofsy);
 
 	void ReadjustVideoRect();
@@ -308,7 +317,9 @@ public:
 	void ZoomRectangle(
 		tjs_int & left, tjs_int & top,
 		tjs_int & right, tjs_int & bottom);
+#if 0
 	HWND GetWindowHandleForPlugin();
+#endif
 	void RegisterWindowMessageReceiver(tTVPWMRRegMode mode,
 		void * proc, const void *userdata);
 
@@ -439,7 +450,9 @@ public:
 
 	void OnTouchUp( tjs_real x, tjs_real y, tjs_real cx, tjs_real cy, tjs_uint32 id );
 
+#if 0
 	void SetWindowMouseCursor( tjs_int cursor ) { SetMouseCursor( cursor ); }
+#endif
 
 public: // for iTVPLayerTreeOwner
 	// LayerManager -> LTO

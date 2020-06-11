@@ -68,6 +68,7 @@ tTJSNI_Layer::Invalidate()
 	tTJSNI_BaseLayer::Invalidate();
 }
 //---------------------------------------------------------------------------
+#if 0
 #pragma pack(push, 1)
 HRGN tTJSNI_Layer::CreateMaskRgn(tjs_uint threshold)
 {
@@ -177,6 +178,7 @@ HRGN tTJSNI_Layer::CreateMaskRgn(tjs_uint threshold)
 	return Rgn;
 }
 #pragma pack(pop)
+#endif
 //---------------------------------------------------------------------------
 
 

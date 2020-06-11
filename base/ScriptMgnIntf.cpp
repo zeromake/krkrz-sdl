@@ -33,7 +33,7 @@
 #include "tjsRandomGenerator.h"
 #include "SysInitIntf.h"
 #include "PhaseVocoderFilter.h"
-#ifdef WIN32
+#if 1
 #include "BasicDrawDevice.h"
 #endif
 #include "BinaryStream.h"
@@ -45,11 +45,14 @@
 #include "ImageFunction.h"
 #include "BitmapIntf.h"
 #include "tjsScriptBlock.h"
+#if 0
 #include "ApplicationSpecialPath.h"
+#endif
 #include "SystemImpl.h"
 #include "BitmapLayerTreeOwner.h"
 #include "Extension.h"
 
+#if 0
 #include "CanvasIntf.h"
 #include "OffscreenIntf.h"
 #include "TextureIntf.h"
@@ -58,6 +61,7 @@
 #include "ShaderProgramIntf.h"
 #include "VertexBufferIntf.h"
 #include "VertexBinderIntf.h"
+#endif
 
 //---------------------------------------------------------------------------
 // global variables
@@ -212,6 +216,7 @@ void TVPInitScriptEngine()
 	REGISTER_OBJECT(Bitmap, TVPCreateNativeClass_Bitmap());
 	REGISTER_OBJECT(ImageFunction, TVPCreateNativeClass_ImageFunction());
 	REGISTER_OBJECT(BitmapLayerTreeOwner, TVPCreateNativeClass_BitmapLayerTreeOwner());
+#if 0
 	REGISTER_OBJECT(Canvas, TVPCreateNativeClass_Canvas());
 	REGISTER_OBJECT(Texture, TVPCreateNativeClass_Texture());
 	REGISTER_OBJECT(Offscreen, TVPCreateNativeClass_Offscreen());
@@ -220,6 +225,7 @@ void TVPInitScriptEngine()
 	REGISTER_OBJECT(ShaderProgram, TVPCreateNativeClass_ShaderProgram());
 	REGISTER_OBJECT(VertexBuffer, TVPCreateNativeClass_VertexBuffer());
 	REGISTER_OBJECT(VertexBinder, TVPCreateNativeClass_VertexBinder());
+#endif
 
 	/* WaveSoundBuffer and its filters */
 	iTJSDispatch2 * waveclass = NULL;
@@ -233,7 +239,7 @@ void TVPInitScriptEngine()
 	/* Window and its drawdevices */
 	iTJSDispatch2 * windowclass = NULL;
 	REGISTER_OBJECT(Window, (windowclass = TVPCreateNativeClass_Window()));
-#ifdef WIN32
+#if 1
 	dsp = new tTJSNC_BasicDrawDevice();
 	val = tTJSVariant(dsp);
 	dsp->Release();
@@ -792,7 +798,9 @@ void TVPStartObjectHashMap()
 //---------------------------------------------------------------------------
 void TVPBeforeProcessUnhandledException()
 {
+#if 0
 	TVPDumpHWException();
+#endif
 }
 //---------------------------------------------------------------------------
 
@@ -816,7 +824,9 @@ void TVPShowScriptException(eTJS &e)
 	{
 		ttstr errstr = (ttstr(TVPScriptExceptionRaised) + TJS_W("\n") + e.GetMessage());
 		TVPAddLog(ttstr(TVPScriptExceptionRaised) + TJS_W("\n") + e.GetMessage());
+#if 0
 		Application->MessageDlg( errstr.AsStdString(), tjs_string(), mtError, mbOK );
+#endif
 		TVPTerminateSync(1);
 	}
 }
@@ -832,7 +842,9 @@ void TVPShowScriptException(eTJSScriptError &e)
 		TVPAddLog(ttstr(TVPScriptExceptionRaised) + TJS_W("\n") + e.GetMessage());
 		if(e.GetTrace().GetLen() != 0)
 			TVPAddLog(ttstr(TJS_W("trace : ")) + e.GetTrace());
+#if 0
 		Application->MessageDlg( errstr.AsStdString(), Application->GetTitle(), mtStop, mbOK );
+#endif
 
 #ifdef TVP_ENABLE_EXECUTE_AT_EXCEPTION
 		const tjs_char* scriptName = e.GetBlockNoAddRef()->GetName();
