@@ -34,6 +34,18 @@ inline tjs_string ExcludeTrailingBackslash( const tjs_string& path ) {
 	}
 	return tjs_string(path);
 }
+inline tjs_string IncludeTrailingForwardslash( const tjs_string& path ) {
+	if( path[path.length()-1] != TJS_W('/') ) {
+		return tjs_string(path+TJS_W("/"));
+	}
+	return tjs_string(path);
+}
+inline tjs_string ExcludeTrailingForwardslash( const tjs_string& path ) {
+	if( path[path.length()-1] == TJS_W('/') ) {
+		return tjs_string(path.c_str(),path.length()-1);
+	}
+	return tjs_string(path);
+}
 // 末尾の /\ は含まない
 inline tjs_string ExtractFileDir( const tjs_string& path ) {
 	tjs_char drive[_MAX_DRIVE];
