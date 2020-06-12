@@ -135,10 +135,17 @@ void tTVPWatchThread::Execute()
 //---------------------------------------------------------------------------
 static void TVPWatchThreadInit()
 {
+#ifdef __EMSCRIPTEN__
+	if (TVPWatchLastTick)
+	{
+		TVPWatchLastTick = 0;
+	}
+#else
 	if(!TVPWatchThread)
 	{
 		TVPWatchThread = new tTVPWatchThread();
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 static void TVPWatchThreadUninit()
