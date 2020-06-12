@@ -44,12 +44,23 @@ tTVPThread::~tTVPThread()
 //---------------------------------------------------------------------------
 void tTVPThread::StartProc()
 {
+#ifdef __EMSCRIPTEN__
+	try
+#endif
 	{	// スレッドが開始されたのでフラグON
 		std::lock_guard<std::mutex> lock( Mtx );
 		ThreadStarting = true;
 	}
+#ifdef __EMSCRIPTEN__
+	catch( std::system_error & ) {
+		exit(0);
+	}
+#endif
 	Cond.notify_all();
 	Execute();
+#ifdef __EMSCRIPTEN__
+	exit(0);
+#endif
 	// return 0;
 }
 //---------------------------------------------------------------------------
@@ -59,9 +70,11 @@ void tTVPThread::StartTread()
 		try {
 			Thread = new std::thread( &tTVPThread::StartProc, this );
 
+#ifndef __EMSCRIPTEN__
 			// スレッドが開始されるのを待つ
 			std::unique_lock<std::mutex> lock( Mtx );
 			Cond.wait( lock, [this] { return ThreadStarting; } );
+#endif
 		} catch( std::system_error & ) {
 			TVPThrowInternalError;
 		}

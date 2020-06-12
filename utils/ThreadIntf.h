@@ -60,7 +60,14 @@ protected:
 
 public:
 	void StartTread();
-	void WaitFor() { if (Thread && Thread->joinable()) { Thread->join(); } }
+	void WaitFor() {
+#ifndef __EMSCRIPTEN__
+		if (Thread && Thread->joinable())
+		{
+			Thread->join();
+		}
+#endif
+	}
 
 	tTVPThreadPriority GetPriority();
 	void SetPriority(tTVPThreadPriority pri);
