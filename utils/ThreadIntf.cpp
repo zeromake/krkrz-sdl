@@ -293,6 +293,8 @@ void DrawThreadPool::PoolThread( tjs_int taskNum ) {
 #elif defined( __MACH__ )
 		thread_affinity_policy_data_t policy = { static_cast<int>(workers.size()) };
 		thread_policy_set( pthread_mach_thread_np( th->GetHandle() ), THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);
+#elif defined( __EMSCRIPTEN__ )
+		// do nothing
 #elif !defined( ANDROID )
 		// for pthread(!android)
 		cpu_set_t cpuset;
