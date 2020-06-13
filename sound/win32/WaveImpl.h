@@ -169,6 +169,11 @@ private:
 		tTVPWaveSegmentQueue & segments);
 
 public:
+#ifdef __EMSCRIPTEN__
+	static void Trigger();
+#endif
+
+public:
 	bool FillL2Buffer(bool firstwrite, bool fromdecodethread);
 
 private:

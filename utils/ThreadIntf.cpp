@@ -37,48 +37,41 @@ tTVPThread::tTVPThread()
 tTVPThread::~tTVPThread()
 {
 	if( Thread != nullptr ) {
+#ifndef __EMSCRIPTEN__
 		if( Thread->joinable() ) Thread->detach();
+#endif
 		delete Thread;
 	}
 }
 //---------------------------------------------------------------------------
 void tTVPThread::StartProc()
 {
-#ifdef __EMSCRIPTEN__
-	try
-#endif
+#ifndef __EMSCRIPTEN__
 	{	// スレッドが開始されたのでフラグON
 		std::lock_guard<std::mutex> lock( Mtx );
 		ThreadStarting = true;
 	}
-#ifdef __EMSCRIPTEN__
-	catch( std::system_error & ) {
-		exit(0);
-	}
-#endif
 	Cond.notify_all();
 	Execute();
-#ifdef __EMSCRIPTEN__
-	exit(0);
-#endif
 	// return 0;
+#endif
 }
 //---------------------------------------------------------------------------
 void tTVPThread::StartTread()
 {
+#ifndef __EMSCRIPTEN__
 	if( Thread == nullptr ) {
 		try {
 			Thread = new std::thread( &tTVPThread::StartProc, this );
 
-#ifndef __EMSCRIPTEN__
 			// スレッドが開始されるのを待つ
 			std::unique_lock<std::mutex> lock( Mtx );
 			Cond.wait( lock, [this] { return ThreadStarting; } );
-#endif
 		} catch( std::system_error & ) {
 			TVPThrowInternalError;
 		}
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 tTVPThreadPriority tTVPThread::GetPriority()
@@ -96,6 +89,8 @@ tTVPThreadPriority tTVPThread::GetPriority()
 	case THREAD_PRIORITY_TIME_CRITICAL:	return ttpTimeCritical;
 	}
 
+	return ttpNormal;
+#elif defined(__EMSCRIPTEN__)
 	return ttpNormal;
 #else
 	int policy;
@@ -150,6 +145,7 @@ void tTVPThread::SetPriority(tTVPThreadPriority pri)
 	}
 
 	::SetThreadPriority( GetHandle(), npri);
+#elif defined(__EMSCRIPTEN__)
 #else
 	int policy;
 	struct sched_param param;
@@ -180,22 +176,32 @@ tjs_int TVPDrawThreadNum = 1;
 //---------------------------------------------------------------------------
 tjs_int TVPGetProcessorNum( void )
 {
+#ifdef __EMSCRIPTEN__
+	return 1;
+#else
 	return std::thread::hardware_concurrency();
+#endif
 }
 //---------------------------------------------------------------------------
 tjs_int TVPGetThreadNum( void )
 {
+#ifdef __EMSCRIPTEN__
+	return 1;
+#else
 	tjs_int threadNum = TVPDrawThreadNum ? TVPDrawThreadNum : std::thread::hardware_concurrency();
 	threadNum = std::min( threadNum, TVPMaxThreadNum );
 	return threadNum;
+#endif
 }
 //---------------------------------------------------------------------------
 static void TJS_USERENTRY DummyThreadTask( void * ) {}
 //---------------------------------------------------------------------------
 class DrawThreadPool;
 class DrawThread : public tTVPThread {
+#ifndef __EMSCRIPTEN__
 	std::mutex mtx;
 	std::condition_variable cv;
+#endif
 	TVP_THREAD_TASK_FUNC  lpStartAddress;
 	TVP_THREAD_PARAM lpParameter;
 	DrawThreadPool* parent;
@@ -205,10 +211,14 @@ protected:
 public:
 	DrawThread( DrawThreadPool* p ) : parent( p ), lpStartAddress( nullptr ), lpParameter( nullptr ) {}
 	void SetTask( TVP_THREAD_TASK_FUNC func, TVP_THREAD_PARAM param ) {
+#ifndef __EMSCRIPTEN__
 		std::lock_guard<std::mutex> lock( mtx );
+#endif
 		lpStartAddress = func;
 		lpParameter = param;
+#ifndef __EMSCRIPTEN__
 		cv.notify_one();
+#endif
 	}
 };
 //---------------------------------------------------------------------------
@@ -217,7 +227,11 @@ class DrawThreadPool {
 #ifdef _WIN32
 	std::vector<tjs_int> processor_ids;
 #endif
+#ifndef __EMSCRIPTEN__
 	std::atomic<int> running_thread_count;
+#else
+	int running_thread_count;
+#endif
 	tjs_int task_num;
 	tjs_int task_count;
 private:
@@ -238,9 +252,14 @@ public:
 	void BeginTask( tjs_int taskNum ) {
 		task_num = taskNum;
 		task_count = 0;
+#ifndef __EMSCRIPTEN__
 		PoolThread( taskNum );
+#endif
 	}
 	void ExecTask( TVP_THREAD_TASK_FUNC func, TVP_THREAD_PARAM param ) {
+#ifdef __EMSCRIPTEN__
+		func( param );
+#else
 		if( task_count >= task_num - 1 ) {
 			func( param );
 			return;
@@ -250,17 +269,21 @@ public:
 		task_count++;
 		thread->SetTask( func, param );
 		std::this_thread::yield();
+#endif
 	}
 	void WaitForTask() {
+#ifndef __EMSCRIPTEN__
 		int expected = 0;
 		while( false == std::atomic_compare_exchange_weak( &running_thread_count, &expected, 0 ) ) {
 			expected = 0;
 			std::this_thread::yield();	// スレッド切り替え(再スケジューリング)
 		}
+#endif
 	}
 };
 //---------------------------------------------------------------------------
 void DrawThread::Execute() {
+#ifndef __EMSCRIPTEN__
 	while( !GetTerminated() ) {
 		{
 			std::unique_lock<std::mutex> uniq_lk( mtx );
@@ -270,6 +293,7 @@ void DrawThread::Execute() {
 		lpStartAddress = nullptr;
 		parent->DecCount();
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void DrawThreadPool::PoolThread( tjs_int taskNum ) {

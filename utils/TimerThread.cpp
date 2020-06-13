@@ -215,6 +215,58 @@ void tTVPTimerThread::RegisterToPendingItem(tTVPTimerBase *item)
 	Pending.push_back(item);
 }
 //---------------------------------------------------------------------------
+#ifdef __EMSCRIPTEN__
+void tTVPTimerThread::InternalTrigger()
+{
+	{
+		tjs_uint64 curtick = TVPGetTickCount() << TVP_SUBMILLI_FRAC_BITS;
+		{	// thread-protected
+			tTJSCriticalSectionHolder holder(TVPTimerCS);
+
+			bool any_triggered = false;
+
+			std::vector<tTVPTimerBase*>::iterator i;
+			for(i = List.begin(); i!=List.end(); i ++)
+			{
+				tTVPTimerBase * item = *i;
+
+				if(!item->GetEnabled() || item->GetInterval() == 0) continue;
+
+				if(item->GetNextTick() < curtick)
+				{
+					tjs_uint n = static_cast<tjs_uint>( (curtick - item->GetNextTick()) / item->GetInterval() );
+					n++;
+					if(n > 40)
+					{
+						// too large amount of event at once; discard rest
+						item->Trigger(1);
+						any_triggered = true;
+						item->SetNextTick(curtick + item->GetInterval());
+					}
+					else
+					{
+						item->Trigger(n);
+						any_triggered = true;
+						item->SetNextTick(item->GetNextTick() +
+							n * item->GetInterval());
+					}
+				}
+			}
+
+			if(any_triggered)
+			{
+				// triggered; post notification message to the UtilWindow
+				if(!PendingEventsAvailable)
+				{
+					PendingEventsAvailable = true;
+					EventQueue.PostEvent( NativeEvent(TVP_EV_TIMER_THREAD) );
+				}
+			}
+		}	// end-of-thread-protected
+	}
+}
+#endif
+//---------------------------------------------------------------------------
 void tTVPTimerThread::SetEnabled(tTVPTimerBase *item, bool enabled)
 {
 	{ // thread-protected
@@ -307,6 +359,15 @@ void tTVPTimerThread::RegisterToPending(tTVPTimerBase *item)
 	}
 }
 //---------------------------------------------------------------------------
+#ifdef __EMSCRIPTEN__
+void tTVPTimerThread::Trigger()
+{
+	if(TVPTimerThread)
+	{
+		TVPTimerThread->InternalTrigger();
+	}
+}
+#endif
 
 
 //---------------------------------------------------------------------------

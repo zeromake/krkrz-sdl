@@ -1557,6 +1557,7 @@ protected:
 	void Execute(void);
 
 public:
+	void InternalTrigger();
 	void Start(void);
 	void CheckBufferSleep();
 
@@ -1736,6 +1737,53 @@ void tTVPWaveSoundBufferThread::Execute(void)
 	}
 }
 //---------------------------------------------------------------------------
+#ifdef __EMSCRIPTEN__
+void tTVPWaveSoundBufferThread::InternalTrigger()
+{
+	{
+		// thread loop for playing thread
+		tjs_uint32 time = TVPGetRoughTickCount32();
+
+		{	// thread-protected
+			tTJSCriticalSectionHolder holder(TVPWaveSoundBufferVectorCS);
+
+			if (TVPPrimaryBufferPlayingByProgram != TVPPrimarySoundBufferPlaying) {
+				TVPPrimarySoundBufferPlaying = TVPPrimaryBufferPlayingByProgram;
+				std::vector<tTJSNI_WaveSoundBuffer *>::iterator i;
+				for (i = TVPWaveSoundBufferVector.begin();
+					i != TVPWaveSoundBufferVector.end(); i++)
+				{
+					if ((*i)->ThreadCallbackEnabled)
+						(*i)->SetBufferPaused(!TVPPrimaryBufferPlayingByProgram); // for preventing buffer runs out on iOS' OpenAL implement
+				}
+			}
+
+			// check PendingLabelEventExists
+			if(PendingLabelEventExists)
+			{
+				if(!WndProcToBeCalled)
+				{
+					WndProcToBeCalled = true;
+					EventQueue.PostEvent( NativeEvent(TVP_EV_WAVE_SND_BUF_THREAD) );
+				}
+			}
+
+			if (TVPPrimarySoundBufferPlaying && time - LastFilledTick >= TVP_WSB_THREAD_SLEEP_TIME)
+			{
+				std::vector<tTJSNI_WaveSoundBuffer *>::iterator i;
+				for(i = TVPWaveSoundBufferVector.begin();
+					i != TVPWaveSoundBufferVector.end(); i++)
+				{
+					if((*i)->ThreadCallbackEnabled)
+						(*i)->FillBuffer(); // fill sound buffer
+				}
+				LastFilledTick = time;
+			}
+		}	// end-of-thread-protected
+	}
+}
+#endif
+//---------------------------------------------------------------------------
 void tTVPWaveSoundBufferThread::Start()
 {
 	TVPPrimaryBufferPlayingByProgram = true;
@@ -1894,7 +1942,11 @@ public:
 	void Interrupt();
 	void Continue();
 
+#ifdef __EMSCRIPTEN__
+	bool GetRunning() const { return false; }
+#else
 	bool GetRunning() const { return Running; }
+#endif
 };
 //---------------------------------------------------------------------------
 tTVPWaveSoundBufferDecodeThread::tTVPWaveSoundBufferDecodeThread(
@@ -2499,6 +2551,14 @@ tjs_uint tTJSNI_WaveSoundBuffer::Decode(void *buffer, tjs_uint bufsamplelen,
 
 	return w;
 }
+//---------------------------------------------------------------------------
+#ifdef __EMSCRIPTEN__
+void tTJSNI_WaveSoundBuffer::Trigger()
+{
+	if(TVPWaveSoundBufferThread)
+		TVPWaveSoundBufferThread->InternalTrigger();
+}
+#endif
 //---------------------------------------------------------------------------
 bool tTJSNI_WaveSoundBuffer::FillL2Buffer(bool firstwrite, bool fromdecodethread)
 {

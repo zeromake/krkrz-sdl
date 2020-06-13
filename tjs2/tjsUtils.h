@@ -15,7 +15,9 @@
 #include "tjsString.h"
 
 #if 1
+#ifndef __EMSCRIPTEN__
 #include <mutex>
+#endif
 #else
 #ifdef __WIN32__
 #include <windows.h>
@@ -31,14 +33,21 @@ namespace TJS
 #if 1
 class tTJSCriticalSection
 {
+#ifndef __EMSCRIPTEN__
 	std::recursive_mutex Mutex;
+#endif
 
 public:
 	tTJSCriticalSection() {}
 	~tTJSCriticalSection() {}
 
+#ifndef __EMSCRIPTEN__
 	void Enter() { Mutex.lock(); }
 	void Leave() { Mutex.unlock(); }
+#else
+	void Enter() {}
+	void Leave() {}
+#endif
 };
 #else
 #ifdef __WIN32__

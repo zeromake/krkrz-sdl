@@ -12,10 +12,12 @@
 #define ThreadIntfH
 #include "tjsNative.h"
 
+#ifndef __EMSCRIPTEN__
 #include <thread>
 #include <condition_variable>
 #include <mutex>
 #include <atomic>
+#endif
 #ifdef __MACH__
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
@@ -37,12 +39,18 @@ enum tTVPThreadPriority
 class tTVPThread
 {
 protected:
+#ifndef __EMSCRIPTEN__
 	std::thread* Thread;
+#else
+	void* Thread;
+#endif
 private:
 	bool Terminated;
 
+#ifndef __EMSCRIPTEN__
 	std::mutex Mtx;
 	std::condition_variable Cond;
+#endif
 	bool ThreadStarting;
 
 	void StartProc();
@@ -69,8 +77,10 @@ public:
 	tTVPThreadPriority GetPriority();
 	void SetPriority(tTVPThreadPriority pri);
 
+#ifndef __EMSCRIPTEN__
 	std::thread::native_handle_type GetHandle() { if(Thread) return Thread->native_handle(); else return NULL; }
 	std::thread::id GetThreadId() { if(Thread) return Thread->get_id(); else return std::thread::id(); }
+#endif
 };
 //---------------------------------------------------------------------------
 
@@ -80,8 +90,10 @@ public:
 //---------------------------------------------------------------------------
 class tTVPThreadEvent
 {
+#ifndef __EMSCRIPTEN__
 	std::mutex Mtx;
 	std::condition_variable Cond;
+#endif
 	bool IsReady;
 
 public:
@@ -89,11 +101,13 @@ public:
 	virtual ~tTVPThreadEvent() {}
 
 	void Set() {
+#ifndef __EMSCRIPTEN__
 		{
 			std::lock_guard<std::mutex> lock(Mtx);
 			IsReady = true;
 		}
 		Cond.notify_all();
+#endif
 	}
 	/*
 	void Reset() {
@@ -102,6 +116,7 @@ public:
 	}
 	*/
 	bool WaitFor( tjs_uint timeout ) {
+#ifndef __EMSCRIPTEN__
 		std::unique_lock<std::mutex> lk( Mtx );
 		if( timeout == 0 ) {
 			Cond.wait( lk, [this]{ return IsReady;} );
@@ -114,6 +129,9 @@ public:
 			IsReady = false;
 			return result;
 		}
+#else
+		return true;
+#endif
 	}
 };
 //---------------------------------------------------------------------------
