@@ -414,11 +414,14 @@ TJS_BEGIN_NATIVE_PROP_DECL(exeBits)
 {
         TJS_BEGIN_NATIVE_PROP_GETTER
           {
+#if 0
 #ifdef TJS_64BIT_OS
             *result = 64;
 #else
             *result = 32;
 #endif
+#endif
+          	*result = (tjs_int)(8 * sizeof(void*));
             return TJS_S_OK;
           }
         TJS_END_NATIVE_PROP_GETTER
