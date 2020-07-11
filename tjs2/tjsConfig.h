@@ -119,7 +119,10 @@ inline bool TJS_iswalpha(tjs_char ch) {
 #endif
 
 
-#if defined(__GNUC__)
+#if defined(__SWITCH__)
+	#define TJS_cdecl
+	#define TJS_timezone 0
+#elif defined(__GNUC__)
 	#define TJS_cdecl
 	#define TJS_timezone timezone
 #elif __WIN32__
