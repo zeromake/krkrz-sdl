@@ -17,7 +17,7 @@ int tTVPScreen::GetWidth() {
 	return ::GetSystemMetrics(SM_CXSCREEN);
 #endif
 	SDL_Rect r;
-	if (!SDL_GetDisplayBounds(0, &r))
+	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
 	{
 		return 0;
 	}
@@ -33,7 +33,7 @@ int tTVPScreen::GetHeight() {
 	return ::GetSystemMetrics(SM_CYSCREEN);
 #endif
 	SDL_Rect r;
-	if (!SDL_GetDisplayBounds(0, &r))
+	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
 	{
 		return 0;
 	}
@@ -63,7 +63,7 @@ int tTVPScreen::GetDesktopLeft() {
 	return r.left;
 #endif
 	SDL_Rect r;
-	if (!SDL_GetDisplayBounds(0, &r))
+	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
 	{
 		return 0;
 	}
@@ -76,7 +76,7 @@ int tTVPScreen::GetDesktopTop() {
 	return r.top;
 #endif
 	SDL_Rect r;
-	if (!SDL_GetDisplayBounds(0, &r))
+	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
 	{
 		return 0;
 	}
