@@ -824,9 +824,7 @@ void TVPShowScriptException(eTJS &e)
 	{
 		ttstr errstr = (ttstr(TVPScriptExceptionRaised) + TJS_W("\n") + e.GetMessage());
 		TVPAddLog(ttstr(TVPScriptExceptionRaised) + TJS_W("\n") + e.GetMessage());
-#if 0
 		Application->MessageDlg( errstr.AsStdString(), tjs_string(), mtError, mbOK );
-#endif
 		TVPTerminateSync(1);
 	}
 }
@@ -842,9 +840,7 @@ void TVPShowScriptException(eTJSScriptError &e)
 		TVPAddLog(ttstr(TVPScriptExceptionRaised) + TJS_W("\n") + e.GetMessage());
 		if(e.GetTrace().GetLen() != 0)
 			TVPAddLog(ttstr(TJS_W("trace : ")) + e.GetTrace());
-#if 0
 		Application->MessageDlg( errstr.AsStdString(), Application->GetTitle(), mtStop, mbOK );
-#endif
 
 #ifdef TVP_ENABLE_EXECUTE_AT_EXCEPTION
 		const tjs_char* scriptName = e.GetBlockNoAddRef()->GetName();
