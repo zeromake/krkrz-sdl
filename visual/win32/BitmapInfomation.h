@@ -3,34 +3,8 @@
 #ifndef __BITMAP_INFOMATION_H__
 #define __BITMAP_INFOMATION_H__
 
-struct TVPRGBQUAD {
-	uint8_t    rgbBlue;
-	uint8_t    rgbGreen;
-	uint8_t    rgbRed;
-	uint8_t    rgbReserved;
-};
-
-struct TVPBITMAPINFOHEADER{
-	uint32_t biSize;
-	int32_t            biWidth;
-	int32_t            biHeight;
-	uint16_t  biPlanes;
-	uint16_t  biBitCount;
-	uint32_t   biCompression;
-	uint32_t   biSizeImage;
-	int32_t            biXPelsPerMeter;
-	int32_t            biYPelsPerMeter;
-	uint32_t   biClrUsed;
-	uint32_t   biClrImportant;
-};
-
-struct TVPBITMAPINFO {
-	TVPBITMAPINFOHEADER    bmiHeader;
-	TVPRGBQUAD             bmiColors[1];
-};
-
 class BitmapInfomation {
-	TVPBITMAPINFO* BitmapInfo;
+	BITMAPINFO* BitmapInfo;
 	tjs_int BitmapInfoSize;
 public:
 	BitmapInfomation( tjs_uint width, tjs_uint height, int bpp, bool unpadding=false );
@@ -49,8 +23,8 @@ public:
 	}
 
 	// 以下、Win32 のみのメソッド
-	TVPBITMAPINFO* GetBITMAPINFO() { return BitmapInfo; }
-	const TVPBITMAPINFO* GetBITMAPINFO() const { return BitmapInfo; }
+	BITMAPINFO* GetBITMAPINFO() { return BitmapInfo; }
+	const BITMAPINFO* GetBITMAPINFO() const { return BitmapInfo; }
 };
 
 #endif // __BITMAP_INFOMATION_H__

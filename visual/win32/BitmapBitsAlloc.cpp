@@ -116,7 +116,6 @@ tTJSCriticalSection tTVPBitmapBitsAlloc::AllocCS;
 
 void tTVPBitmapBitsAlloc::InitializeAllocator() {
 	if( Allocator == NULL ) {
-#if 0
 		tTJSVariant val;
 		if(TVPGetCommandLine(TJS_W("-bitmapallocator"), &val)) {
 			ttstr str(val);
@@ -129,9 +128,7 @@ void tTVPBitmapBitsAlloc::InitializeAllocator() {
 				Allocator = new ProcessHeapAllocAllocator();
 			else    // malloc
 #endif
-#endif
 				Allocator = new BasicAllocator();
-#if 0
 		} else {
 #ifdef WIN32
 			//Allocator = new GlobalAllocAllocator();
@@ -140,7 +137,6 @@ void tTVPBitmapBitsAlloc::InitializeAllocator() {
 			Allocator = new BasicAllocator();
 #endif
 		}
-#endif
 	}
 }
 void tTVPBitmapBitsAlloc::FreeAllocator() {
@@ -150,9 +146,7 @@ void tTVPBitmapBitsAlloc::FreeAllocator() {
 static tTVPAtExit
 	TVPUninitMessageLoad(TVP_ATEXIT_PRI_CLEANUP, tTVPBitmapBitsAlloc::FreeAllocator);
 
-#if 0
 extern void TVPHeapDump();
-#endif
 void* tTVPBitmapBitsAlloc::Alloc( tjs_uint size, tjs_uint width, tjs_uint height ) {
 	if(size == 0) return NULL;
 	tTJSCriticalSectionHolder Lock(AllocCS);	// Lock
@@ -178,9 +172,7 @@ void* tTVPBitmapBitsAlloc::Alloc( tjs_uint size, tjs_uint width, tjs_uint height
 #endif
 		ptr = ptrorg = (tjs_uint8*)Allocator->allocate(allocbytes);
 		if(!ptr) {
-#if 0
 			TVPHeapDump();
-#endif
 			TVPThrowExceptionMessage(TVPCannotAllocateBitmapBits,
 				TJS_W("at TVPAllocBitmapBits"), ttstr((tjs_int)allocbytes) + TJS_W("(") +
 				ttstr((int)width) + TJS_W("x") + ttstr((int)height) + TJS_W(")"));

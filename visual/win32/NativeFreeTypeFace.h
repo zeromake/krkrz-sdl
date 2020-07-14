@@ -38,15 +38,11 @@ protected:
 	FT_Face Face;	//!< FreeType face オブジェクト
 
 private:
-#if 0
 	HDC DC;			//!< デバイスコンテキスト
 	HFONT OldFont;	//!< デバイスコンテキストに元々登録されていた古いフォント
-#endif
 	bool IsTTC;		//!< TTC(TrueTypeCollection)ファイルを扱っている場合に真
 	FT_StreamRec Stream;
-#if 0
 	TEXTMETRIC TextMetric;
-#endif
 
 public:
 	tNativeFreeTypeFace(const tjs_string &fontname, tjs_uint32 options);

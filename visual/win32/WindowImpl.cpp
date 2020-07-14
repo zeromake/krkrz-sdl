@@ -12,17 +12,13 @@
 
 //#define DIRECTDRAW_VERSION 0x0300
 //#include <ddraw.h>
-#if 0
 #include <d3d9.h>
-#endif
 
 #include <algorithm>
 #include "MsgIntf.h"
 #include "WindowIntf.h"
 #include "LayerIntf.h"
-#if 0
 #include "WindowFormUnit.h"
-#endif
 #include "SysInitIntf.h"
 #include "tjsHashSearch.h"
 #include "StorageIntf.h"
@@ -35,13 +31,9 @@
 #include "Application.h"
 #include "TVPScreen.h"
 #include "tjsDictionary.h"
-#if 0
 #include "VSyncTimingThread.h"
 #include "MouseCursor.h"
 #include "CanvasIntf.h"
-#endif
-
-extern TTVPWindowForm *TVPCreateAndAddWindow(tTJSNI_Window *w);
 
 //---------------------------------------------------------------------------
 // Mouse Cursor management
@@ -56,7 +48,6 @@ tjs_int TVPGetCursor(const ttstr & name)
 	tjs_int * in_hash = TVPCursorTable.Find(place);
 	if(in_hash) return *in_hash;
 
-#if 0
 	// not found
 	tTVPLocalTempStorageHolder file(place);
 
@@ -69,8 +60,6 @@ tjs_int TVPGetCursor(const ttstr & name)
 	TVPCursorTable.Add(place, id);
 
 	return id;
-#endif
-	return 0;
 }
 //---------------------------------------------------------------------------
 
@@ -79,7 +68,6 @@ tjs_int TVPGetCursor(const ttstr & name)
 
 
 
-#if 0
 //---------------------------------------------------------------------------
 // Direct3D/Full Screen and priamary surface management
 //---------------------------------------------------------------------------
@@ -1075,7 +1063,6 @@ HWND TVPGetModalWindowOwnerHandle()
 		return Application->GetHandle();
 }
 //---------------------------------------------------------------------------
-#endif
 
 
 
@@ -1085,9 +1072,7 @@ HWND TVPGetModalWindowOwnerHandle()
 tTJSNI_Window::tTJSNI_Window()
 {
 	//TVPEnsureVSyncTimingThread();
-#if 0
 	VSyncTimingThread = NULL;
-#endif
 	Form = NULL;
 }
 //---------------------------------------------------------------------------
@@ -1105,29 +1090,22 @@ tTJSNI_Window::Construct(tjs_int numparams, tTJSVariant **param,
 				TVPThrowExceptionMessage(TVPSpecifyWindow);
 			if(!win) TVPThrowExceptionMessage(TVPSpecifyWindow);
 		}
-#if 0
 		Form = new TTVPWindowForm(Application, this, win);
 	} else {
 		Form = new TTVPWindowForm(Application, this);
-#endif
 	}
-#if 0
 	CreateCanvas( tjs_obj );
-#endif
-	Form = TVPCreateAndAddWindow(this);
 	return TJS_S_OK;
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTJSNI_Window::Invalidate()
 {
 	tTJSNI_BaseWindow::Invalidate();
-#if 0
 	if( VSyncTimingThread )
 	{
 		delete VSyncTimingThread;
 		VSyncTimingThread = NULL;
 	}
-#endif
 	if(Form)
 	{
 		Form->InvalidateClose();
@@ -1229,7 +1207,7 @@ void tTJSNI_Window::PostInputEvent(const ttstr &name, iTJSDispatch2 * params)
 			TVPThrowExceptionMessage(TVPSpecifiedEventNeedsParameter2,
 				name, TJS_W("shift"));
 
-		uint16_t vcl_key = key;
+		WORD vcl_key = key;
 		if(type == etOnKeyDown)
 			Form->InternalKeyDown(key, shift);
 		else if(type == etOnKeyUp)
@@ -1299,9 +1277,7 @@ void TJS_INTF_METHOD tTJSNI_Window::SetCursorPos(tjs_int x, tjs_int y)
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTJSNI_Window::WindowReleaseCapture()
 {
-#if 0
 	::ReleaseCapture(); // Windows API
-#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTJSNI_Window::SetHintText(iTJSDispatch2* sender, const ttstr & text)
@@ -1376,13 +1352,11 @@ void tTJSNI_Window::EndUpdate()
 	tTJSNI_BaseWindow::EndUpdate();
 }
 //---------------------------------------------------------------------------
-#if 0
 HWND tTJSNI_Window::GetSurfaceWindowHandle()
 {
 	if(!Form) return NULL;
 	return Form->GetSurfaceWindowHandle();
 }
-#endif
 //---------------------------------------------------------------------------
 void tTJSNI_Window::ZoomRectangle(
 	tjs_int & left, tjs_int & top,
@@ -1392,13 +1366,11 @@ void tTJSNI_Window::ZoomRectangle(
 	Form->ZoomRectangle(left, top, right, bottom);
 }
 //---------------------------------------------------------------------------
-#if 0
 HWND tTJSNI_Window::GetWindowHandle()
 {
 	if(!Form) return NULL;
 	return Form->GetWindowHandle();
 }
-#endif
 //---------------------------------------------------------------------------
 void tTJSNI_Window::GetVideoOffset(tjs_int &ofsx, tjs_int &ofsy)
 {
@@ -1462,21 +1434,17 @@ void tTJSNI_Window::DetachVideoOverlay()
 	}
 }
 //---------------------------------------------------------------------------
-#if 0
 HWND tTJSNI_Window::GetWindowHandleForPlugin()
 {
 	if(!Form) return NULL;
 	return Form->GetWindowHandleForPlugin();
 }
-#endif
 //---------------------------------------------------------------------------
 void tTJSNI_Window::RegisterWindowMessageReceiver(tTVPWMRRegMode mode,
 		void * proc, const void *userdata)
 {
-#if 0
 	if(!Form) return;
 	Form->RegisterWindowMessageReceiver(mode, proc, userdata);
-#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_Window::Close()
@@ -1812,9 +1780,7 @@ void tTJSNI_Window::SetMaskRegion(tjs_int threshold)
 	if(!DrawDevice) TVPThrowExceptionMessage(TVPWindowHasNoLayer);
 	tTJSNI_BaseLayer *lay = DrawDevice->GetPrimaryLayer();
 	if(!lay) TVPThrowExceptionMessage(TVPWindowHasNoLayer);
-#if 0
 	Form->SetMaskRegion( ((tTJSNI_Layer*)lay)->CreateMaskRgn((tjs_uint)threshold) );
-#endif
 }
 //---------------------------------------------------------------------------
 void tTJSNI_Window::RemoveMaskRegion()
@@ -1986,7 +1952,6 @@ bool tTJSNI_Window::WaitForVBlank( tjs_int* in_vblank, tjs_int* delayed )
 //---------------------------------------------------------------------------
 void tTJSNI_Window::UpdateVSyncThread()
 {
-#if 0
 	if( CanvasInstance != nullptr ) {
 		if( WaitVSync ) {
 			if( VSyncTimingThread == NULL ) {
@@ -2001,7 +1966,6 @@ void tTJSNI_Window::UpdateVSyncThread()
 	} else {
 		CanvasInstance->SetWaitVSync( WaitVSync );
 	}
-#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTJSNI_Window::StartBitmapCompletion(iTVPLayerManager * manager)
@@ -2118,7 +2082,6 @@ TJS_BEGIN_NATIVE_METHOD_DECL(findFullScreenCandidates)
 {
 	if(numparams < 5) return TJS_E_BADPARAMCOUNT;
 
-#if 0
 	std::vector<tTVPScreenModeCandidate> candidates;
 
 	tTVPScreenMode preferred;
@@ -2130,14 +2093,12 @@ TJS_BEGIN_NATIVE_METHOD_DECL(findFullScreenCandidates)
 
 	TVPMakeFullScreenModeCandidates(preferred, (tTVPFullScreenResolutionMode)mode,
 		(tTVPFullScreenUsingEngineZoomMode)zoom_mode, candidates);
-#endif
 
 
 	return TJS_S_OK;
 }
 TJS_END_NATIVE_METHOD_DECL_OUTER(cls, findFullScreenCandidates)
 //---------------------------------------------------------------------------
-#if 0
 TJS_BEGIN_NATIVE_METHOD_DECL(registerMessageReceiver)
 {
 	TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -2150,7 +2111,6 @@ TJS_BEGIN_NATIVE_METHOD_DECL(registerMessageReceiver)
 	return TJS_S_OK;
 }
 TJS_END_NATIVE_METHOD_DECL_OUTER(cls, registerMessageReceiver)
-#endif
 //---------------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(getTouchPoint)
 {
@@ -2260,7 +2220,6 @@ TJS_BEGIN_NATIVE_METHOD_DECL(resetMouseVelocity)
 }
 TJS_END_NATIVE_METHOD_DECL_OUTER(cls, resetMouseVelocity)
 //---------------------------------------------------------------------------
-#if 0
 TJS_BEGIN_NATIVE_PROP_DECL(HWND)
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
@@ -2274,7 +2233,6 @@ TJS_BEGIN_NATIVE_PROP_DECL(HWND)
 	TJS_DENY_NATIVE_PROP_SETTER
 }
 TJS_END_NATIVE_PROP_DECL_OUTER(cls, HWND)
-#endif
 //---------------------------------------------------------------------------
 TJS_BEGIN_NATIVE_PROP_DECL(drawDevice)
 {
@@ -2419,9 +2377,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(displayRotate)
 TJS_END_NATIVE_PROP_DECL_OUTER(cls, displayRotate)
 //---------------------------------------------------------------------------
 
-#if 0
 	TVPGetDisplayColorFormat(); // this will be ran only once here
-#endif
 
 	return cls;
 }

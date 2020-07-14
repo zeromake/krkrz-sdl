@@ -16,9 +16,7 @@
 
 #include "Application.h"
 #include "CharacterSet.h"
-#if 0
 #include "resource.h"
-#endif
 
 //---------------------------------------------------------------------------
 // version retrieving
@@ -35,21 +33,16 @@ void TVPGetVersion(void)
 		TVPVersionRelease = 0;
 		TVPVersionBuild = 0;
 
-#if 0
 		TVPGetFileVersionOf(ExePath().c_str(), TVPVersionMajor, TVPVersionMinor,
 			TVPVersionRelease, TVPVersionBuild);
-#endif
 	}
 }
-#if 0
 //---------------------------------------------------------------------------
 // about string retrieving
 //---------------------------------------------------------------------------
 extern const tjs_char* TVPCompileDate;
 extern const tjs_char* TVPCompileTime;
-#endif
 ttstr TVPReadAboutStringFromResource() {
-#if 0
 	HMODULE hModule = ::GetModuleHandle(NULL);
 	const char *buf = NULL;
 	unsigned int size = 0;
@@ -103,7 +96,5 @@ ttstr TVPReadAboutStringFromResource() {
 		delete[] tmp;
 	}
 	return ret;
-#endif
-	return ttstr(TJS_W("Kirikiri Z"));
 }
 

@@ -8,39 +8,22 @@
 #include "MsgIntf.h"
 
 int tTVPScreen::GetWidth() {
-#if 0
 	HMONITOR hMonitor = ::MonitorFromWindow( Application->GetMainWindowHandle(), MONITOR_DEFAULTTOPRIMARY );
 	MONITORINFO monitorinfo = {sizeof(MONITORINFO)};
 	if( ::GetMonitorInfo( hMonitor, &monitorinfo ) != FALSE ) {
 		return monitorinfo.rcMonitor.right - monitorinfo.rcMonitor.left;
 	}
 	return ::GetSystemMetrics(SM_CXSCREEN);
-#endif
-	SDL_Rect r;
-	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
-	{
-		return 0;
-	}
-	return r.w;
 }
 int tTVPScreen::GetHeight() {
-#if 0
 	HMONITOR hMonitor = ::MonitorFromWindow( Application->GetMainWindowHandle(), MONITOR_DEFAULTTOPRIMARY );
 	MONITORINFO monitorinfo = {sizeof(MONITORINFO)};
 	if( ::GetMonitorInfo( hMonitor, &monitorinfo ) != FALSE ) {
 		return monitorinfo.rcMonitor.bottom - monitorinfo.rcMonitor.top;
 	}
 	return ::GetSystemMetrics(SM_CYSCREEN);
-#endif
-	SDL_Rect r;
-	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
-	{
-		return 0;
-	}
-	return r.h;
 }
 
-#if 0
 void tTVPScreen::GetDesktopRect( RECT& r ) {
 	HWND hWnd = Application->GetMainWindowHandle();
 	if( hWnd != INVALID_HANDLE_VALUE ) {
@@ -55,50 +38,26 @@ void tTVPScreen::GetDesktopRect( RECT& r ) {
 	}
 	::SystemParametersInfo( SPI_GETWORKAREA, 0, &r, 0 );
 }
-#endif
 int tTVPScreen::GetDesktopLeft() {
-#if 0
 	RECT r;
 	GetDesktopRect(r);
 	return r.left;
-#endif
-	SDL_Rect r;
-	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
-	{
-		return 0;
-	}
-	return r.x;
 }
 int tTVPScreen::GetDesktopTop() {
-#if 0
 	RECT r;
 	GetDesktopRect(r);
 	return r.top;
-#endif
-	SDL_Rect r;
-	if (SDL_GetDisplayUsableBounds(0, &r) != 0)
-	{
-		return 0;
-	}
-	return r.y;
 }
 int tTVPScreen::GetDesktopWidth() {
-#if 0
 	RECT r;
 	GetDesktopRect(r);
 	return r.right - r.left;
-#endif
-	return GetWidth();
 }
 int tTVPScreen::GetDesktopHeight() {
-#if 0
 	RECT r;
 	GetDesktopRect(r);
 	return r.bottom - r.top;
-#endif
-	return GetHeight();
 }
-#if 0
 // Dump Video card infomation
 void TVPDumpDisplayDevices() {
 	DISPLAY_DEVICE	displayDevice;
@@ -122,4 +81,3 @@ void TVPDumpDisplayDevices() {
 		iDevNum++;
 	}
 }
-#endif

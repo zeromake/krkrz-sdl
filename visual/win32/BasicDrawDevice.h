@@ -3,9 +3,7 @@
 #define BASIC_DRAW_DEVICE_H
 
 #include "DrawDevice.h"
-#if 0
 #include <d3d9.h>
-#endif
 
 //---------------------------------------------------------------------------
 //! @brief		「Basic」デバイス(もっとも基本的な描画を行うのみのデバイス)
@@ -14,24 +12,20 @@ class tTVPBasicDrawDevice : public tTVPDrawDevice
 {
 	typedef tTVPDrawDevice inherited;
 
-	void* TargetWindow;
+	HWND TargetWindow;
 	bool IsMainWindow;
 	bool DrawUpdateRectangle;
 	bool BackBufferDirty;
 
-	void*				Direct3D;
-	void*		Direct3DDevice;
-	void*		Texture;
-	int	D3dPP;
-	int			DispMode;
+	IDirect3D9*				Direct3D;
+	IDirect3DDevice9*		Direct3DDevice;
+	IDirect3DTexture9*		Texture;
+	D3DPRESENT_PARAMETERS	D3dPP;
+	D3DDISPLAYMODE			DispMode;
 
-#if 0
 	UINT	CurrentMonitor;
-#endif
 	void*	TextureBuffer; //!< テクスチャのサーフェースへのメモリポインタ
-#if 0
 	long	TexturePitch; //!< テクスチャのピッチ
-#endif
 
 	tjs_uint TextureWidth; //!< テクスチャの横幅
 	tjs_uint TextureHeight; //!< テクスチャの縦幅
@@ -48,7 +42,6 @@ private:
 
 	void InvalidateAll();
 
-#if 0
 	UINT GetMonitorNumber( HWND window );
 
 	bool IsTargetWindowActive() const;
@@ -58,29 +51,20 @@ private:
 	HRESULT DecideD3DPresentParameters();
 
 	bool CreateD3DDevice();
-#endif
 	void DestroyD3DDevice();
 
-#if 0
 	bool CreateTexture();
 	void DestroyTexture();
-#endif
 
 	void TryRecreateWhenDeviceLost();
-#if 0
 	void ErrorToLog( HRESULT hr );
 	void CheckMonitorMoved();
-#endif
 
 public:
-#if 0
 	void SetToRecreateDrawer() { DestroyD3DDevice(); }
-#endif
 
 public:
-#if 0
 	void EnsureDevice();
-#endif
 
 //---- LayerManager の管理関連
 	virtual void TJS_INTF_METHOD AddLayerManager(iTVPLayerManager * manager);
@@ -92,9 +76,7 @@ public:
 
 //---- 再描画関連
 	virtual void TJS_INTF_METHOD Show();
-#if 0
 	virtual bool TJS_INTF_METHOD WaitForVBlank( tjs_int* in_vblank, tjs_int* delayed );
-#endif
 
 //---- LayerManager からの画像受け渡し関連
 	virtual void TJS_INTF_METHOD StartBitmapCompletion(iTVPLayerManager * manager);

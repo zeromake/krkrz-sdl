@@ -14,14 +14,11 @@
 #define __DINPUTMGN_H__
 
 #define DIRECTINPUT_VERSION 0x0500
-#if 0
 #include <dinput.h>
-#endif
 
 
 #include <vector>
 
-#if 0
 //---------------------------------------------------------------------------
 // Enumerations/constants
 //---------------------------------------------------------------------------
@@ -181,7 +178,6 @@ public:
 	static bool GetAsyncState(tjs_uint keycode, bool getcurrent);
 };
 //---------------------------------------------------------------------------
-#endif
 
 
 
