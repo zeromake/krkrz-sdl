@@ -383,7 +383,6 @@ void tTVPLogStreamHolder::Log(const ttstr & text)
 //---------------------------------------------------------------------------
 void TVPAddLog(const ttstr &line, bool appendtoimportant)
 {
-#if 0
 	// add a line to the log.
 	// exceeded lines over TVPLogMaxLines are eliminated.
 	// this function is not thread-safe ...
@@ -444,8 +443,6 @@ void TVPAddLog(const ttstr &line, bool appendtoimportant)
 #endif
 
 	if(TVPLoggingToFile) TVPLogStreamHolder.Log(buf);
-#endif
-	Application->PrintConsole( line.c_str(), line.length(), appendtoimportant );
 }
 //---------------------------------------------------------------------------
 void TVPAddLog(const ttstr &line)
@@ -820,10 +817,8 @@ TJS_END_NATIVE_STATIC_PROP_DECL(clearLogFileOnError)
 	TJS_END_NATIVE_MEMBERS
 
 	// put version information to DMS
-#if 0
 	TVPAddImportantLog(TVPGetVersionInformation());
 	TVPAddImportantLog(ttstr(TVPVersionInformation2));
-#endif
 } // end of tTJSNC_Debug::tTJSNC_Debug
 //---------------------------------------------------------------------------
 tTJSNativeInstance *tTJSNC_Debug::CreateNativeInstance()
