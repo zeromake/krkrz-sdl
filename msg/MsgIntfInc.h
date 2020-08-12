@@ -1,9 +1,9 @@
 // Hardcoded internal strings
 #ifndef __MSG_INTF_INC_H__
 #define __MSG_INTF_INC_H__
-TVP_MSG_DECL_CONST(TVPVersionInformation, TJS_W("Kirikiri Z Executable core /%1 (Compiled on %DATE% %TIME%) TJS2/%2 Copyright (C) 1997-2013 W.Dee and contributors All rights reserved."))
+TVP_MSG_DECL_CONST(TVPVersionInformation, TJS_W("Kirikiri SDL2 Executable core /%1 (Compiled on %DATE% %TIME%) TJS2/%2 Copyright (C) 1997-2013 W.Dee and contributors All rights reserved."))
 TVP_MSG_DECL_CONST(TVPVersionInformation2, TJS_W("The details of version information can be perused if -about is attached and started. "))
-TVP_MSG_DECL_CONST(TVPDownloadPageURL, TJS_W("http://krkrz.github.io/"))
+TVP_MSG_DECL_CONST(TVPDownloadPageURL, TJS_W("https://github.com/uyjulian/krkrsdl2"))
 TVP_MSG_DECL_CONST(TVPInternalError, TJS_W("Internal Error: at %1 line %2"))
 TVP_MSG_DECL_CONST(TVPInvalidParam, TJS_W("Invalid Parameter"))
 TVP_MSG_DECL_CONST(TVPWarnDebugOptionEnabled, TJS_W("Debug option enabled"))
