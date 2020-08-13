@@ -93,7 +93,7 @@ tTVPThreadPriority tTVPThread::GetPriority()
 #elif defined(__EMSCRIPTEN__)
 	return ttpNormal;
 #else
-	if (GetHandle() == nullptr)
+	if (!GetHandle())
 	{
 		return ttpNormal;
 	}
@@ -151,7 +151,7 @@ void tTVPThread::SetPriority(tTVPThreadPriority pri)
 	::SetThreadPriority( GetHandle(), npri);
 #elif defined(__EMSCRIPTEN__)
 #else
-	if (GetHandle() == nullptr)
+	if (!GetHandle())
 	{
 		return;
 	}
