@@ -79,11 +79,7 @@ enum {
 };
 static FontRasterizer* TVPFontRasterizers[FONT_RASTER_EOT];
 static bool TVPFontRasterizersInit = false;
-#if defined(KRKRZ_CORETEXT_SUPPORT)
-static tjs_int TVPCurrentFontRasterizers = FONT_RASTER_CORETEXT;
-#else
 static tjs_int TVPCurrentFontRasterizers = FONT_RASTER_FREE_TYPE;
-#endif
 
 void TVPInializeFontRasterizers() {
 	if( TVPFontRasterizersInit == false ) {

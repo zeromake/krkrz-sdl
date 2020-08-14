@@ -40,6 +40,5 @@ private:
 };
 
 #define KRKRZ_CORETEXT_SUPPORT
-#define KRKRZ_DISABLE_FREE_TYPE
 
 #endif // __APPLE__

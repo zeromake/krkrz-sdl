@@ -62,9 +62,9 @@ bool CoreTextFontFace::getGlyphRectFromCharcode(struct tTVPRect &rt,
   CGSize advance;
   CGRect rect;
 
-  CTFontGetBoundingRectsForGlyphs(m_font, kCTFontOrientationHorizontal, &glyph,
+  CTFontGetBoundingRectsForGlyphs(m_font, kCTFontOrientationDefault, &glyph,
                                   &rect, 1);
-  CTFontGetAdvancesForGlyphs(m_font, kCTFontOrientationHorizontal, &glyph,
+  CTFontGetAdvancesForGlyphs(m_font, kCTFontOrientationDefault, &glyph,
                              &advance, 1);
 
   rt.set_size(rect.size.width, rect.size.height);
@@ -232,6 +232,20 @@ void CoreTextFontStorage::populateFontFaces(std::vector<tjs_string> *faces,
         CFArrayGetValueAtIndex(descriptors, i));
     if (!d) {
       continue;
+    }
+
+    // don't use vertical fonts
+    auto orientation = reinterpret_cast<CFNumberRef>(
+        CTFontDescriptorCopyAttribute(d, kCTFontOrientationAttribute));
+
+    if (orientation) {
+      uint32_t orientationVal = 0;
+      CFNumberGetValue(orientation, kCFNumberLongType, &orientationVal);
+      CFRelease(orientation);
+
+      if (orientationVal != kCTFontOrientationHorizontal) {
+        continue;
+      }
     }
 
     auto familyName = reinterpret_cast<CFStringRef>(
