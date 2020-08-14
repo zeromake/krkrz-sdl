@@ -32,7 +32,12 @@ extern FontSystem *TVPFontSystem;
 CoreTextFontRasterizer::CoreTextFontRasterizer()
     : m_refCount(1), m_lastBitmap(nullptr), m_fontFace(nullptr) {}
 
-CoreTextFontRasterizer::~CoreTextFontRasterizer() {}
+CoreTextFontRasterizer::~CoreTextFontRasterizer() {
+  if (m_fontFace) {
+    delete m_fontFace;
+    m_fontFace = nullptr;
+  }
+}
 
 void CoreTextFontRasterizer::AddRef() { ++m_refCount; }
 
@@ -48,7 +53,7 @@ void CoreTextFontRasterizer::Release() {
 void CoreTextFontRasterizer::ApplyFont(class tTVPNativeBaseBitmap *bmp,
                                        bool                        force) {
   // surpress redraw?
-  if (m_lastBitmap == bmp || !force)
+  if (m_lastBitmap == bmp && !force)
     return;
 
   ApplyFont(bmp->GetFont());
@@ -138,6 +143,7 @@ tjs_int CoreTextFontRasterizer::GetAscentHeight() {
 tTVPCharacterData *
 CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
                                   tjs_int aofsx, tjs_int aofsy) {
+  // for better results
   constexpr auto kFontRenderingMargin = 5;
 
   // ensure font
@@ -156,8 +162,8 @@ CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
   CGRect rect;
   CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationDefault, &glyph,
                                   &rect, 1);
-  int width  = rect.size.width + (kFontRenderingMargin << 1);
-  int height = rect.size.height + (kFontRenderingMargin << 1);
+  int width  = rect.size.width + (kFontRenderingMargin * 2);
+  int height = CTFontGetAscent(fontRef) + (kFontRenderingMargin * 2);
 
   // render a glyph into a buffer
   tjs_uint8 *buffer = new tjs_uint8[width * height];
@@ -165,12 +171,12 @@ CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
 
   auto colorSpace = CGColorSpaceCreateDeviceGray();
   auto ctx =
-      CGBitmapContextCreate(buffer, width, height, 8, width, colorSpace,
-                            kCGImageAlphaNone | kCGBitmapByteOrderDefault);
+      CGBitmapContextCreate(buffer, width, height, 8, width, colorSpace, 0);
 
-  CGPoint offset = CGPointMake(-rect.origin.x + kFontRenderingMargin,
-                               -rect.origin.y + kFontRenderingMargin);
+  CGPoint offset =
+      CGPointMake(-rect.origin.x + kFontRenderingMargin, kFontRenderingMargin);
 
+  CGContextSetTextDrawingMode(ctx, kCGTextFill);
   CGContextSetGrayFillColor(ctx, 1.0, 1.0);
   CGContextSetGrayStrokeColor(ctx, 1.0, 0.0);
   CTFontDrawGlyphs(fontRef, &glyph, &offset, 1, ctx);
@@ -187,11 +193,10 @@ CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
   metrics.CellIncX = advances.width;
   metrics.CellIncY = advances.height;
 
-  auto data = new tTVPCharacterData(
-      buffer, width, rect.origin.x - kFontRenderingMargin,
-      (CTFontGetAscent(fontRef) - (rect.size.height + rect.origin.y)) -
-          kFontRenderingMargin,
-      width, height, metrics);
+  auto data =
+      new tTVPCharacterData(buffer, width, std::round(-offset.x),
+                            - kFontRenderingMargin,
+                            width, height, metrics);
 
   data->Gray = 256;
 

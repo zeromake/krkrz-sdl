@@ -15,6 +15,8 @@
 #include "LayerBitmapIntf.h"
 #include "MsgIntf.h"
 
+// ----------------------------------------------------------------------
+
 CoreTextFontFace::CoreTextFontFace(CTFontDescriptorRef descriptor,
                                    tjs_string const &  faceName,
                                    tjs_uint32          options)
