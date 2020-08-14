@@ -25,12 +25,23 @@ public:
   CoreTextFontFace(CoreTextFontFace const &) = delete;
   CoreTextFontFace &operator=(CoreTextFontFace const &) = delete;
 
-  tjs_string const &getFaceName() const;
-  void              ensureOptions(tjs_uint32 options);
+  tjs_string const &  getFaceName() const;
+  tjs_uint32          getOptions() const;
+  CTFontDescriptorRef getDescriptor() const;
+  CTFontRef           getFont() const;
+  CGFloat           getHeight() const;
+
+  void createFontWithHeight(CGFloat height);
+  void ensureOptions(tjs_uint32 options);
+
+  bool getGlyphRectFromCharcode(struct tTVPRect &rt, tjs_char code,
+                                tjs_int &advancex, tjs_int &advancey);
 
 private:
   CTFontDescriptorRef m_descriptor;
+  CTFontRef           m_font;
   tjs_string          m_faceName;
+  CGFloat             m_height;
   tjs_uint32          m_options;
 };
 

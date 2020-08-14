@@ -13,6 +13,7 @@
 #include "CoreTextFontRasterizer.h"
 #include "CoreTextFontStorage.h"
 
+#include <cmath>
 #include <vector>
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -103,6 +104,7 @@ void CoreTextFontRasterizer::ApplyFont(const struct tTVPFont &font) {
   }
 
   // ensure font options
+  m_fontFace->createFontWithHeight(font.Height);
   m_fontFace->ensureOptions(opt);
 
   // why?
@@ -111,29 +113,129 @@ void CoreTextFontRasterizer::ApplyFont(const struct tTVPFont &font) {
 
 void CoreTextFontRasterizer::GetTextExtent(tjs_char ch, tjs_int &w,
                                            tjs_int &h) {
-  // TODO:
-  w = 0;
-  h = 0;
+  auto    fontRef   = m_fontFace->getFont();
+  UniChar character = static_cast<UniChar>(ch);
+  CGGlyph glyph     = 0;
+
+  if (!CTFontGetGlyphsForCharacters(fontRef, &character, &glyph, 1)) {
+    w = h = this->m_fontFace->getHeight();
+    return;
+  }
+
+  CGSize advance;
+  CGRect rect;
+
+  CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal, &glyph,
+                                  &rect, 1);
+
+  w = rect.size.width;
+  h = rect.size.height;
 }
 
 tjs_int CoreTextFontRasterizer::GetAscentHeight() {
-  // TODO:
-  return 0;
+  return CTFontGetAscent(m_fontFace->getFont());
 }
 
 tTVPCharacterData *
 CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
                                   tjs_int aofsx, tjs_int aofsy) {
   // TODO:
+  m_fontFace->createFontWithHeight(font.Font.Height);
 
-  // the actual rasterization goes here
+  // get a glyph from a character code
+  auto    fontRef   = m_fontFace->getFont();
+  UniChar character = static_cast<UniChar>(font.Character);
+  CGGlyph glyph     = 0;
 
-  return nullptr;
+  if (!CTFontGetGlyphsForCharacters(fontRef, &character, &glyph, 1)) {
+    TVPThrowExceptionMessage(
+        TJS_W("failed to create a glyph from a character: %1"), font.Character);
+  }
+
+  CGRect rect;
+  CTFontGetBoundingRectsForGlyphs(fontRef, kCTFontOrientationHorizontal, &glyph,
+                                  &rect, 1);
+  int width  = rect.size.width + rect.origin.x;
+  int height = rect.size.height + rect.origin.y;
+
+  tjs_uint8 *buffer = new tjs_uint8[width * height];
+  memset(buffer, 0, width * height);
+
+  auto colorSpace = CGColorSpaceCreateDeviceGray();
+  auto ctx =
+      CGBitmapContextCreate(buffer, width, height, 8, width, colorSpace,
+                            kCGImageAlphaNone | kCGBitmapByteOrderDefault);
+  CGPoint offset = CGPointMake(0, 0);
+
+  CGContextSetGrayFillColor(ctx, 1.0, 1.0);
+  CGContextSetGrayStrokeColor(ctx, 1.0, 0.0);
+  CTFontDrawGlyphs(fontRef, &glyph, &offset, 1, ctx);
+
+  CGContextRelease(ctx);
+  CGColorSpaceRelease(colorSpace);
+
+  tGlyphMetrics metrics{0};
+
+  metrics.CellIncX = width;
+  metrics.CellIncY = height;
+
+  auto data = new tTVPCharacterData(buffer, width, rect.origin.x, rect.origin.y,
+                                    width, height, metrics);
+  data->Gray = 256;
+
+  int cx = data->Metrics.CellIncX;
+  int cy = data->Metrics.CellIncY;
+
+  if (font.Font.Angle == 0) {
+    data->Metrics.CellIncX = cx;
+    data->Metrics.CellIncY = 0;
+  } else if (font.Font.Angle == 2700) {
+    data->Metrics.CellIncX = 0;
+    data->Metrics.CellIncY = cx;
+  } else {
+    double angle           = font.Font.Angle * (M_PI / 1800);
+    data->Metrics.CellIncX = static_cast<tjs_int>(std::cos(angle) * cx);
+    data->Metrics.CellIncY = static_cast<tjs_int>(-std::sin(angle) * cx);
+  }
+
+  data->Antialiased = font.Antialiased;
+  data->FullColored = false;
+  data->Blured      = font.Blured;
+  data->BlurWidth   = font.BlurWidth;
+  data->BlurLevel   = font.BlurLevel;
+  data->OriginX += aofsx;
+
+  if (font.Blured)
+    data->Blur();
+
+  return data;
 }
 
 void CoreTextFontRasterizer::GetGlyphDrawRect(const ttstr &    text,
                                               struct tTVPRect &area) {
-  // TODO:
+  area.left = area.top = area.right = area.bottom = 0;
+  tjs_int  offsetx                                = 0;
+  tjs_int  offsety                                = 0;
+  tjs_uint len                                    = text.length();
+  for (tjs_uint i = 0; i < len; i++) {
+    tjs_char ch = text[i];
+    tjs_int  ax, ay;
+    tTVPRect rt(0, 0, 0, 0);
+    bool     result = m_fontFace->getGlyphRectFromCharcode(rt, ch, ax, ay);
+    if (!result) {
+      m_fontFace->getGlyphRectFromCharcode(rt, '?', ax, ay);
+    }
+    if (result) {
+      rt.add_offsets(offsetx, offsety);
+      if (i != 0) {
+        area.do_union(rt);
+      } else {
+        area = rt;
+      }
+    }
+    offsetx += ax;
+    offsety = 0;
+  }
 }
 
 bool CoreTextFontRasterizer::AddFont(const ttstr &            storage,

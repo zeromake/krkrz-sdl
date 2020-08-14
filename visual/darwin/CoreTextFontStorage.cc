@@ -18,15 +18,62 @@
 CoreTextFontFace::CoreTextFontFace(CTFontDescriptorRef descriptor,
                                    tjs_string const &  faceName,
                                    tjs_uint32          options)
-    : m_descriptor(descriptor), m_faceName(faceName), m_options(options) {}
+    : m_descriptor(descriptor), m_faceName(faceName), m_font(nullptr),
+      m_height(12.0), m_options(options) {}
 
 CoreTextFontFace::~CoreTextFontFace() { CFRelease(m_descriptor); }
 
 tjs_string const &CoreTextFontFace::getFaceName() const { return m_faceName; }
 
+tjs_uint32 CoreTextFontFace::getOptions() const { return m_options; }
+
+CGFloat CoreTextFontFace::getHeight() const { return m_height; }
+
+CTFontDescriptorRef CoreTextFontFace::getDescriptor() const {
+  return m_descriptor;
+}
+
+CTFontRef CoreTextFontFace::getFont() const { return m_font; }
+
 void CoreTextFontFace::ensureOptions(tjs_uint32 options) {
   if (m_options == options)
     return;
+}
+
+void CoreTextFontFace::createFontWithHeight(CGFloat height) {
+  if (m_font && m_height == height) {
+    return;
+  }
+
+  m_font = CTFontCreateWithFontDescriptor(m_descriptor, height, nullptr);
+}
+
+bool CoreTextFontFace::getGlyphRectFromCharcode(struct tTVPRect &rt,
+                                                tjs_char         code,
+                                                tjs_int &        advancex,
+                                                tjs_int &        advancey) {
+  UniChar character = static_cast<UniChar>(code);
+  CGGlyph glyph     = 0;
+
+  if (!CTFontGetGlyphsForCharacters(m_font, &character, &glyph, 1)) {
+    return false;
+  }
+
+  CGSize advance;
+  CGRect rect;
+
+  CTFontGetBoundingRectsForGlyphs(m_font, kCTFontOrientationHorizontal, &glyph,
+                                  &rect, 1);
+  CTFontGetAdvancesForGlyphs(m_font, kCTFontOrientationHorizontal, &glyph,
+                             &advance, 1);
+
+  rt.set_size(rect.size.width, rect.size.height);
+  rt.set_offsets(rect.origin.x, rect.origin.y);
+
+  advancex = advance.width;
+  advancey = advance.height;
+
+  return true;
 }
 
 // ----------------------------------------------------------------------
