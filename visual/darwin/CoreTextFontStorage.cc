@@ -40,6 +40,8 @@ CTFontRef CoreTextFontFace::getFont() const { return m_font; }
 void CoreTextFontFace::ensureOptions(tjs_uint32 options) {
   if (m_options == options)
     return;
+
+  // TODO: handle options properly
 }
 
 void CoreTextFontFace::createFontWithHeight(CGFloat height) {
@@ -76,6 +78,60 @@ bool CoreTextFontFace::getGlyphRectFromCharcode(struct tTVPRect &rt,
   advancey = advance.height;
 
   return true;
+}
+
+extern CFArrayRef CoreTextFont_GetCurrentSystemLanguages();
+
+std::vector<CoreTextFontFace *> CoreTextFontFace::defaultFallbackFonts() {
+  std::vector<CoreTextFontFace *> fonts{};
+
+  auto languages = CoreTextFont_GetCurrentSystemLanguages();
+  auto systemFont =
+      CTFontCreateUIFontForLanguage(kCTFontUIFontLabel, 0.0, nullptr);
+  auto fallbacks =
+      CTFontCopyDefaultCascadeListForLanguages(systemFont, languages);
+  auto count = CFArrayGetCount(fallbacks);
+
+  for (CFIndex i = 0; i < count; i++) {
+    auto d = reinterpret_cast<CTFontDescriptorRef>(
+        CFArrayGetValueAtIndex(fallbacks, i));
+
+    auto familyName = reinterpret_cast<CFStringRef>(
+        CTFontDescriptorCopyAttribute(d, kCTFontDisplayNameAttribute));
+
+    if (!familyName) {
+      // family name not present
+      TVPAddLog(TJS_W("family name not present"));
+      CFRetain(d);
+      fonts.push_back(new CoreTextFontFace(d, TJS_W("(fallback font)"), 0));
+      continue;
+    }
+
+    auto bufSize = CFStringGetLength(familyName) << 2;
+    auto cStr    = new char[bufSize];
+
+    // clear the buffer
+    memset(cStr, 0, bufSize);
+
+    if (!CFStringGetCString(familyName, cStr, bufSize,
+                            kCFStringEncodingUTF16LE)) {
+      TVPThrowExceptionMessage(TJS_W("font family name conversion failed"));
+    }
+
+    auto faceName = tjs_string(reinterpret_cast<tjs_char const *>(cStr));
+
+    delete[] cStr;
+    CFRelease(familyName);
+
+    CFRetain(d);
+    fonts.push_back(new CoreTextFontFace(d, faceName, 0));
+  }
+
+  CFRelease(languages);
+  CFRelease(systemFont);
+  CFRelease(fallbacks);
+
+  return std::move(fonts);
 }
 
 // ----------------------------------------------------------------------

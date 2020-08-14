@@ -13,6 +13,9 @@
 
 #include "tjsCommHead.h"
 
+#include <CoreText/CoreText.h>
+#include <vector>
+
 #include "CharacterData.h"
 #include "FontRasterizer.h"
 
@@ -37,6 +40,14 @@ private:
   size_t                      m_refCount;
   class tTVPNativeBaseBitmap *m_lastBitmap;
   class CoreTextFontFace *    m_fontFace;
+
+  std::vector<class CoreTextFontFace *> m_fallbackFonts;
+
+  tTVPCharacterData *TryGetBitmap(const tTVPFontAndCharacterData &font,
+                                  tjs_int aofsx, tjs_int aofsy,
+                                  CTFontRef fontRef);
+  
+  class CoreTextFontFace * getFontFace() const;
 };
 
 #define KRKRZ_CORETEXT_SUPPORT

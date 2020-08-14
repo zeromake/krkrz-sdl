@@ -26,17 +26,27 @@
 #include "StringUtil.h"
 
 // ---------------------------------------------
+
 extern FontSystem *TVPFontSystem;
+
 // ---------------------------------------------
 
 CoreTextFontRasterizer::CoreTextFontRasterizer()
-    : m_refCount(1), m_lastBitmap(nullptr), m_fontFace(nullptr) {}
+    : m_refCount(1), m_lastBitmap(nullptr),
+      m_fontFace(nullptr), m_fallbackFonts{
+                               CoreTextFontFace::defaultFallbackFonts()} {}
 
 CoreTextFontRasterizer::~CoreTextFontRasterizer() {
   if (m_fontFace) {
     delete m_fontFace;
     m_fontFace = nullptr;
   }
+
+  for (auto face : m_fallbackFonts) {
+    delete face;
+  }
+
+  m_fallbackFonts.clear();
 }
 
 void CoreTextFontRasterizer::AddRef() { ++m_refCount; }
@@ -104,9 +114,13 @@ void CoreTextFontRasterizer::ApplyFont(const struct tTVPFont &font) {
   }
 
   if (!m_fontFace && !(m_fontFace = storage->createFontFace(faces, opt))) {
-    TVPThrowExceptionMessage(TJS_W("failed to create a font face: %1"),
-                             faces[0]);
+    // TVPThrowExceptionMessage(TJS_W("failed to create a font face: %1"),
+    //                          faces[0]);
+
     // use system fallback
+    m_fontFace   = nullptr;
+    m_lastBitmap = nullptr;
+    return;
   }
 
   // ensure font options
@@ -119,12 +133,14 @@ void CoreTextFontRasterizer::ApplyFont(const struct tTVPFont &font) {
 
 void CoreTextFontRasterizer::GetTextExtent(tjs_char ch, tjs_int &w,
                                            tjs_int &h) {
-  auto    fontRef   = m_fontFace->getFont();
+  // TODO: try all fallbacks
+  auto    fontFace  = getFontFace();
+  auto    fontRef   = fontFace->getFont();
   UniChar character = static_cast<UniChar>(ch);
   CGGlyph glyph     = 0;
 
   if (!CTFontGetGlyphsForCharacters(fontRef, &character, &glyph, 1)) {
-    w = h = this->m_fontFace->getHeight();
+    w = h = fontFace->getHeight();
     return;
   }
 
@@ -136,27 +152,39 @@ void CoreTextFontRasterizer::GetTextExtent(tjs_char ch, tjs_int &w,
   h = advances.height;
 }
 
+class CoreTextFontFace *CoreTextFontRasterizer::getFontFace() const {
+  if (m_fontFace) {
+    return m_fontFace;
+  }
+
+  // try all fallback fonts
+  for (auto const &face : m_fallbackFonts) {
+    if (face) {
+      return face;
+    }
+  }
+
+  TVPThrowExceptionMessage(TJS_W("failed to obtain a font face: no fallbacks"));
+
+  return nullptr; // unreachable
+}
+
 tjs_int CoreTextFontRasterizer::GetAscentHeight() {
-  return CTFontGetAscent(m_fontFace->getFont());
+  return CTFontGetAscent(getFontFace()->getFont());
 }
 
 tTVPCharacterData *
-CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
-                                  tjs_int aofsx, tjs_int aofsy) {
+CoreTextFontRasterizer::TryGetBitmap(const tTVPFontAndCharacterData &font,
+                                     tjs_int aofsx, tjs_int aofsy,
+                                     CTFontRef fontRef) {
   // for better results
   constexpr auto kFontRenderingMargin = 5;
 
-  // ensure font
-  m_fontFace->createFontWithHeight(font.Font.Height);
-
-  // get a glyph from a character code
-  auto    fontRef   = m_fontFace->getFont();
   UniChar character = static_cast<UniChar>(font.Character);
   CGGlyph glyph     = 0;
 
   if (!CTFontGetGlyphsForCharacters(fontRef, &character, &glyph, 1)) {
-    TVPThrowExceptionMessage(
-        TJS_W("failed to create a glyph from a character: %1"), font.Character);
+    return nullptr;
   }
 
   CGRect rect;
@@ -195,8 +223,7 @@ CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
 
   auto data =
       new tTVPCharacterData(buffer, width, std::round(-offset.x),
-                            - kFontRenderingMargin,
-                            width, height, metrics);
+                            -kFontRenderingMargin, width, height, metrics);
 
   data->Gray = 256;
 
@@ -230,19 +257,58 @@ CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
   return data;
 }
 
+tTVPCharacterData *
+CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
+                                  tjs_int aofsx, tjs_int aofsy) {
+  if (m_fontFace) {
+    // ensure font
+    m_fontFace->createFontWithHeight(font.Font.Height);
+
+    // get a glyph from a character code
+    auto fontRef       = m_fontFace->getFont();
+    auto characterData = TryGetBitmap(font, aofsx, aofsy, fontRef);
+
+    if (characterData) {
+      return characterData;
+    }
+  }
+
+  // try all fallback fonts
+  for (auto const &face : m_fallbackFonts) {
+    face->createFontWithHeight(font.Font.Height);
+
+    // get a glyph from a character code
+    auto fontRef       = face->getFont();
+    auto characterData = TryGetBitmap(font, aofsx, aofsy, fontRef);
+
+    if (characterData) {
+      return characterData;
+    }
+  }
+
+  TVPThrowExceptionMessage(
+      TJS_W("failed to create a glyph from a character: %1"), font.Character);
+
+  return nullptr; // unreachable
+}
+
 void CoreTextFontRasterizer::GetGlyphDrawRect(const ttstr &    text,
                                               struct tTVPRect &area) {
+  // TODO : handle all fallbacks
   area.left = area.top = area.right = area.bottom = 0;
   tjs_int  offsetx                                = 0;
   tjs_int  offsety                                = 0;
   tjs_uint len                                    = text.length();
+
+  auto fontFace = getFontFace();
+
   for (tjs_uint i = 0; i < len; i++) {
     tjs_char ch = text[i];
     tjs_int  ax, ay;
     tTVPRect rt(0, 0, 0, 0);
-    bool     result = m_fontFace->getGlyphRectFromCharcode(rt, ch, ax, ay);
+    bool     result = fontFace->getGlyphRectFromCharcode(rt, ch, ax, ay);
     if (!result) {
-      m_fontFace->getGlyphRectFromCharcode(rt, '?', ax, ay);
+      fontFace->getGlyphRectFromCharcode(rt, '?', ax, ay);
     }
     if (result) {
       rt.add_offsets(offsetx, offsety);

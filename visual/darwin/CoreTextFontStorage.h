@@ -29,13 +29,15 @@ public:
   tjs_uint32          getOptions() const;
   CTFontDescriptorRef getDescriptor() const;
   CTFontRef           getFont() const;
-  CGFloat           getHeight() const;
+  CGFloat             getHeight() const;
 
   void createFontWithHeight(CGFloat height);
   void ensureOptions(tjs_uint32 options);
 
   bool getGlyphRectFromCharcode(struct tTVPRect &rt, tjs_char code,
                                 tjs_int &advancex, tjs_int &advancey);
+
+  static std::vector<CoreTextFontFace *> defaultFallbackFonts();
 
 private:
   CTFontDescriptorRef m_descriptor;
