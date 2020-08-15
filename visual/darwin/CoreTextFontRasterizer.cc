@@ -120,6 +120,12 @@ void CoreTextFontRasterizer::ApplyFont(const struct tTVPFont &font) {
     // use system fallback
     m_fontFace   = nullptr;
     m_lastBitmap = nullptr;
+
+    for (auto &f : m_fallbackFonts) {
+      f->createFontWithHeight(font.Height);
+      f->ensureOptions(opt);
+    }
+
     return;
   }
 
@@ -133,15 +139,25 @@ void CoreTextFontRasterizer::ApplyFont(const struct tTVPFont &font) {
 
 void CoreTextFontRasterizer::GetTextExtent(tjs_char ch, tjs_int &w,
                                            tjs_int &h) {
-  // TODO: try all fallbacks
-  auto    fontFace  = getFontFace();
+  if (m_fontFace && TryGetTextExtentWithFontFace(ch, w, h, m_fontFace))
+    return;
+
+  // try fallback
+  for (auto &f : m_fallbackFonts) {
+    if (TryGetTextExtentWithFontFace(ch, w, h, f))
+      return;
+  }
+}
+
+bool CoreTextFontRasterizer::TryGetTextExtentWithFontFace(tjs_char ch, tjs_int &w,
+                                           tjs_int &h, CoreTextFontFace *fontFace) {
   auto    fontRef   = fontFace->getFont();
   UniChar character = static_cast<UniChar>(ch);
   CGGlyph glyph     = 0;
 
   if (!CTFontGetGlyphsForCharacters(fontRef, &character, &glyph, 1)) {
     w = h = fontFace->getHeight();
-    return;
+    return false;
   }
 
   CGSize advances{0};
@@ -150,6 +166,8 @@ void CoreTextFontRasterizer::GetTextExtent(tjs_char ch, tjs_int &w,
 
   w = advances.width;
   h = advances.height;
+
+  return true;
 }
 
 class CoreTextFontFace *CoreTextFontRasterizer::getFontFace() const {
@@ -294,22 +312,33 @@ CoreTextFontRasterizer::GetBitmap(const tTVPFontAndCharacterData &font,
 
 void CoreTextFontRasterizer::GetGlyphDrawRect(const ttstr &    text,
                                               struct tTVPRect &area) {
-  // TODO : handle all fallbacks
+  if (m_fontFace && GetGlyphDrawRectWithFontFace(text, area, m_fontFace))
+    return;
+
+  // try fallback
+  for (auto &f : m_fallbackFonts) {
+    if (GetGlyphDrawRectWithFontFace(text, area, f))
+      return;
+  }
+}
+
+bool CoreTextFontRasterizer::GetGlyphDrawRectWithFontFace(
+    const ttstr &text, struct tTVPRect &area, CoreTextFontFace *fontFace) {
   area.left = area.top = area.right = area.bottom = 0;
   tjs_int  offsetx                                = 0;
   tjs_int  offsety                                = 0;
   tjs_uint len                                    = text.length();
-
-  auto fontFace = getFontFace();
 
   for (tjs_uint i = 0; i < len; i++) {
     tjs_char ch = text[i];
     tjs_int  ax, ay;
     tTVPRect rt(0, 0, 0, 0);
     bool     result = fontFace->getGlyphRectFromCharcode(rt, ch, ax, ay);
+
     if (!result) {
-      fontFace->getGlyphRectFromCharcode(rt, '?', ax, ay);
+      return false;
     }
+
     if (result) {
       rt.add_offsets(offsetx, offsety);
       if (i != 0) {
@@ -321,6 +350,8 @@ void CoreTextFontRasterizer::GetGlyphDrawRect(const ttstr &    text,
     offsetx += ax;
     offsety = 0;
   }
+
+  return true;
 }
 
 bool CoreTextFontRasterizer::AddFont(const ttstr &            storage,

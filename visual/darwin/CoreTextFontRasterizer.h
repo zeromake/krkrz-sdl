@@ -46,8 +46,14 @@ private:
   tTVPCharacterData *TryGetBitmap(const tTVPFontAndCharacterData &font,
                                   tjs_int aofsx, tjs_int aofsy,
                                   CTFontRef fontRef);
-  
-  class CoreTextFontFace * getFontFace() const;
+
+  class CoreTextFontFace *getFontFace() const;
+
+  bool GetGlyphDrawRectWithFontFace(const ttstr &text, struct tTVPRect &area,
+                                    CoreTextFontFace *face);
+
+  bool TryGetTextExtentWithFontFace(tjs_char ch, tjs_int &w, tjs_int &h,
+                                    CoreTextFontFace *fontFace);
 };
 
 #define KRKRZ_CORETEXT_SUPPORT
