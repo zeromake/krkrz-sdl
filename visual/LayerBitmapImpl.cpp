@@ -48,7 +48,7 @@
 #include "VirtualKey.h"
 #endif
 
-#if defined(__APPLE__)
+#ifdef KRKRZ_CORETEXT_SUPPORT
 #include "darwin/CoreTextFontRasterizer.h"
 #endif
 

@@ -56,6 +56,4 @@ private:
                                     CoreTextFontFace *fontFace);
 };
 
-#define KRKRZ_CORETEXT_SUPPORT
-
 #endif // __APPLE__
