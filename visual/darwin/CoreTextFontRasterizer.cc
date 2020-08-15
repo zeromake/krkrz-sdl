@@ -149,8 +149,8 @@ void CoreTextFontRasterizer::GetTextExtent(tjs_char ch, tjs_int &w,
   }
 }
 
-bool CoreTextFontRasterizer::TryGetTextExtentWithFontFace(tjs_char ch, tjs_int &w,
-                                           tjs_int &h, CoreTextFontFace *fontFace) {
+bool CoreTextFontRasterizer::TryGetTextExtentWithFontFace(
+    tjs_char ch, tjs_int &w, tjs_int &h, CoreTextFontFace *fontFace) {
   auto    fontRef   = fontFace->getFont();
   UniChar character = static_cast<UniChar>(ch);
   CGGlyph glyph     = 0;
