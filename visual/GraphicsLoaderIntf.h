@@ -13,6 +13,7 @@
 #define GraphicsLoaderIntfH
 
 
+#include "istream_compat.h"
 #include "drawable.h"
 
 class tTVPBaseBitmap;
