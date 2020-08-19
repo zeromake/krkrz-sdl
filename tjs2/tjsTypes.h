@@ -130,10 +130,13 @@ typedef uintptr_t tjs_uintptr_t;
 #endif
 
 #ifdef __cplusplus
+#if defined(__WCHAR_MAX__) && (__WCHAR_MAX__ != 0x7fff && __WCHAR_MAX__ != 0xffff)
 typedef char16_t tjs_char;
 typedef std::u16string tjs_string;
-//typedef wchar_t tjs_char;
-//typedef std::wstring tjs_string;
+#else
+typedef wchar_t tjs_char;
+typedef std::wstring tjs_string;
+#endif
 #else
 typedef unsigned short tjs_char;
 #endif
@@ -161,8 +164,21 @@ typedef uintptr_t tjs_uintptr_t;
 #define TJS_INTF_METHOD
 #define TJS_USERENTRY
 
+#if 0
+#ifndef TJS_INTF_METHOD
+#define TJS_INTF_METHOD __cdecl
+	/* TJS_INTF_METHOD is "cdecl" (by default)
+		since TJS2 2.4.14 (kirikir2 2.25 beta 1) */
+#endif
+
+#define TJS_USERENTRY __cdecl
+#endif
+
+#if defined(__WCHAR_MAX__) && (__WCHAR_MAX__ != 0x7fff && __WCHAR_MAX__ != 0xffff)
 #define TJS_W(X) u##X
-//#define TJS_W(X) L##X
+#else
+#define TJS_W(X) L##X
+#endif
 
 #endif /* end of defined(_WIN32) && !defined(__GNUC__) */
 /*]*/
