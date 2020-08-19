@@ -129,10 +129,13 @@ typedef uintptr_t tjs_uintptr_t;
 #endif
 
 #ifdef __cplusplus
-// typedef char16_t tjs_char;
-// typedef std::u16string tjs_string;
+#if defined(__WCHAR_MAX__) && (__WCHAR_MAX__ != 0x7fff && __WCHAR_MAX__ != 0xffff)
+typedef char16_t tjs_char;
+typedef std::u16string tjs_string;
+#else
 typedef wchar_t tjs_char;
 typedef std::wstring tjs_string;
+#endif
 #else
 typedef unsigned short tjs_char;
 #endif
@@ -168,8 +171,11 @@ typedef uintptr_t tjs_uintptr_t;
 
 #define TJS_USERENTRY __cdecl
 
-// #define TJS_W(X) u##X
+#if defined(__WCHAR_MAX__) && (__WCHAR_MAX__ != 0x7fff && __WCHAR_MAX__ != 0xffff)
+#define TJS_W(X) u##X
+#else
 #define TJS_W(X) L##X
+#endif
 
 #endif /* end of defined(_WIN32) && !defined(__GNUC__) */
 /*]*/
