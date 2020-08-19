@@ -82,7 +82,10 @@ void FreeTypeFontRasterizer::ApplyFont( const tTVPFont& font ) {
 	bool recreate = false;
 	if( Face ) {
 		if( Face->GetFontName() != faces[0] ) {
+			// XXX: hack for invalid access
+#if 0
 			delete Face;
+#endif
 			Face = new tFreeTypeFace( faces, opt );
 			recreate = true;
 		}
