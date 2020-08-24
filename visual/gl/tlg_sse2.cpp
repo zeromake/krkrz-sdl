@@ -1,4 +1,5 @@
 
+#ifdef __SSE2__
 #include "tjsCommHead.h"
 #include "tvpgl.h"
 #include "tvpgl_ia32_intf.h"
@@ -1341,4 +1342,5 @@ void TVPTLG5ComposeColors4To4_test(tjs_uint8 *outp, const tjs_uint8 *upper, tjs_
 tlg6_golomb は、MMX 使っているが、一時変数として使われているのとプリフェッチのみ。SSE2 は意味なさげ
 tlg6_chroma は、MMX(SSE)が使われている
 */
+#endif
 #endif

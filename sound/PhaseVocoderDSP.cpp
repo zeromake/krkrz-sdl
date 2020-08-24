@@ -40,7 +40,7 @@
 #include <string.h>
 
 #include "tjsUtils.h"
-#if 0
+#ifdef __SSE__
 #if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 #include "tvpgl_ia32_intf.h"
 #endif
@@ -52,13 +52,11 @@ extern void InterleaveOverlappingWindow(float * __restrict dest, const float * _
 	float * __restrict win, int numch, size_t srcofs, size_t len);
 extern void DeinterleaveApplyingWindow(float * __restrict dest[], const float * __restrict src,
 					float * __restrict win, int numch, size_t destofs, size_t len);
-#if 0
-#if defined(_M_IX86)||defined(_M_X64)
+#ifdef __SSE__
 extern void InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __restrict const * __restrict src,
 					float * __restrict win, int numch, size_t srcofs, size_t len);
 extern void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __restrict src,
 					float * __restrict win, int numch, size_t destofs, size_t len);
-#endif
 #endif
 
 
@@ -320,7 +318,7 @@ bool tRisaPhaseVocoderDSP::GetOutputBuffer(
 //---------------------------------------------------------------------------
 tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 {
-#if 0
+#ifdef __SSE__
 	bool use_sse =
 			(TVPCPUType & TVP_CPU_HAS_MMX) &&
 			(TVPCPUType & TVP_CPU_HAS_SSE) &&
@@ -386,21 +384,20 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		InputBuffer.GetReadPointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
-#if 0 && defined(_M_IX86)||defined(_M_X64)
-		if( use_sse ) {
+#ifdef __SSE__
+		if( use_sse )
+		{
 			DeinterleaveApplyingWindow_sse(AnalWork, p1, InputWindow, Channels, 0, p1len);
 			if(p2)
 				DeinterleaveApplyingWindow_sse(AnalWork, p2, InputWindow + p1len, Channels, p1len, p2len);
-		} else {
+		}
+		else
+#endif
+		{
 			DeinterleaveApplyingWindow(AnalWork, p1, InputWindow, Channels, 0, p1len);
 			if(p2)
 				DeinterleaveApplyingWindow(AnalWork, p2, InputWindow + p1len, Channels, p1len, p2len);
 		}
-#else
-		DeinterleaveApplyingWindow(AnalWork, p1, InputWindow, Channels, 0, p1len);
-		if(p2)
-			DeinterleaveApplyingWindow(AnalWork, p2, InputWindow + p1len, Channels, p1len, p2len);
-#endif
 	}
 
 	// チャンネルごとに処理
@@ -411,12 +408,16 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		//------------------------------------------------
 
 		// 演算の根幹部分を実行する
-#if 0 && defined(_M_IX86)||defined(_M_X64)
-		if(use_sse) ProcessCore_sse(ch);
-		else ProcessCore(ch);
-#else
-		ProcessCore(ch);
+#ifdef __SSE__
+		if(use_sse)
+		{
+			ProcessCore_sse(ch);
+		}
+		else
 #endif
+		{
+			ProcessCore(ch);
+		}
 	}
 
 	// 窓関数を適用しつつ、SynthWork から出力バッファに書き込む
@@ -427,21 +428,20 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		OutputBuffer.GetWritePointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
-#if 0 && defined(_M_IX86)||defined(_M_X64)
-		if( use_sse ) {
+#ifdef __SSE__
+		if( use_sse )
+		{
 			InterleaveOverlappingWindow_sse(p1, SynthWork, OutputWindow, Channels, 0, p1len);
 			if(p2)
 				InterleaveOverlappingWindow_sse(p2, SynthWork, OutputWindow + p1len, Channels, p1len, p2len);
-		} else {
+		}
+		else
+#endif
+		{
 			InterleaveOverlappingWindow(p1, SynthWork, OutputWindow, Channels, 0, p1len);
 			if(p2)
 				InterleaveOverlappingWindow(p2, SynthWork, OutputWindow + p1len, Channels, p1len, p2len);
 		}
-#else
-		InterleaveOverlappingWindow(p1, SynthWork, OutputWindow, Channels, 0, p1len);
-		if(p2)
-			InterleaveOverlappingWindow(p2, SynthWork, OutputWindow + p1len, Channels, p1len, p2len);
-#endif
 	}
 
 	// LastSynthPhase を再調整するか
@@ -698,7 +698,7 @@ void tRisaPhaseVocoderDSP::ProcessCore(int ch)
 */
 
 //---------------------------------------------------------------------------
-#if 0 && defined(_M_IX86)||defined(_M_X64)
+#ifdef __SSE__
 //---------------------------------------------------------------------------
 void tRisaPhaseVocoderDSP::ProcessCore_sse(int ch)
 {

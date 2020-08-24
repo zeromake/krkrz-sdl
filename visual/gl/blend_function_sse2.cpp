@@ -1,5 +1,6 @@
 
 
+#ifdef __SSE2__
 
 #include "tjsCommHead.h"
 #include "tvpgl.h"
@@ -31,7 +32,7 @@ void TVPMakeAlphaFromKey_sse2_c(tjs_uint32 *dest, tjs_int len, tjs_uint32 key) {
 	if( len <= 0 ) return;
 
 	key &= 0x00ffffff;
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {	// ここで len > 3 としてしまった方がいいかな
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -275,22 +276,7 @@ struct ssse3_do_gray_scale {
 	inline ssse3_do_gray_scale() : zero_( _mm_setzero_si128() ), alphamask_(_mm_set1_epi32(0xff000000)), lum_(_mm_set1_epi32(0x0036B713)) {
 		lum_ = _mm_unpacklo_epi8( lum_, zero_ );
 		
-		mask.m128i_u8[0] = 0x01;
-		mask.m128i_u8[1] = 0x01;
-		mask.m128i_u8[2] = 0x01;
-		mask.m128i_u8[3] = 0x81;
-		mask.m128i_u8[4] = 0x03;
-		mask.m128i_u8[5] = 0x03;
-		mask.m128i_u8[6] = 0x03;
-		mask.m128i_u8[7] = 0x83;
-		mask.m128i_u8[8] = 0x05;
-		mask.m128i_u8[9] = 0x05;
-		mask.m128i_u8[10] = 0x05;
-		mask.m128i_u8[11] = 0x85;
-		mask.m128i_u8[12] = 0x07;
-		mask.m128i_u8[13] = 0x07;
-		mask.m128i_u8[14] = 0x07;
-		mask.m128i_u8[15] = 0x87;
+		mask = _mm_setr_epi8(0x87, 0x07, 0x07, 0x07, 0x85, 0x05, 0x05, 0x05, 0x83, 0x03, 0x03, 0x03, 0x81, 0x01, 0x01, 0x01);
 		// (0x1x2x3x0x1x2x3x)
 		//  0123456789abcdef
 	}
@@ -413,7 +399,7 @@ static inline void convert_func_sse2( tjs_uint32 *dest, tjs_int len ) {
 	if( len <= 0 ) return;
 
 	functor func;
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -441,7 +427,7 @@ template<typename functor>
 static inline void convert_func_sse2( tjs_uint32 *dest, tjs_int len, const functor& func ) {
 	if( len <= 0 ) return;
 
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -469,7 +455,7 @@ template<typename functor>
 static inline void blend_func_sse2( tjs_uint32 * __restrict dest, const tjs_uint32 * __restrict src, tjs_int len, const functor& func ) {
 	if( len <= 0 ) return;
 
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -482,7 +468,7 @@ static inline void blend_func_sse2( tjs_uint32 * __restrict dest, const tjs_uint
 	}
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
-	if( (((unsigned)src)&0xF) == 0 ) {
+	if( (((size_t)src)&0xF) == 0 ) {
 		while( dest < limit ) {
 			__m128i md = _mm_load_si128( (__m128i const*)dest );
 			__m128i ms = _mm_load_si128( (__m128i const*)src );
@@ -562,7 +548,7 @@ template<typename functor>
 static inline void sd_blend_func_sse2( tjs_uint32 *dest, const tjs_uint32 *src1, const tjs_uint32 *src2, tjs_int len, const functor& func ) {
 	if( len <= 0 ) return;
 
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -575,7 +561,7 @@ static inline void sd_blend_func_sse2( tjs_uint32 *dest, const tjs_uint32 *src1,
 	}
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
-	if( (((unsigned)src1)&0xF) == 0 && (((unsigned)src2)&0xF) == 0 ) {
+	if( (((size_t)src1)&0xF) == 0 && (((size_t)src2)&0xF) == 0 ) {
 		while( dest < limit ) {
 			__m128i ms1 = _mm_load_si128( (__m128i const*)src1 );
 			__m128i ms2 = _mm_load_si128( (__m128i const*)src2 );
@@ -603,7 +589,7 @@ template<typename functor>
 static void blend_src_branch_func_sse2( tjs_uint32 * __restrict dest, const tjs_uint32 * __restrict src, tjs_int len, const functor& func ) {
 	if( len <= 0 ) return;
 	
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -618,7 +604,7 @@ static void blend_src_branch_func_sse2( tjs_uint32 * __restrict dest, const tjs_
 	tjs_uint32* limit = dest + rem;
 	const __m128i alphamask = _mm_set1_epi32(0xff000000);
 	const __m128i zero = _mm_setzero_si128();
-	if( (((unsigned)src)&0xF) == 0 ) {
+	if( (((size_t)src)&0xF) == 0 ) {
 		while( dest < limit ) {
 			__m128i ms = _mm_load_si128( (__m128i const*)src );
 			__m128i ma = ms;
@@ -693,7 +679,7 @@ void sse2_interpolation_line_transform_copy(tjs_uint32 *dest, tjs_int len, const
 	__m128i mpitch = _mm_cvtsi32_si128( srcpitch );
 	mpitch = _mm_unpacklo_epi64( mpitch, mpitch );	// 0000 srcpitch 0000 srcpitch
 	
-	tjs_int count = (tjs_int)(((unsigned)dest)&0xF);
+	tjs_int count = (tjs_int)(((size_t)dest)&0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -744,7 +730,7 @@ template<typename functor>
 static inline void stretch_blend_func_sse2(tjs_uint32 *dest, tjs_int len, const tjs_uint32 *src, tjs_int srcstart, tjs_int srcstep, const functor &func ) {
 	if( len <= 0 ) return;
 
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -818,13 +804,13 @@ static inline void stretch_blend_inter_func_sse2(tjs_uint32 *dest, tjs_int len, 
 	mstart = _mm_add_epi32( mstart, mtmp );	// +step*3, +step*2, +step, +0
 #endif
 
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
 		tjs_uint32* limit = dest + count;
 		while( dest < limit ) {
-			tjs_uint32 s = inter( src1, src2, mstart.m128i_i32[0] );
+			tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(_mm_shuffle_epi32(mstart, 0xFF)) );
 			*dest = func( *dest, s  );
 			mstart = _mm_add_epi32( mstart, mstep1 );
 			dest++;
@@ -842,7 +828,7 @@ static inline void stretch_blend_inter_func_sse2(tjs_uint32 *dest, tjs_int len, 
 	}
 	limit += (len-rem);
 	while( dest < limit ) {
-		tjs_uint32 s = inter( src1, src2, mstart.m128i_i32[0] );
+		tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(_mm_shuffle_epi32(mstart, 0xFF)) );
 		*dest = func( *dest, s  );
 		mstart = _mm_add_epi32( mstart, mstep1 );
 		dest++;
@@ -1233,7 +1219,7 @@ void TVPDoGrayScale_ssse3_c(tjs_uint32 *dest, tjs_int len ) {
 #else
 void TVPDoGrayScale_ssse3_c(tjs_uint32 *dest, tjs_int len ) {
 	do_gray_scale_functor dogray;
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -1549,10 +1535,15 @@ void TVPGL_SSE2_Init() {
 		}
 
 		// pixel format convert
-		if( TVPCPUType & TVP_CPU_HAS_SSSE3 ) {
+#ifdef __SSSE3__
+		if( TVPCPUType & TVP_CPU_HAS_SSSE3 )
+		{
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_ssse3_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_ssse3_c;
-		} else {
+		}
+		else
+#endif
+		{
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 		}
@@ -1586,7 +1577,7 @@ void TVPGL_SSE2_Init() {
 		TVPTLG5ComposeColors4To4 = TVPTLG5ComposeColors4To4_sse2_c;
 		//TVPTLG6DecodeGolombValuesForFirst	// MMXを積極的に使ったものはなく、SIMD化しづらそうなためSSE2版未実装
 		//TVPTLG6DecodeGolombValues			// MMXを積極的に使ったものはなく、SIMD化しづらそうなためSSE2版未実装
-#ifdef TJS_64BIT_OS
+#if 1
 		// MMX版の方が速いので、64bitでのみ有効に
 		TVPTLG6DecodeLineGeneric = TVPTLG6DecodeLineGeneric_sse2_c;
 		TVPTLG6DecodeLine = TVPTLG6DecodeLine_sse2_c;
@@ -1618,9 +1609,11 @@ void TVPGL_SSE2_Init() {
 
 		TVPInitializeResampleSSE2();
 	}
+#ifdef __AVX2__
 	if( TVPCPUType & TVP_CPU_HAS_AVX2 ) {
 		TVPGL_AVX2_Init();
 	}
+#endif
 }
 
 //#define SIMD_BLEND_TEST
@@ -1947,3 +1940,5 @@ void BlendTest_sse2_c() {
 }
 
 #endif	// SIMD_BLEND_TEST
+
+#endif

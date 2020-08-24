@@ -19,6 +19,11 @@
 #define TVP_GL_IA32_FUNC_EXTERN_DECL(rettype, funcname, arg)  extern rettype __cdecl funcname arg
 #define TVP_GL_IA32_FUNC_PTR_DECL(rettype, funcname, arg) rettype __cdecl (*funcname) arg
 #define TVP_GL_IA32_FUNC_PTR_EXTERN_DECL(rettype, funcname, arg) extern rettype __cdecl (*funcname) arg
+#else
+#define TVP_GL_IA32_FUNC_DECL(rettype, funcname, arg)  rettype funcname arg
+#define TVP_GL_IA32_FUNC_EXTERN_DECL(rettype, funcname, arg)  extern rettype funcname arg
+#define TVP_GL_IA32_FUNC_PTR_DECL(rettype, funcname, arg) rettype (*funcname) arg
+#define TVP_GL_IA32_FUNC_PTR_EXTERN_DECL(rettype, funcname, arg) extern rettype (*funcname) arg
 #endif
 
 #ifdef __cplusplus

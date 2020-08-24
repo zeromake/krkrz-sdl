@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 
+#ifdef __SSE2__
 #include "tjsCommHead.h"
 #include "LayerBitmapIntf.h"
 #include "LayerBitmapImpl.h"
@@ -1208,3 +1209,4 @@ void TVPResampleImageSSE2( const tTVPResampleClipping &clip, const tTVPImageCopy
 	}
 }
 
+#endif

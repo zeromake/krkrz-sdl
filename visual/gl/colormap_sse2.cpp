@@ -1,4 +1,6 @@
 
+#ifdef __SSE2__
+
 #include "tjsCommHead.h"
 #include "tvpgl.h"
 #include "tvpgl_ia32_intf.h"
@@ -111,7 +113,8 @@ template<typename tbase>
 struct sse2_apply_color_map_xx_o_functor : tbase {
 	tjs_int opa32_;
 	__m128i opa_;
-	inline sse2_apply_color_map_xx_o_functor( tjs_uint32 color, tjs_int opa ) : tbase(color), opa32_(opa) {
+	const __m128i zero_;
+	inline sse2_apply_color_map_xx_o_functor( tjs_uint32 color, tjs_int opa ) : zero_(_mm_setzero_si128()), tbase(color), opa32_(opa) {
 		opa_ = _mm_cvtsi32_si128( opa );
 		opa_ = _mm_shufflelo_epi16( opa_, _MM_SHUFFLE( 0, 0, 0, 0 )  );
 	}
@@ -129,7 +132,8 @@ struct sse2_apply_color_map_xx_o_functor : tbase {
 };
 template<typename tbase>
 struct sse2_apply_color_map_xx_straight_functor : tbase {
-	inline sse2_apply_color_map_xx_straight_functor( tjs_uint32 color ) : tbase(color) {}
+	const __m128i zero_;
+	inline sse2_apply_color_map_xx_straight_functor( tjs_uint32 color ) : zero_(_mm_setzero_si128()), tbase(color) {}
 	inline tjs_uint32 operator()( tjs_uint32 d, tjs_uint8 s ) const {
 		return tbase::operator()( d, s );
 	}
@@ -193,10 +197,10 @@ struct sse2_apply_color_map65_d_functor {
 		opa = _mm_slli_epi32( opa, 8 );			// <<= 8
 		da = _mm_or_si128( da, opa );
 		__m128i ma1 = _mm_set_epi32(
-			TVPOpacityOnOpacityTable65[da.m128i_u32[3]],
-			TVPOpacityOnOpacityTable65[da.m128i_u32[2]],
-			TVPOpacityOnOpacityTable65[da.m128i_u32[1]],
-			TVPOpacityOnOpacityTable65[da.m128i_u32[0]]);
+			TVPOpacityOnOpacityTable65[_mm_extract_epi16(da,6)],
+			TVPOpacityOnOpacityTable65[_mm_extract_epi16(da,4)],
+			TVPOpacityOnOpacityTable65[_mm_extract_epi16(da,2)],
+			TVPOpacityOnOpacityTable65[_mm_extract_epi16(da,0)]);
 
 		ma1 = _mm_packs_epi32( ma1, ma1 );		// 0 1 2 3 0 1 2 3
 		ma1 = _mm_unpacklo_epi16( ma1, ma1 );	// 0 0 1 1 2 2 3 3
@@ -308,11 +312,11 @@ typedef sse2_apply_color_map_xx_o_functor<sse2_apply_color_map_xx_a_functor<6> >
 typedef sse2_apply_color_map_xx_o_functor<sse2_apply_color_map_xx_a_functor<8> > sse2_apply_color_map_ao_functor;
 
 
-template<typename functor,int topaque>
+template<typename functor,tjs_uint32 topaque>
 static inline void apply_color_map_branch_func_sse2( tjs_uint32 *dest, const tjs_uint8 *src, tjs_int len, const functor& func ) {
 	if( len <= 0 ) return;
 
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -346,7 +350,7 @@ template<typename functor>
 static inline void apply_color_map_func_sse2( tjs_uint32 *dest, const tjs_uint8 *src, tjs_int len, const functor& func ) {
 	if( len <= 0 ) return;
 
-	tjs_int count = (tjs_int)((unsigned)dest & 0xF);
+	tjs_int count = (tjs_int)((size_t)dest & 0xF);
 	if( count ) {
 		count = (16 - count)>>2;
 		count = count > len ? len : count;
@@ -774,3 +778,5 @@ void TVPBindMaskToMain_sse2_c(tjs_uint32 *main, const tjs_uint8 *mask, tjs_int l
 	sse2_bind_mask_to_main_functor func;
 	apply_color_map_func_sse2( main, mask, len , func );
 }
+
+#endif

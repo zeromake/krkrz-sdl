@@ -3,7 +3,7 @@
 #define __SIMD_DEF_X86_X64_H__
 
 
-#include <intrin.h>
+#include <x86intrin.h>
 
 #ifdef _MSC_VER
 #ifndef _mm_srli_pi64

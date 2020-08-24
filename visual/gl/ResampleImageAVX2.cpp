@@ -1,4 +1,5 @@
 
+#ifdef __AVX2__
 
 #define _USE_MATH_DEFINES
 
@@ -1270,3 +1271,5 @@ void TVPResampleImageAVX2( const tTVPResampleClipping &clip, const tTVPImageCopy
 		break;
 	}
 }
+
+#endif

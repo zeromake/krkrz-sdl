@@ -1,5 +1,6 @@
 
 
+#ifdef __AVX2__
 
 #include "tjsCommHead.h"
 #include "tvpgl.h"
@@ -378,4 +379,5 @@ void TVPGL_AVX2_Init() {
 		TVPInitializeResampleAVX2();
 	}
 }
+#endif
 

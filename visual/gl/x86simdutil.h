@@ -3,7 +3,7 @@
 #ifndef __X86_SIMD_UTIL_H__
 #define __X86_SIMD_UTIL_H__
 
-#include <intrin.h>
+#include <x86intrin.h>
 
 // SIMD版数学系関数 ( SSE+SSE2使用 ) 4要素一気に計算する
 extern __m128 log_ps(__m128 x);

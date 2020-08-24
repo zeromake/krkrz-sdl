@@ -23,6 +23,7 @@
 #if 0
 #include "DetectCPU.h"
 #endif
+#include "tvpgl_ia32_intf.h"
 #include "DetectCPU.h"
 #endif
 #include "LayerBitmapIntf.h"
@@ -34,11 +35,13 @@
 #include "ResampleImageInternal.h"
 
 
-#if 0
+#ifdef __AVX2__
 extern void TVPResampleImageAVX2( const tTVPResampleClipping &clip, const tTVPImageCopyFuncBase* blendfunc,
 	tTVPBaseBitmap *dest, const tTVPRect &destrect, const tTVPBaseBitmap *src, const tTVPRect &srcrect,
 	tTVPBBStretchType type, tjs_real typeopt );
+#endif
 
+#ifdef __SSE2__
 extern void TVPResampleImageSSE2( const tTVPResampleClipping &clip, const tTVPImageCopyFuncBase* blendfunc,
 	tTVPBaseBitmap *dest, const tTVPRect &destrect, const tTVPBaseBitmap *src, const tTVPRect &srcrect,
 	tTVPBBStretchType type, tjs_real typeopt );
@@ -707,18 +710,23 @@ void TVPResampleImage( const tTVPRect &cliprect, tTVPBaseBitmap *dest, const tTV
 		}
 	}
 
-#if 0
 	tjs_uint32 CpuFeature = TVPGetCPUType();
-#endif
 	try {
-#if 0 && defined(_WIN32)
-		if( (CpuFeature & TVP_CPU_HAS_AVX2) ) {
+		if (0) {}
+#ifdef __AVX2__
+		else if( (CpuFeature & TVP_CPU_HAS_AVX2) )
+		{
 			TVPResampleImageAVX2( clip, func, dest, destrect, src, srcrect, type, typeopt );
-		} else if( (CpuFeature & TVP_CPU_HAS_SSE2) ) {
+		}
+#endif
+#ifdef __SSE2__
+		else if( (CpuFeature & TVP_CPU_HAS_SSE2) )
+		{
 			// TODO SSE2版は、Android でもx86の時使えるが、x86のandroid intel止めてしまったから不要か？
 			TVPResampleImageSSE2( clip, func, dest, destrect, src, srcrect, type, typeopt );
-		} else
+		}
 #endif
+		else
 		{
 			 // Cバージョンは固定小数点版なし。遅くなる。
 			switch( type ) {

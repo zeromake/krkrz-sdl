@@ -13,8 +13,8 @@
 
 #include "tjsCommHead.h"
 #include "MathAlgorithms.h"
+#ifdef __SSE__
 #include <smmintrin.h>
-#if defined(_M_IX86)||defined(_M_X64)
 //---------------------------------------------------------------------------
 
 _ALIGN16(const float) TJS_V_VEC_REDUCE[4] =

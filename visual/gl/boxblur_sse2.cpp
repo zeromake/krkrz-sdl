@@ -1,4 +1,6 @@
 
+#ifdef __SSE2__
+
 #include "tjsCommHead.h"
 #include "tvpgl.h"
 #include "tvpgl_ia32_intf.h"
@@ -417,17 +419,17 @@ struct sse2_box_blur_avg_16_d_table {
 		msum = _mm_add_epi16( msum, mhalf_n );		// sum + n/2
 		msum = _mm_mulhi_epu16( msum, mrcp_ );		// (sum + n/2) * rcp, rcp は、16bitごとにする
 		msum = _mm_packus_epi16( msum, msum );		// A8|R8|G8|B8|A8|R8|G8|B8
-		unsigned char* lo = &TVPDivTable[msum.m128i_u8[3]<<8];
-		unsigned char* hi = &TVPDivTable[msum.m128i_u8[7]<<8];
-		dest[0] = (msum.m128i_u8[3]<<24) | (lo[msum.m128i_u8[2]]<<16) | (lo[msum.m128i_u8[1]]<<8) | lo[msum.m128i_u8[0]];
-		dest[1] = (msum.m128i_u8[7]<<24) | (hi[msum.m128i_u8[6]]<<16) | (hi[msum.m128i_u8[5]]<<8) | hi[msum.m128i_u8[4]];
+		unsigned char* lo = &TVPDivTable[(_mm_extract_epi16(msum, 1) >> 8)<<8];
+		unsigned char* hi = &TVPDivTable[(_mm_extract_epi16(msum, 3) >> 8)<<8];
+		dest[0] = ((_mm_extract_epi16(msum, 1) >> 8)<<24) | (lo[_mm_extract_epi16(msum, 1) & 0xFF]<<16) | (lo[_mm_extract_epi16(msum, 0) >> 8]<<8) | lo[_mm_extract_epi16(msum, 0) & 0xFF];
+		dest[1] = ((_mm_extract_epi16(msum, 3) >> 8)<<24) | (hi[_mm_extract_epi16(msum, 3) & 0xFF]<<16) | (hi[_mm_extract_epi16(msum, 2) >> 8]<<8) | hi[_mm_extract_epi16(msum, 2) & 0xFF];
 	}
 	inline void one( tjs_uint32 *dest, __m128i msum, const __m128i mhalf_n ) const {
 		msum = _mm_add_epi16( msum, mhalf_n );		// sum + n/2
 		msum = _mm_mulhi_epu16( msum, mrcp_ );		// (sum + n/2) * rcp, rcp は、16bitごとにする
 		msum = _mm_packus_epi16( msum, msum );		// A8|R8|G8|B8|A8|R8|G8|B8
-		unsigned char* lo = &TVPDivTable[msum.m128i_u8[3]<<8];
-		dest[0] = (msum.m128i_u8[3]<<24) | (lo[msum.m128i_u8[2]]<<16) | (lo[msum.m128i_u8[1]]<<8) | lo[msum.m128i_u8[0]];
+		unsigned char* lo = &TVPDivTable[(_mm_extract_epi16(msum, 1) >> 8)<<8];
+		dest[0] = ((_mm_extract_epi16(msum, 1) >> 8)<<24) | (lo[_mm_extract_epi16(msum, 1) & 0xFF]<<16) | (lo[_mm_extract_epi16(msum, 0) >> 8]<<8) | lo[_mm_extract_epi16(msum, 0) & 0xFF];
 	}
 };
 template<typename avg_func_t>
@@ -618,3 +620,5 @@ void TVPDoBoxBlurAvg32_d_sse2_c(tjs_uint32 *dest, tjs_uint32 *sum, const tjs_uin
 // _mm_ cvtepu8_epi32 も使える
 // _mm_mul_epu32 で 64bit * 2 で mul できる
 // _mm_unpacklo_epi32
+
+#endif

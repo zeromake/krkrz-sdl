@@ -15,6 +15,7 @@
 
 #include "tjsCommHead.h"
 
+#ifdef __SSE__
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "MathAlgorithms.h"
@@ -290,6 +291,7 @@ void  InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __r
 	}
 }
 //---------------------------------------------------------------------------
+#endif
 
 
 
