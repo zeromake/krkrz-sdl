@@ -1478,8 +1478,6 @@ void TVPGL_SSE2_Init() {
 		TVPAdjustGamma_a = TVPAdjustGamma_a_sse2_c;	// 逆数テーブルを使用しない方法にするとSSEも使う
 		//TVPAdjustGamma // C版と比較して大差ないのでSSE2版未使用
 
-		// FIXME: One of the stretch copy functions miscompiles on Clang and GCC on higher optimizations
-#if 0
 		// 拡大縮小
 		// TVPStretchCopy = TVPStretchCopy_sse2_c; // SSE2使わない方が少し速い
 		TVPStretchAlphaBlend = TVPStretchAlphaBlend_sse2_c;
@@ -1501,14 +1499,16 @@ void TVPGL_SSE2_Init() {
 		TVPStretchConstAlphaBlend_d = TVPStretchConstAlphaBlend_d_sse2_c;
 		TVPStretchConstAlphaBlend_a = TVPStretchConstAlphaBlend_a_sse2_c;
 		TVPStretchColorCopy = TVPStretchColorCopy_sse2_c;
+		// FIXME: Miscompiles on Clang and GCC on higher optimizations
+#if 0
 		TVPInterpStretchCopy = TVPInterpStretchCopy_sse2_c;
+#endif
 		TVPInterpStretchAdditiveAlphaBlend = TVPInterpStretchAdditiveAlphaBlend_sse2_c;
 		TVPInterpStretchAdditiveAlphaBlend_o = TVPInterpStretchAdditiveAlphaBlend_o_sse2_c;
 		TVPInterpStretchConstAlphaBlend = TVPInterpStretchConstAlphaBlend_sse2_c;
 		// TVPFastLinearInterpH2F	// 使われなくなっているので未実装
 		// TVPFastLinearInterpH2B	// 使われなくなっているので未実装
 		// TVPFastLinearInterpV2	// 使われなくなっているので未実装
-#endif
 
 		// アフィン変換用
 		TVPLinTransAlphaBlend = TVPLinTransAlphaBlend_sse2_c;
@@ -1546,6 +1546,8 @@ void TVPGL_SSE2_Init() {
 		}
 
 		// pixel format convert
+		// FIXME: Miscompiles on Clang and GCC on higher optimizations
+#if 0
 #ifdef __SSSE3__
 		if( TVPCPUType & TVP_CPU_HAS_SSSE3 )
 		{
@@ -1558,6 +1560,7 @@ void TVPGL_SSE2_Init() {
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 		}
+#endif
 		//色変換は使用頻度少ない 以下はMMX版もないのでSSE2版もなくていいかも
 		//TVPBLExpand1BitTo8BitPal	// BMP読み込み、1bit文字の変換で使われる
 		//TVPBLExpand1BitTo8Bit		// BMP読み込みで使われるのみ
