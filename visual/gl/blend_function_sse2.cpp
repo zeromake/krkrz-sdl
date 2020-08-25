@@ -1478,6 +1478,8 @@ void TVPGL_SSE2_Init() {
 		TVPAdjustGamma_a = TVPAdjustGamma_a_sse2_c;	// 逆数テーブルを使用しない方法にするとSSEも使う
 		//TVPAdjustGamma // C版と比較して大差ないのでSSE2版未使用
 
+		// FIXME: One of the stretch copy functions miscompiles on Clang and GCC on higher optimizations
+#if 0
 		// 拡大縮小
 		// TVPStretchCopy = TVPStretchCopy_sse2_c; // SSE2使わない方が少し速い
 		TVPStretchAlphaBlend = TVPStretchAlphaBlend_sse2_c;
@@ -1506,6 +1508,7 @@ void TVPGL_SSE2_Init() {
 		// TVPFastLinearInterpH2F	// 使われなくなっているので未実装
 		// TVPFastLinearInterpH2B	// 使われなくなっているので未実装
 		// TVPFastLinearInterpV2	// 使われなくなっているので未実装
+#endif
 
 		// アフィン変換用
 		TVPLinTransAlphaBlend = TVPLinTransAlphaBlend_sse2_c;
