@@ -79,7 +79,7 @@ template<typename pack_func, typename blend_func>
 struct sse2_ps_alpha_blend {
 	const __m128i zero_;
 	const blend_func blend_;
-	inline sse2_ps_alpha_blend() : zero_( _mm_setzero_si128() ) {}
+	inline sse2_ps_alpha_blend() : zero_( _mm_setzero_si128() ), blend_() {}
 	inline tjs_uint32 one( __m128i md, __m128i ms, __m128i ma ) const {
 		ms = _mm_unpacklo_epi8( ms, zero_ );	// 00AA00RR00GG00BB
 		md = _mm_unpacklo_epi8( md, zero_ );	// 00AA00RR00GG00BB
