@@ -1556,11 +1556,11 @@ void TVPGL_SSE2_Init() {
 		}
 		else
 #endif
+#endif
 		{
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 		}
-#endif
 		//色変換は使用頻度少ない 以下はMMX版もないのでSSE2版もなくていいかも
 		//TVPBLExpand1BitTo8BitPal	// BMP読み込み、1bit文字の変換で使われる
 		//TVPBLExpand1BitTo8Bit		// BMP読み込みで使われるのみ
