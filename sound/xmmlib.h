@@ -58,6 +58,10 @@
 
 #if	(defined(__SSE__)&&defined(__GNUC__))||defined(_MSC_VER)
 
+#if __cplusplus >= 201703L
+#define register
+#endif
+
 /* We need type definitions from the XMM header file.  */
 #include <xmmintrin.h>
 #ifdef	_MSC_VER
