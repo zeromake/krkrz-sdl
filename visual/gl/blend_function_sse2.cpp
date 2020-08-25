@@ -279,7 +279,7 @@ struct ssse3_do_gray_scale {
 	inline ssse3_do_gray_scale() : zero_( _mm_setzero_si128() ), alphamask_(_mm_set1_epi32(0xff000000)), lum_(_mm_set1_epi32(0x0036B713)) {
 		lum_ = _mm_unpacklo_epi8( lum_, zero_ );
 		
-		mask = _mm_setr_epi8(0x87, 0x07, 0x07, 0x07, 0x85, 0x05, 0x05, 0x05, 0x83, 0x03, 0x03, 0x03, 0x81, 0x01, 0x01, 0x01);
+		mask = _mm_setr_epi8(0x00, 0x01, 0x02, 0x80, 0x03, 0x04, 0x05, 0x80, 0x06, 0x07, 0x08, 0x80, 0x09, 0x0A, 0x0B, 0x80);
 		// (0x1x2x3x0x1x2x3x)
 		//  0123456789abcdef
 	}
@@ -814,7 +814,7 @@ static inline void stretch_blend_inter_func_sse2(tjs_uint32 *dest, tjs_int len, 
 		count = count > len ? len : count;
 		tjs_uint32* limit = dest + count;
 		while( dest < limit ) {
-			tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(_mm_shuffle_epi32(mstart, 0xFF)) );
+			tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(mstart) );
 			*dest = func( *dest, s  );
 			mstart = _mm_add_epi32( mstart, mstep1 );
 			dest++;
@@ -832,7 +832,7 @@ static inline void stretch_blend_inter_func_sse2(tjs_uint32 *dest, tjs_int len, 
 	}
 	limit += (len-rem);
 	while( dest < limit ) {
-		tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(_mm_shuffle_epi32(mstart, 0xFF)) );
+		tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(mstart) );
 		*dest = func( *dest, s  );
 		mstart = _mm_add_epi32( mstart, mstep1 );
 		dest++;
@@ -1499,10 +1499,7 @@ void TVPGL_SSE2_Init() {
 		TVPStretchConstAlphaBlend_d = TVPStretchConstAlphaBlend_d_sse2_c;
 		TVPStretchConstAlphaBlend_a = TVPStretchConstAlphaBlend_a_sse2_c;
 		TVPStretchColorCopy = TVPStretchColorCopy_sse2_c;
-		// FIXME: Miscompiles on Clang and GCC on higher optimizations
-#if 0
 		TVPInterpStretchCopy = TVPInterpStretchCopy_sse2_c;
-#endif
 		TVPInterpStretchAdditiveAlphaBlend = TVPInterpStretchAdditiveAlphaBlend_sse2_c;
 		TVPInterpStretchAdditiveAlphaBlend_o = TVPInterpStretchAdditiveAlphaBlend_o_sse2_c;
 		TVPInterpStretchConstAlphaBlend = TVPInterpStretchConstAlphaBlend_sse2_c;
@@ -1546,8 +1543,6 @@ void TVPGL_SSE2_Init() {
 		}
 
 		// pixel format convert
-		// FIXME: Miscompiles on Clang and GCC on higher optimizations
-#if 0
 #ifdef __SSSE3__
 		if( TVPCPUType & TVP_CPU_HAS_SSSE3 )
 		{
@@ -1555,7 +1550,6 @@ void TVPGL_SSE2_Init() {
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_ssse3_c;
 		}
 		else
-#endif
 #endif
 		{
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
