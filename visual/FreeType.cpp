@@ -247,7 +247,7 @@ static void TVPLoadFont( FT_Open_Args& arg, std::vector<FontInfo*>& fonts, std::
 						for (size_t i = 0; i < name_tmp.string_len >> 1; i++)
 						{
 							// font family name is in big-endian
-#ifdef __LITTLE_ENDIAN__
+#if defined(__LITTLE_ENDIAN__) || defined(LITTLE_ENDIAN)
 							alias_buf[i] = __builtin_bswap16(alias_tmp[i]);
 #else
 							alias_buf[i] = alias_tmp[i];
