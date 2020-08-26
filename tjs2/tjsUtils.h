@@ -15,7 +15,7 @@
 #include "tjsString.h"
 
 #if 1
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 #include <mutex>
 #endif
 #else
@@ -33,7 +33,7 @@ namespace TJS
 #if 1
 class tTJSCriticalSection
 {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::recursive_mutex Mutex;
 #endif
 
@@ -41,7 +41,7 @@ public:
 	tTJSCriticalSection() {}
 	~tTJSCriticalSection() {}
 
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	void Enter() { Mutex.lock(); }
 	void Leave() { Mutex.unlock(); }
 #else

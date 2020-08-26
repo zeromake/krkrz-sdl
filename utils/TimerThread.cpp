@@ -215,7 +215,7 @@ void tTVPTimerThread::RegisterToPendingItem(tTVPTimerBase *item)
 	Pending.push_back(item);
 }
 //---------------------------------------------------------------------------
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 void tTVPTimerThread::InternalTrigger()
 {
 	{
@@ -359,7 +359,7 @@ void tTVPTimerThread::RegisterToPending(tTVPTimerBase *item)
 	}
 }
 //---------------------------------------------------------------------------
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 void tTVPTimerThread::Trigger()
 {
 	if(TVPTimerThread)

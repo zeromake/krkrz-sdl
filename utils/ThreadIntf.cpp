@@ -37,7 +37,7 @@ tTVPThread::tTVPThread()
 tTVPThread::~tTVPThread()
 {
 	if( Thread != nullptr ) {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		if( Thread->joinable() ) Thread->detach();
 #endif
 		delete Thread;
@@ -46,7 +46,7 @@ tTVPThread::~tTVPThread()
 //---------------------------------------------------------------------------
 void tTVPThread::StartProc()
 {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	{	// スレッドが開始されたのでフラグON
 		std::lock_guard<std::mutex> lock( Mtx );
 		ThreadStarting = true;
@@ -59,7 +59,7 @@ void tTVPThread::StartProc()
 //---------------------------------------------------------------------------
 void tTVPThread::StartTread()
 {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	if( Thread == nullptr ) {
 		try {
 			Thread = new std::thread( &tTVPThread::StartProc, this );
@@ -184,7 +184,7 @@ tjs_int TVPDrawThreadNum = 1;
 //---------------------------------------------------------------------------
 tjs_int TVPGetProcessorNum( void )
 {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 	return 1;
 #else
 	return std::thread::hardware_concurrency();
@@ -193,7 +193,7 @@ tjs_int TVPGetProcessorNum( void )
 //---------------------------------------------------------------------------
 tjs_int TVPGetThreadNum( void )
 {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 	return 1;
 #else
 	tjs_int threadNum = TVPDrawThreadNum ? TVPDrawThreadNum : std::thread::hardware_concurrency();
@@ -206,7 +206,7 @@ static void TJS_USERENTRY DummyThreadTask( void * ) {}
 //---------------------------------------------------------------------------
 class DrawThreadPool;
 class DrawThread : public tTVPThread {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::mutex mtx;
 	std::condition_variable cv;
 #endif
@@ -219,12 +219,12 @@ protected:
 public:
 	DrawThread( DrawThreadPool* p ) : parent( p ), lpStartAddress( nullptr ), lpParameter( nullptr ) {}
 	void SetTask( TVP_THREAD_TASK_FUNC func, TVP_THREAD_PARAM param ) {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		std::lock_guard<std::mutex> lock( mtx );
 #endif
 		lpStartAddress = func;
 		lpParameter = param;
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		cv.notify_one();
 #endif
 	}
@@ -235,7 +235,7 @@ class DrawThreadPool {
 #ifdef _WIN32
 	std::vector<tjs_int> processor_ids;
 #endif
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::atomic<int> running_thread_count;
 #else
 	int running_thread_count;
@@ -260,12 +260,12 @@ public:
 	void BeginTask( tjs_int taskNum ) {
 		task_num = taskNum;
 		task_count = 0;
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		PoolThread( taskNum );
 #endif
 	}
 	void ExecTask( TVP_THREAD_TASK_FUNC func, TVP_THREAD_PARAM param ) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 		func( param );
 #else
 		if( task_count >= task_num - 1 ) {
@@ -280,7 +280,7 @@ public:
 #endif
 	}
 	void WaitForTask() {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		int expected = 0;
 		while( false == std::atomic_compare_exchange_weak( &running_thread_count, &expected, 0 ) ) {
 			expected = 0;
@@ -291,7 +291,7 @@ public:
 };
 //---------------------------------------------------------------------------
 void DrawThread::Execute() {
-#ifndef __EMSCRIPTEN__
+#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	while( !GetTerminated() ) {
 		{
 			std::unique_lock<std::mutex> uniq_lk( mtx );
