@@ -143,10 +143,14 @@ static void TVPConvertFloatPCMTo16bits(tjs_int16 *output, const float *input,
 	{
 		tjs_int total = channels * count;
 #ifdef __SSE__
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 		bool use_sse =
 				(TVPCPUType & TVP_CPU_HAS_MMX) &&
 				(TVPCPUType & TVP_CPU_HAS_SSE) &&
 				(TVPCPUType & TVP_CPU_HAS_CMOV);
+#else
+		bool use_sse = true;
+#endif
 #endif
 
 #ifdef __SSE__
@@ -394,10 +398,14 @@ static void TVPConvertIntegerPCMToFloat(float *output, const void *input,
 		{
 #ifdef __SSE__
 			// most popular
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 			bool use_sse =
 					(TVPCPUType & TVP_CPU_HAS_MMX) &&
 					(TVPCPUType & TVP_CPU_HAS_SSE) &&
 					(TVPCPUType & TVP_CPU_HAS_CMOV);
+#else
+			bool use_sse = true;
+#endif
 
 			if(use_sse)
 			{

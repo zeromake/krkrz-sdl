@@ -41,7 +41,7 @@ static inline void Float32ToInt16_sse2( tjs_uint16 * d, const float * s ) {
 	__m128i mhi = _mm_cvtps_epi32( _mm_mul_ps( *(__m128*)(s + 4), PM128(TJS_V_VEC_MAGNIFY) ) );
 	_mm_store_si128( (__m128i *)d, _mm_packs_epi32(mlo, mlo) );
 }
-#ifdef TJS_64BIT_OS
+#if 1
 // 64bit の時は MMX を使わず、SSE2/SSE で処理
 #define Int16ToFloat32_sse Int16ToFloat32_sse2
 #define Float32ToInt16_sse Float32ToInt16_sse2
@@ -93,8 +93,10 @@ void PCMConvertLoopInt16ToFloat32_sse(void * __restrict dest, const void * __res
 		{
 			Int16ToFloat32_sse( d+n, s+n );
 		}
+#if 0
 #ifndef _M_X64
 		_mm_empty();
+#endif
 #endif
 	}
 
@@ -135,8 +137,10 @@ void PCMConvertLoopFloat32ToInt16_sse(void * __restrict dest, const void * __res
 		{
 			Float32ToInt16_sse( d+n, s+n );
 		}
+#if 0
 #ifndef _M_X64
 		_mm_empty();
+#endif
 #endif
 	}
 

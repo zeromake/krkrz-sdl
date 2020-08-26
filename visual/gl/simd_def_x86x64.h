@@ -3,7 +3,21 @@
 #define __SIMD_DEF_X86_X64_H__
 
 
-#include <x86intrin.h>
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
+#ifdef __SSE3__
+#include <pmmintrin.h>
+#endif
+#ifdef __SSSE3__
+#include <tmmintrin.h>
+#endif
+#ifdef __AVX__
+#include <immintrin.h>
+#endif
 
 #ifdef _MSC_VER
 #ifndef _mm_srli_pi64

@@ -45,7 +45,7 @@
 #include "tvpgl_ia32_intf.h"
 #endif
 #include "DetectCPU.h"
-#include <x86intrin.h>
+#include <xmmintrin.h>
 #endif
 
 extern void InterleaveOverlappingWindow(float * __restrict dest, const float * __restrict const * __restrict src,
@@ -319,10 +319,14 @@ bool tRisaPhaseVocoderDSP::GetOutputBuffer(
 tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 {
 #ifdef __SSE__
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 	bool use_sse =
 			(TVPCPUType & TVP_CPU_HAS_MMX) &&
 			(TVPCPUType & TVP_CPU_HAS_SSE) &&
 			(TVPCPUType & TVP_CPU_HAS_CMOV);
+#else
+	bool use_sse = true;
+#endif
 #endif
 
 

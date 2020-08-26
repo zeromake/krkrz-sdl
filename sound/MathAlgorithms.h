@@ -17,7 +17,10 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #ifdef __SSE__
-#include <x86intrin.h>
+#include <xmmintrin.h>
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
 #include "xmmlib.h"
 #endif
 
@@ -261,7 +264,9 @@ static inline __m128 VFast_arctan2_F4_SSE(__m128 y, __m128 x)
  */
 static inline void SetRoundingModeToNearest_SSE()
 {
+#ifndef __EMSCRIPTEN__
 	_MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+#endif
 }
 //---------------------------------------------------------------------------
 

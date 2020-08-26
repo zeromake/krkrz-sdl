@@ -64,6 +64,9 @@
 
 /* We need type definitions from the XMM header file.  */
 #include <xmmintrin.h>
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
 #ifdef	_MSC_VER
 #include <emmintrin.h>	// if gcc is 3.4, this file need to include.
 #endif
