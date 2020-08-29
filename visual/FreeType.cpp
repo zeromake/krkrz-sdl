@@ -136,7 +136,7 @@ protected:
 	FT_Face Face;	//!< FreeType face オブジェクト
 	tTJSBinaryStream* File;	 //!< tTJSBinaryStream オブジェクト
 	std::vector<tjs_string> FaceNames; //!< Face名を列挙した配列
-	//std::unique_ptr<tjs_uint8[]> FontImage;
+	std::unique_ptr<tjs_uint8[]> FontImage;
 
 private:
 	FT_StreamRec Stream;
@@ -454,7 +454,7 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 opt
 		// FT_StreamRec の各フィールドを埋める
 		FT_StreamRec * fsr = &Stream;
 //#ifndef ANDROID
-#if 1
+#if 0
 		fsr->base = 0;
 		fsr->size = static_cast<unsigned long>(File->GetSize());
 		fsr->pos = 0;
