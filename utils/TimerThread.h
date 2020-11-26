@@ -94,9 +94,7 @@ private:
 	bool RemoveItem(tTVPTimerBase *item);
 	void RemoveFromPendingItem(tTVPTimerBase *item);
 	void RegisterToPendingItem(tTVPTimerBase *item);
-#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 	void InternalTrigger();
-#endif
 
 public:
 	void SetEnabled(tTVPTimerBase *item, bool enabled); // managed by this class
@@ -112,9 +110,7 @@ public:
 	static void RemoveFromPending(tTVPTimerBase *item);
 	static void RegisterToPending(tTVPTimerBase *item);
 
-#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 	static void Trigger();
-#endif
 };
 //---------------------------------------------------------------------------
 #endif

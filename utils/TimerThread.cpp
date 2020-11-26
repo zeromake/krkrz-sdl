@@ -39,14 +39,20 @@ tTVPTimerThread::tTVPTimerThread() : EventQueue(this,&tTVPTimerThread::Proc)
 	PendingEventsAvailable = false;
 	SetPriority(TVPLimitTimerCapacity ? ttpNormal : ttpHighest);
 	EventQueue.Allocate();
+#if 0
 	StartTread();
+#endif
 }
 //---------------------------------------------------------------------------
 tTVPTimerThread::~tTVPTimerThread()
 {
+#if 0
 	Terminate();
+#endif
 	Event.Set();
+#if 0
 	WaitFor();
+#endif
 	EventQueue.Deallocate();
 }
 //---------------------------------------------------------------------------
@@ -215,7 +221,6 @@ void tTVPTimerThread::RegisterToPendingItem(tTVPTimerBase *item)
 	Pending.push_back(item);
 }
 //---------------------------------------------------------------------------
-#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 void tTVPTimerThread::InternalTrigger()
 {
 	{
@@ -255,17 +260,18 @@ void tTVPTimerThread::InternalTrigger()
 
 			if(any_triggered)
 			{
-				// triggered; post notification message to the UtilWindow
-				if(!PendingEventsAvailable)
-				{
-					PendingEventsAvailable = true;
-					EventQueue.PostEvent( NativeEvent(TVP_EV_TIMER_THREAD) );
+				ProcWork.reserve( Pending.size() );
+				ProcWork = Pending;
+				Pending.clear();
+				for( auto i = ProcWork.begin(); i != ProcWork.end(); i++ ) {
+					if( std::find( List.begin(), List.end(), ( *i ) ) != List.end() )
+						(*i)->FirePendingEventsAndClear();	// この呼び出しによってList/Peinding内から削除されるケースがありうるので注意。
 				}
+				ProcWork.clear();
 			}
 		}	// end-of-thread-protected
 	}
 }
-#endif
 //---------------------------------------------------------------------------
 void tTVPTimerThread::SetEnabled(tTVPTimerBase *item, bool enabled)
 {
@@ -359,7 +365,6 @@ void tTVPTimerThread::RegisterToPending(tTVPTimerBase *item)
 	}
 }
 //---------------------------------------------------------------------------
-#if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 void tTVPTimerThread::Trigger()
 {
 	if(TVPTimerThread)
@@ -367,7 +372,6 @@ void tTVPTimerThread::Trigger()
 		TVPTimerThread->InternalTrigger();
 	}
 }
-#endif
 
 
 //---------------------------------------------------------------------------
