@@ -2,7 +2,6 @@
 
 #define _USE_MATH_DEFINES
 
-#ifdef __SSE2__
 #include "tjsCommHead.h"
 #include "LayerBitmapIntf.h"
 #include "LayerBitmapImpl.h"
@@ -13,8 +12,8 @@
 #include <cmath>
 #include <vector>
 
-#include <xmmintrin.h> // SSE
-#include <emmintrin.h> // SSE2
+#include <simde/x86/sse.h>
+#include <simde/x86/sse2.h>
 
 #include "x86simdutil.h"
 #include "aligned_allocator.h"
@@ -22,26 +21,26 @@
 #include "WeightFunctorSSE.h"
 #include "ResampleImageInternal.h"
 
-static __m128 M128_PS_STEP( _mm_set_ps(3.0f,2.0f,1.0f,0.0f) );
-static __m128 M128_PS_4_0( _mm_set1_ps( 4.0f ) );
-static __m128 M128_PS_FIXED15( _mm_set1_ps( (float)(1<<15) ) );
-static __m128i M128_U32_FIXED_ROUND( (_mm_set1_epi32(0x00200020)) );
-static __m128i M128_U32_FIXED_COLOR_MASK( (_mm_set1_epi32(0x00ff00ff)) );
-static __m128i M128_U32_FIXED_COLOR_MASK8( (_mm_set1_epi32(0x000000ff)) );
-static __m128 M128_EPSILON( _mm_set1_ps( FLT_EPSILON ) );
-static __m128 M128_ABS_MASK( _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff)) );
+static simde__m128 M128_PS_STEP( simde_mm_set_ps(3.0f,2.0f,1.0f,0.0f) );
+static simde__m128 M128_PS_4_0( simde_mm_set1_ps( 4.0f ) );
+static simde__m128 M128_PS_FIXED15( simde_mm_set1_ps( (float)(1<<15) ) );
+static simde__m128i M128_U32_FIXED_ROUND( (simde_mm_set1_epi32(0x00200020)) );
+static simde__m128i M128_U32_FIXED_COLOR_MASK( (simde_mm_set1_epi32(0x00ff00ff)) );
+static simde__m128i M128_U32_FIXED_COLOR_MASK8( (simde_mm_set1_epi32(0x000000ff)) );
+static simde__m128 M128_EPSILON( simde_mm_set1_ps( FLT_EPSILON ) );
+static simde__m128 M128_ABS_MASK( simde_mm_castsi128_ps(simde_mm_set1_epi32(0x7fffffff)) );
 
 static bool InitializedResampleSSE2 = false;
 void TVPInitializeResampleSSE2() {
 	if( !InitializedResampleSSE2) {
-		M128_PS_STEP = ( _mm_set_ps(3.0f,2.0f,1.0f,0.0f) );
-		M128_PS_4_0 = ( _mm_set1_ps( 4.0f ) );
-		M128_PS_FIXED15 = ( _mm_set1_ps( (float)(1<<15) ) );
-		M128_U32_FIXED_ROUND = ( (_mm_set1_epi32(0x00200020)) );
-		M128_U32_FIXED_COLOR_MASK = ( (_mm_set1_epi32(0x00ff00ff)) );
-		M128_U32_FIXED_COLOR_MASK8 = ( (_mm_set1_epi32(0x000000ff)) );
-		M128_EPSILON = ( _mm_set1_ps( FLT_EPSILON ) );
-		M128_ABS_MASK = ( _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff)) );
+		M128_PS_STEP = ( simde_mm_set_ps(3.0f,2.0f,1.0f,0.0f) );
+		M128_PS_4_0 = ( simde_mm_set1_ps( 4.0f ) );
+		M128_PS_FIXED15 = ( simde_mm_set1_ps( (float)(1<<15) ) );
+		M128_U32_FIXED_ROUND = ( (simde_mm_set1_epi32(0x00200020)) );
+		M128_U32_FIXED_COLOR_MASK = ( (simde_mm_set1_epi32(0x00ff00ff)) );
+		M128_U32_FIXED_COLOR_MASK8 = ( (simde_mm_set1_epi32(0x000000ff)) );
+		M128_EPSILON = ( simde_mm_set1_ps( FLT_EPSILON ) );
+		M128_ABS_MASK = ( simde_mm_castsi128_ps(simde_mm_set1_epi32(0x7fffffff)) );
 		InitializedResampleSSE2 = true;
 	}
 }
@@ -86,37 +85,37 @@ struct AxisParamSSE2 {
 		}
 	}
 	// 合計値を求める
-	static inline __m128 sumWeight( float* weight, int len4 ) {
+	static inline simde__m128 sumWeight( float* weight, int len4 ) {
 		float* w = weight;
-		__m128 sum = _mm_setzero_ps();
+		simde__m128 sum = simde_mm_setzero_ps();
 		for( int i = 0; i < len4; i+=4 ) {
-			__m128 weight4 = _mm_load_ps( w );
-			sum = _mm_add_ps( sum, weight4 );
+			simde__m128 weight4 = simde_mm_load_ps( w );
+			sum = simde_mm_add_ps( sum, weight4 );
 			w += 4;
 		}
 		return m128_hsum_sse1_ps(sum);
 	}
 	static inline void normalizeAndFixed( float* weight, tjs_uint32*& output, int& len, int len4, bool strip ) {
 		// 合計値を求める
-		__m128 sum = sumWeight( weight, len4 );
+		simde__m128 sum = sumWeight( weight, len4 );
 
 		// EPSILON より小さい場合は 0 を設定
-		const __m128 one = M128_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
-		__m128 onemask = _mm_cmpgt_ps( sum, M128_EPSILON ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-		__m128 rcp = m128_rcp_22bit_ps( sum );
-		rcp = _mm_mul_ps( rcp, one );	// 先にシフト分も掛けておく
-		rcp = _mm_and_ps( rcp, onemask );
+		const simde__m128 one = M128_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
+		simde__m128 onemask = simde_mm_cmpgt_ps( sum, M128_EPSILON ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+		simde__m128 rcp = m128_rcp_22bit_ps( sum );
+		rcp = simde_mm_mul_ps( rcp, one );	// 先にシフト分も掛けておく
+		rcp = simde_mm_and_ps( rcp, onemask );
 		float* w = weight;
 		// 正規化と固定小数点化
 		for( int i = 0; i < len4; i+=4 ) {
-			__m128 weight4 = _mm_load_ps( w ); w += 4;
-			weight4 = _mm_mul_ps( weight4, rcp );
+			simde__m128 weight4 = simde_mm_load_ps( w ); w += 4;
+			weight4 = simde_mm_mul_ps( weight4, rcp );
 
 			// 固定小数点化
-			__m128i fix = _mm_cvtps_epi32( weight4 );
-			fix = _mm_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
-			fix = _mm_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
-			_mm_storeu_si128( (__m128i*)output, fix );	// tjs_uint32 に short*2 で同じ値を格納する
+			simde__m128i fix = simde_mm_cvtps_epi32( weight4 );
+			fix = simde_mm_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
+			fix = simde_mm_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
+			simde_mm_storeu_si128( (simde__m128i*)output, fix );	// tjs_uint32 に short*2 で同じ値を格納する
 			output += 4;
 		}
 		if( strip ) {
@@ -138,18 +137,18 @@ struct AxisParamSSE2 {
 	}
 	static inline void normalize( float* weight, float*& output, int& len, int len4, bool strip ) {
 		// 合計値を求める
-		__m128 sum = sumWeight( weight, len4 );
+		simde__m128 sum = sumWeight( weight, len4 );
 
 		// EPSILON より小さい場合は 0 を設定
-		__m128 onemask = _mm_cmpgt_ps( sum, M128_EPSILON ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-		__m128 rcp = m128_rcp_22bit_ps( sum );
-		rcp = _mm_and_ps( rcp, onemask );
+		simde__m128 onemask = simde_mm_cmpgt_ps( sum, M128_EPSILON ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+		simde__m128 rcp = m128_rcp_22bit_ps( sum );
+		rcp = simde_mm_and_ps( rcp, onemask );
 		float* w = weight;
 		// 正規化
 		for( int i = 0; i < len4; i+=4 ) {
-			__m128 weight4 = _mm_load_ps( w ); w += 4;
-			weight4 = _mm_mul_ps( weight4, rcp );
-			_mm_storeu_ps( (float*)output, weight4 );
+			simde__m128 weight4 = simde_mm_load_ps( w ); w += 4;
+			weight4 = simde_mm_mul_ps( weight4, rcp );
+			simde_mm_storeu_ps( (float*)output, weight4 );
 			output += 4;
 		}
 		if( strip ) {
@@ -191,9 +190,9 @@ struct AxisParamSSE2 {
 #else
 			weight_.reserve( length );
 #endif
-			const __m128 delta4 = M128_PS_4_0;
-			const __m128 deltafirst = M128_PS_STEP;
-			const __m128 absmask = M128_ABS_MASK;
+			const simde__m128 delta4 = M128_PS_4_0;
+			const simde__m128 deltafirst = M128_PS_STEP;
+			const simde__m128 absmask = M128_ABS_MASK;
 			TWeight* output = &weight_[0];
 			for( int x = 0; x < dstlength; x++ ) {
 				float cx = (x+0.5f)*(float)srclength/(float)dstlength + srcstart;
@@ -211,16 +210,16 @@ struct AxisParamSSE2 {
 				}
 				start_.push_back( start );
 				int len = right - left;
-				__m128 dist4 = _mm_set1_ps((float)left+0.5f-cx);
+				simde__m128 dist4 = simde_mm_set1_ps((float)left+0.5f-cx);
 				int len4 = ((len+3)>>2)<<2;	// 4 の倍数化
 				float* w = weight;
 				// まずは最初の要素のみ処理する
-				dist4 = _mm_add_ps( dist4, deltafirst );
-				_mm_store_ps( w, func( _mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
+				dist4 = simde_mm_add_ps( dist4, deltafirst );
+				simde_mm_store_ps( w, func( simde_mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
 				w += 4;
 				for( int sx = 4; sx < len4; sx+=4 ) {
-					dist4 = _mm_add_ps( dist4, delta4 );	// 4つずつスライド
-					_mm_store_ps( w, func( _mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
+					dist4 = simde_mm_add_ps( dist4, delta4 );	// 4つずつスライド
+					simde_mm_store_ps( w, func( simde_mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
 					w += 4;
 				}
 				calculateWeight( weight, output, len, leftedge, rightedge, strip );
@@ -247,13 +246,13 @@ struct AxisParamSSE2 {
 			TWeight* output = &weight_[0];
 			const float delta = (float)dstlength/(float)srclength; // 転送先座標での位置増分
 
-			__m128 delta4 = _mm_set1_ps(delta);
-			__m128 deltafirst = M128_PS_STEP;
-			const __m128 absmask = M128_ABS_MASK;
-			deltafirst = _mm_mul_ps( deltafirst, delta4 );	// 0 1 2 3 と順に加算されるようにする
+			simde__m128 delta4 = simde_mm_set1_ps(delta);
+			simde__m128 deltafirst = M128_PS_STEP;
+			const simde__m128 absmask = M128_ABS_MASK;
+			deltafirst = simde_mm_mul_ps( deltafirst, delta4 );	// 0 1 2 3 と順に加算されるようにする
 			// 4倍する
-			delta4 = _mm_add_ps( delta4, delta4 );
-			delta4 = _mm_add_ps( delta4, delta4 );
+			delta4 = simde_mm_add_ps( delta4, delta4 );
+			delta4 = simde_mm_add_ps( delta4, delta4 );
 			for( int x = 0; x < dstlength; x++ ) {
 				float cx = (x+0.5f)*(float)srclength/(float)dstlength + srcstart;
 				int left = (int)std::floor(cx-rangex);
@@ -272,16 +271,16 @@ struct AxisParamSSE2 {
 				// 転送先座標での位置
 				int len = right-left;
 				float dx = (left+0.5f-cx) * delta;
-				__m128 dist4 = _mm_set1_ps(dx);
+				simde__m128 dist4 = simde_mm_set1_ps(dx);
 				int len4 = ((len+3)>>2)<<2;	// 4 の倍数化
 				float* w = weight;
 				// まずは最初の要素のみ処理する
-				dist4 = _mm_add_ps( dist4, deltafirst );
-				_mm_store_ps( w, func( _mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
+				dist4 = simde_mm_add_ps( dist4, deltafirst );
+				simde_mm_store_ps( w, func( simde_mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
 				w += 4;
 				for( int sx = 4; sx < len4; sx+=4 ) {
-					dist4 = _mm_add_ps( dist4, delta4 );	// 4つずつスライド
-					_mm_store_ps( w, func( _mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
+					dist4 = simde_mm_add_ps( dist4, delta4 );	// 4つずつスライド
+					simde_mm_store_ps( w, func( simde_mm_and_ps( dist4, absmask ) ) );	// 絶対値+weight計算
 					w += 4;
 				}
 				calculateWeight( weight, output, len, leftedge, rightedge, strip );
@@ -297,12 +296,12 @@ struct AxisParamSSE2 {
 		}
 	}
 	// 合計値を求める
-	static inline __m128 sumWeightUnalign( float* weight, int len4 ) {
+	static inline simde__m128 sumWeightUnalign( float* weight, int len4 ) {
 		float* w = weight;
-		__m128 sum = _mm_setzero_ps();
+		simde__m128 sum = simde_mm_setzero_ps();
 		for( int i = 0; i < len4; i+=4 ) {
-			__m128 weight4 = _mm_loadu_ps( w );
-			sum = _mm_add_ps( sum, weight4 );
+			simde__m128 weight4 = simde_mm_loadu_ps( w );
+			sum = simde_mm_add_ps( sum, weight4 );
 			w += 4;
 		}
 		return m128_hsum_sse1_ps(sum);
@@ -311,7 +310,7 @@ struct AxisParamSSE2 {
 	void normalizeAreaAvg( float* wstart, float* dweight, tjs_uint size, bool strip ) {
 		const int count = (const int)length_.size();
 		int dwindex = 0;
-		const __m128 epsilon = M128_EPSILON;
+		const simde__m128 epsilon = M128_EPSILON;
 		for( int i = 0; i < count; i++ ) {
 			float* dw = dweight;
 			int len = length_[i];
@@ -333,7 +332,7 @@ struct AxisParamSSE2 {
 			dweight = dw;
 
 			// 合計値を求める
-			__m128 sum;
+			simde__m128 sum;
 			if( strip ) {
 				sum = sumWeightUnalign( w, len4 );
 			} else {
@@ -341,14 +340,14 @@ struct AxisParamSSE2 {
 			}
 
 			// EPSILON より小さい場合は 0 を設定
-			__m128 onemask = _mm_cmpgt_ps( sum, epsilon ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-			__m128 rcp = m128_rcp_22bit_ps( sum );
-			rcp = _mm_and_ps( rcp, onemask );
+			simde__m128 onemask = simde_mm_cmpgt_ps( sum, epsilon ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+			simde__m128 rcp = m128_rcp_22bit_ps( sum );
+			rcp = simde_mm_and_ps( rcp, onemask );
 			// 正規化
 			for( int j = 0; j < len4; j += 4 ) {
-				__m128 weight4 = _mm_loadu_ps( w );
-				weight4 = _mm_mul_ps( weight4, rcp );
-				_mm_storeu_ps( (float*)w, weight4 );
+				simde__m128 weight4 = simde_mm_loadu_ps( w );
+				weight4 = simde_mm_mul_ps( weight4, rcp );
+				simde_mm_storeu_ps( (float*)w, weight4 );
 				w += 4;
 			}
 			if( strip ) {
@@ -369,8 +368,8 @@ struct AxisParamSSE2 {
 		work.reserve( size );
 #endif
 		int dwindex = 0;
-		const __m128 one = M128_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
-		const __m128 epsilon = M128_EPSILON;
+		const simde__m128 one = M128_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
+		const simde__m128 epsilon = M128_EPSILON;
 		for( int i = 0; i < count; i++ ) {
 			float* dw = &work[0];
 			int len = length_[i];
@@ -391,22 +390,22 @@ struct AxisParamSSE2 {
 			}
 
 			// 合計値を求める
-			__m128 sum = sumWeight( w, len4 );
+			simde__m128 sum = sumWeight( w, len4 );
 
 			// EPSILON より小さい場合は 0 を設定
-			__m128 onemask = _mm_cmpgt_ps( sum, epsilon ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-			__m128 rcp = m128_rcp_22bit_ps( sum );
-			rcp = _mm_mul_ps( rcp, one );	// 先にシフト分も掛けておく
-			rcp = _mm_and_ps( rcp, onemask );
+			simde__m128 onemask = simde_mm_cmpgt_ps( sum, epsilon ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+			simde__m128 rcp = m128_rcp_22bit_ps( sum );
+			rcp = simde_mm_mul_ps( rcp, one );	// 先にシフト分も掛けておく
+			rcp = simde_mm_and_ps( rcp, onemask );
 			// 正規化
 			for( int j = 0; j < len4; j += 4 ) {
-				__m128 weight4 = _mm_load_ps( w ); w += 4;
-				weight4 = _mm_mul_ps( weight4, rcp );
+				simde__m128 weight4 = simde_mm_load_ps( w ); w += 4;
+				weight4 = simde_mm_mul_ps( weight4, rcp );
 				// 固定小数点化
-				__m128i fix = _mm_cvtps_epi32( weight4 );
-				fix = _mm_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
-				fix = _mm_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
-				_mm_storeu_si128( (__m128i*)dweight, fix );	// tjs_uint32 に short*2 で同じ値を格納する
+				simde__m128i fix = simde_mm_cvtps_epi32( weight4 );
+				fix = simde_mm_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
+				fix = simde_mm_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
+				simde_mm_storeu_si128( (simde__m128i*)dweight, fix );	// tjs_uint32 に short*2 で同じ値を格納する
 				dweight += 4;
 			}
 			if( strip ) {
@@ -477,49 +476,49 @@ public:
 			weightx += paramx_.length_[x];
 		}
 		const tjs_uint32* src = srcbits;
-		const __m128i cmask = M128_U32_FIXED_COLOR_MASK;
-		const __m128i fixround = M128_U32_FIXED_ROUND;
+		const simde__m128i cmask = M128_U32_FIXED_COLOR_MASK;
+		const simde__m128i fixround = M128_U32_FIXED_ROUND;
 		for( int x = offsetx; x < dstwidth; x++ ) {
 			const int left = paramx_.start_[x];
 			int right = left + paramx_.length_[x];
-			__m128i color_lo = _mm_setzero_si128();
-			__m128i color_hi = _mm_setzero_si128();
+			simde__m128i color_lo = simde_mm_setzero_si128();
+			simde__m128i color_hi = simde_mm_setzero_si128();
 			// 4ピクセルずつ処理する
 			for( int sx = left; sx < right; sx+=4 ) {
-				__m128i col4 = _mm_loadu_si128( (const __m128i*)&src[sx] ); // 4ピクセル読み込み
-				__m128i weight4 = _mm_loadu_si128( (const __m128i*)weightx ); // ウェイト(固定少数)4つ(16bitで8)読み込み 0 1 2 3
+				simde__m128i col4 = simde_mm_loadu_si128( (const simde__m128i*)&src[sx] ); // 4ピクセル読み込み
+				simde__m128i weight4 = simde_mm_loadu_si128( (const simde__m128i*)weightx ); // ウェイト(固定少数)4つ(16bitで8)読み込み 0 1 2 3
 				weightx += 4;
 
-				__m128i col = _mm_and_si128( col4, cmask );	// 00 RR 00 BB & 0x00ff00ff
-				col = _mm_slli_epi16( col, 7 );	// << 7
-				col = _mm_mulhi_epi16( col, weight4 );
-				color_lo = _mm_adds_epi16( color_lo, col );
+				simde__m128i col = simde_mm_and_si128( col4, cmask );	// 00 RR 00 BB & 0x00ff00ff
+				col = simde_mm_slli_epi16( col, 7 );	// << 7
+				col = simde_mm_mulhi_epi16( col, weight4 );
+				color_lo = simde_mm_adds_epi16( color_lo, col );
 
-				col = _mm_srli_epi16( col4, 8 );	// 00 AA 00 GG
-				col = _mm_slli_epi16( col, 7 );	// << 7
-				col = _mm_mulhi_epi16( col, weight4 );
-				color_hi = _mm_adds_epi16( color_hi, col );
+				col = simde_mm_srli_epi16( col4, 8 );	// 00 AA 00 GG
+				col = simde_mm_slli_epi16( col, 7 );	// << 7
+				col = simde_mm_mulhi_epi16( col, weight4 );
+				color_hi = simde_mm_adds_epi16( color_hi, col );
 			}
 			{	// SSE - 水平加算
-				__m128i sumlo = color_lo;
-				color_lo = _mm_shuffle_epi32( color_lo, _MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
-				sumlo = _mm_adds_epi16( sumlo, color_lo );
-				color_lo = _mm_shuffle_epi32( sumlo, _MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
-				sumlo = _mm_adds_epi16( sumlo, color_lo );
-				sumlo = _mm_adds_epi16( sumlo, fixround );
-				sumlo = _mm_srai_epi16( sumlo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
+				simde__m128i sumlo = color_lo;
+				color_lo = simde_mm_shuffle_epi32( color_lo, SIMDE_MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
+				sumlo = simde_mm_adds_epi16( sumlo, color_lo );
+				color_lo = simde_mm_shuffle_epi32( sumlo, SIMDE_MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
+				sumlo = simde_mm_adds_epi16( sumlo, color_lo );
+				sumlo = simde_mm_adds_epi16( sumlo, fixround );
+				sumlo = simde_mm_srai_epi16( sumlo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
 
-				__m128i sumhi = color_hi;
-				color_hi = _mm_shuffle_epi32( color_hi, _MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
-				sumhi = _mm_adds_epi16( sumhi, color_hi );
-				color_hi = _mm_shuffle_epi32( sumhi, _MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
-				sumhi = _mm_adds_epi16( sumhi, color_hi );
-				sumhi = _mm_adds_epi16( sumhi, fixround );
-				sumhi = _mm_srai_epi16( sumhi, 6 ); // 固定小数点から整数化
+				simde__m128i sumhi = color_hi;
+				color_hi = simde_mm_shuffle_epi32( color_hi, SIMDE_MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
+				sumhi = simde_mm_adds_epi16( sumhi, color_hi );
+				color_hi = simde_mm_shuffle_epi32( sumhi, SIMDE_MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
+				sumhi = simde_mm_adds_epi16( sumhi, color_hi );
+				sumhi = simde_mm_adds_epi16( sumhi, fixround );
+				sumhi = simde_mm_srai_epi16( sumhi, 6 ); // 固定小数点から整数化
 
-				sumlo = _mm_unpacklo_epi16( sumlo, sumhi );
-				sumlo = _mm_packus_epi16( sumlo, sumlo );
-				*dstbits = _mm_cvtsi128_si32( sumlo );
+				sumlo = simde_mm_unpacklo_epi16( sumlo, sumhi );
+				sumlo = simde_mm_packus_epi16( sumlo, sumlo );
+				*dstbits = simde_mm_cvtsi128_si32( sumlo );
 			}
 			dstbits++;
 		}
@@ -530,40 +529,40 @@ public:
 		const int len = paramy_.length_min_[y];
 		const int bottom = top + len;
 		const tjs_uint32* weighty = wstarty;
-		const __m128i cmask = M128_U32_FIXED_COLOR_MASK;
-		const __m128i fixround = M128_U32_FIXED_ROUND;
+		const simde__m128i cmask = M128_U32_FIXED_COLOR_MASK;
+		const simde__m128i fixround = M128_U32_FIXED_ROUND;
 		const tjs_uint32* srctop = (const tjs_uint32*)src->GetScanLine(top) + srcrect.left;
 		tjs_int stride = src->GetPitchBytes()/(int)sizeof(tjs_uint32);
 		for( int x = 0; x < srcwidth; x+=4 ) {
 			weighty = wstarty;
-			__m128i color_lo = _mm_setzero_si128();
-			__m128i color_hi = _mm_setzero_si128();
+			simde__m128i color_lo = simde_mm_setzero_si128();
+			simde__m128i color_hi = simde_mm_setzero_si128();
 			const tjs_uint32* srcbits = &srctop[x];
 			for( int sy = top; sy < bottom; sy++ ) {
-				__m128i col4 = _mm_loadu_si128( (const __m128i*)srcbits ); // 4列読み込み
+				simde__m128i col4 = simde_mm_loadu_si128( (const simde__m128i*)srcbits ); // 4列読み込み
 				srcbits += stride;
-				__m128i weight4 = _mm_set1_epi32( (int)*weighty ); // weight は、同じ値を設定
+				simde__m128i weight4 = simde_mm_set1_epi32( (int)*weighty ); // weight は、同じ値を設定
 				weighty++;
 
-				__m128i col = _mm_and_si128( col4, cmask );	// 00 RR 00 BB
-				col = _mm_slli_epi16( col, 7 );	// << 7
-				col = _mm_mulhi_epi16( col, weight4 );
-				color_lo = _mm_adds_epi16( color_lo, col );
+				simde__m128i col = simde_mm_and_si128( col4, cmask );	// 00 RR 00 BB
+				col = simde_mm_slli_epi16( col, 7 );	// << 7
+				col = simde_mm_mulhi_epi16( col, weight4 );
+				color_lo = simde_mm_adds_epi16( color_lo, col );
 
-				col = _mm_srli_epi16( col4, 8 );	// 00 AA 00 GG
-				col = _mm_slli_epi16( col, 7 );	// << 7
-				col = _mm_mulhi_epi16( col, weight4 );
-				color_hi = _mm_adds_epi16( color_hi, col );
+				col = simde_mm_srli_epi16( col4, 8 );	// 00 AA 00 GG
+				col = simde_mm_slli_epi16( col, 7 );	// << 7
+				col = simde_mm_mulhi_epi16( col, weight4 );
+				color_hi = simde_mm_adds_epi16( color_hi, col );
 			}
 			{
-				color_lo = _mm_adds_epi16( color_lo, fixround );
-				color_hi = _mm_adds_epi16( color_hi, fixround );
-				color_lo = _mm_srai_epi16( color_lo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
-				color_hi = _mm_srai_epi16( color_hi, 6 ); // 固定小数点から整数化
-				__m128i lo = _mm_unpacklo_epi16( color_lo, color_hi );
-				__m128i hi = _mm_unpackhi_epi16( color_lo, color_hi );
-				color_lo = _mm_packus_epi16( lo, hi );
-				_mm_store_si128( (__m128i *)&dstbits[x], color_lo );
+				color_lo = simde_mm_adds_epi16( color_lo, fixround );
+				color_hi = simde_mm_adds_epi16( color_hi, fixround );
+				color_lo = simde_mm_srai_epi16( color_lo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
+				color_hi = simde_mm_srai_epi16( color_hi, 6 ); // 固定小数点から整数化
+				simde__m128i lo = simde_mm_unpacklo_epi16( color_lo, color_hi );
+				simde__m128i hi = simde_mm_unpackhi_epi16( color_lo, color_hi );
+				color_lo = simde_mm_packus_epi16( lo, hi );
+				simde_mm_store_si128( (simde__m128i *)&dstbits[x], color_lo );
 			}
 		}
 		wstarty = weighty;
@@ -787,58 +786,58 @@ public:
 	 * 横方向の処理 (後に処理)
 	 */
 	inline void samplingHorizontal( tjs_uint32* dstbits, const int offsetx, const int dstwidth, const tjs_uint32* srcbits ) {
-		const __m128i cmask = M128_U32_FIXED_COLOR_MASK8;	// 8bit化するためのマスク
+		const simde__m128i cmask = M128_U32_FIXED_COLOR_MASK8;	// 8bit化するためのマスク
 		const float* weightx = &paramx_.weight_[0];
 		// まずoffset分をスキップ
 		for( int x = 0; x < offsetx; x++ ) {
 			weightx += paramx_.length_[x];
 		}
 		const tjs_uint32* src = srcbits;
-		const __m128i zero = _mm_setzero_si128();
+		const simde__m128i zero = simde_mm_setzero_si128();
 		for( int x = offsetx; x < dstwidth; x++ ) {
 			const int left = paramx_.start_[x];
 			int right = left + paramx_.length_[x];
-			__m128 color_elm = _mm_setzero_ps();
+			simde__m128 color_elm = simde_mm_setzero_ps();
 			// 4ピクセルずつ処理する
 			for( int sx = left; sx < right; sx+=4 ) {
-				__m128i col4 = _mm_loadu_si128( (const __m128i*)&src[sx] ); // 4ピクセル読み込み
-				__m128 weight4 = _mm_loadu_ps( (const float*)weightx ); // ウェイト4つ
+				simde__m128i col4 = simde_mm_loadu_si128( (const simde__m128i*)&src[sx] ); // 4ピクセル読み込み
+				simde__m128 weight4 = simde_mm_loadu_ps( (const float*)weightx ); // ウェイト4つ
 				weightx += 4;
 
 				// a r g b | a r g b と 2つずつ処理するから、weight もその形にインターリーブ
-				__m128i collo = _mm_unpacklo_epi8( col4, zero );		// 00 01 00 02 00 03 0 04 00 05 00 06...
-				__m128i col = _mm_unpacklo_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
-				__m128 colf = _mm_cvtepi32_ps( col );
-				__m128 wlo = _mm_unpacklo_ps( weight4, weight4 );
-				__m128 w = _mm_unpacklo_ps( wlo, wlo );	// 00 00 00 00 04 04 04 04
-				colf = _mm_mul_ps( colf, w );
-				color_elm = _mm_add_ps( color_elm, colf );
+				simde__m128i collo = simde_mm_unpacklo_epi8( col4, zero );		// 00 01 00 02 00 03 0 04 00 05 00 06...
+				simde__m128i col = simde_mm_unpacklo_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
+				simde__m128 colf = simde_mm_cvtepi32_ps( col );
+				simde__m128 wlo = simde_mm_unpacklo_ps( weight4, weight4 );
+				simde__m128 w = simde_mm_unpacklo_ps( wlo, wlo );	// 00 00 00 00 04 04 04 04
+				colf = simde_mm_mul_ps( colf, w );
+				color_elm = simde_mm_add_ps( color_elm, colf );
 				
-				col = _mm_unpackhi_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
-				colf = _mm_cvtepi32_ps( col );				// int to float
-				w = _mm_unpackhi_ps( wlo, wlo );
-				colf = _mm_mul_ps( colf, w );
-				color_elm = _mm_add_ps( color_elm, colf );
+				col = simde_mm_unpackhi_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
+				colf = simde_mm_cvtepi32_ps( col );				// int to float
+				w = simde_mm_unpackhi_ps( wlo, wlo );
+				colf = simde_mm_mul_ps( colf, w );
+				color_elm = simde_mm_add_ps( color_elm, colf );
 				
-				__m128i colhi = _mm_unpackhi_epi8( col4, zero );	// 00 01 00 02 00 03 0 04 00 05 00 06...
-				col = _mm_unpacklo_epi16( colhi, zero );			// 00 00 00 01 00 00 00 02...
-				colf = _mm_cvtepi32_ps( col );					// int to float
-				__m128 whi = _mm_unpackhi_ps( weight4, weight4 );
-				w = _mm_unpacklo_ps( whi, whi );
-				colf = _mm_mul_ps( colf, w );
-				color_elm = _mm_add_ps( color_elm, colf );
+				simde__m128i colhi = simde_mm_unpackhi_epi8( col4, zero );	// 00 01 00 02 00 03 0 04 00 05 00 06...
+				col = simde_mm_unpacklo_epi16( colhi, zero );			// 00 00 00 01 00 00 00 02...
+				colf = simde_mm_cvtepi32_ps( col );					// int to float
+				simde__m128 whi = simde_mm_unpackhi_ps( weight4, weight4 );
+				w = simde_mm_unpacklo_ps( whi, whi );
+				colf = simde_mm_mul_ps( colf, w );
+				color_elm = simde_mm_add_ps( color_elm, colf );
 				
-				col = _mm_unpackhi_epi16( colhi, zero );		// 00 00 00 01 00 00 00 02...
-				colf = _mm_cvtepi32_ps( col );				// int to float
-				w = _mm_unpackhi_ps( whi, whi );
-				colf = _mm_mul_ps( colf, w );
-				color_elm = _mm_add_ps( color_elm, colf );
+				col = simde_mm_unpackhi_epi16( colhi, zero );		// 00 00 00 01 00 00 00 02...
+				colf = simde_mm_cvtepi32_ps( col );				// int to float
+				w = simde_mm_unpackhi_ps( whi, whi );
+				colf = simde_mm_mul_ps( colf, w );
+				color_elm = simde_mm_add_ps( color_elm, colf );
 			}
 			{	// SSE
-				__m128i color = _mm_cvtps_epi32( color_elm );
-				color = _mm_packs_epi32( color, color );
-				color = _mm_packus_epi16( color, color );
-				*dstbits = _mm_cvtsi128_si32( color );
+				simde__m128i color = simde_mm_cvtps_epi32( color_elm );
+				color = simde_mm_packs_epi32( color, color );
+				color = simde_mm_packus_epi16( color, color );
+				*dstbits = simde_mm_cvtsi128_si32( color );
 			}
 			dstbits++;
 		}
@@ -851,60 +850,60 @@ public:
 		const int len = paramy_.length_min_[y];
 		const int bottom = top + len;
 		const float* weighty = wstarty;
-		const __m128i cmask = M128_U32_FIXED_COLOR_MASK8;
+		const simde__m128i cmask = M128_U32_FIXED_COLOR_MASK8;
 		const tjs_uint32* srctop = (const tjs_uint32*)src->GetScanLine(top) + srcrect.left;
 		tjs_int stride = src->GetPitchBytes()/(int)sizeof(tjs_uint32);
 		for( int x = 0; x < srcwidth; x+=4 ) {
 			weighty = wstarty;
-			__m128 color_a = _mm_setzero_ps();
-			__m128 color_r = _mm_setzero_ps();
-			__m128 color_g = _mm_setzero_ps();
-			__m128 color_b = _mm_setzero_ps();
+			simde__m128 color_a = simde_mm_setzero_ps();
+			simde__m128 color_r = simde_mm_setzero_ps();
+			simde__m128 color_g = simde_mm_setzero_ps();
+			simde__m128 color_b = simde_mm_setzero_ps();
 			const tjs_uint32* srcbits = &srctop[x];
 			for( int sy = top; sy < bottom; sy++ ) {
-				__m128i col4 = _mm_loadu_si128( (const __m128i*)srcbits ); // 8列読み込み
+				simde__m128i col4 = simde_mm_loadu_si128( (const simde__m128i*)srcbits ); // 8列読み込み
 				srcbits += stride;
-				__m128 weight4 = _mm_set1_ps( *weighty ); // weight は、同じ値を設定
+				simde__m128 weight4 = simde_mm_set1_ps( *weighty ); // weight は、同じ値を設定
 				weighty++;
 				
-				__m128i c = _mm_srli_epi32( col4, 24 );
-				__m128 cf = _mm_cvtepi32_ps(c);
-				cf = _mm_mul_ps( cf, weight4 );
-				color_a = _mm_add_ps( color_a, cf );
+				simde__m128i c = simde_mm_srli_epi32( col4, 24 );
+				simde__m128 cf = simde_mm_cvtepi32_ps(c);
+				cf = simde_mm_mul_ps( cf, weight4 );
+				color_a = simde_mm_add_ps( color_a, cf );
 
-				c = _mm_srli_epi32( col4, 16 );
-				c = _mm_and_si128( c, cmask );
-				cf = _mm_cvtepi32_ps(c);
-				cf = _mm_mul_ps( cf, weight4 );
-				color_r = _mm_add_ps( color_r, cf );
+				c = simde_mm_srli_epi32( col4, 16 );
+				c = simde_mm_and_si128( c, cmask );
+				cf = simde_mm_cvtepi32_ps(c);
+				cf = simde_mm_mul_ps( cf, weight4 );
+				color_r = simde_mm_add_ps( color_r, cf );
 				
-				c = _mm_srli_epi32( col4, 8 );
-				c = _mm_and_si128( c, cmask );
-				cf = _mm_cvtepi32_ps(c);
-				cf = _mm_mul_ps( cf, weight4 );
-				color_g = _mm_add_ps( color_g, cf );
+				c = simde_mm_srli_epi32( col4, 8 );
+				c = simde_mm_and_si128( c, cmask );
+				cf = simde_mm_cvtepi32_ps(c);
+				cf = simde_mm_mul_ps( cf, weight4 );
+				color_g = simde_mm_add_ps( color_g, cf );
 
-				c = _mm_and_si128( col4, cmask );
-				cf = _mm_cvtepi32_ps(c);
-				cf = _mm_mul_ps( cf, weight4 );
-				color_b = _mm_add_ps( color_b, cf );
+				c = simde_mm_and_si128( col4, cmask );
+				cf = simde_mm_cvtepi32_ps(c);
+				cf = simde_mm_mul_ps( cf, weight4 );
+				color_b = simde_mm_add_ps( color_b, cf );
 			}
 			{
-				__m128i a = _mm_cvtps_epi32( color_a );
-				__m128i r = _mm_cvtps_epi32( color_r );
-				__m128i g = _mm_cvtps_epi32( color_g );
-				__m128i b = _mm_cvtps_epi32( color_b );
+				simde__m128i a = simde_mm_cvtps_epi32( color_a );
+				simde__m128i r = simde_mm_cvtps_epi32( color_r );
+				simde__m128i g = simde_mm_cvtps_epi32( color_g );
+				simde__m128i b = simde_mm_cvtps_epi32( color_b );
 				// インターリーブ
-				__m128i arl = _mm_unpacklo_epi32( r, a );
-				__m128i arh = _mm_unpackhi_epi32( r, a );
-				arl = _mm_packs_epi32( arl, arh );	// a r a r a r ar
-				__m128i gbl = _mm_unpacklo_epi32( b, g );
-				__m128i gbh = _mm_unpackhi_epi32( b, g );
-				gbl = _mm_packs_epi32( gbl, gbh );	// g b g b g b g b
-				__m128i l = _mm_unpacklo_epi32( gbl, arl );
-				__m128i h = _mm_unpackhi_epi32( gbl, arl );
-				l = _mm_packus_epi16( l, h );
-				_mm_store_si128( (__m128i *)&dstbits[x], l );
+				simde__m128i arl = simde_mm_unpacklo_epi32( r, a );
+				simde__m128i arh = simde_mm_unpackhi_epi32( r, a );
+				arl = simde_mm_packs_epi32( arl, arh );	// a r a r a r ar
+				simde__m128i gbl = simde_mm_unpacklo_epi32( b, g );
+				simde__m128i gbh = simde_mm_unpackhi_epi32( b, g );
+				gbl = simde_mm_packs_epi32( gbl, gbh );	// g b g b g b g b
+				simde__m128i l = simde_mm_unpacklo_epi32( gbl, arl );
+				simde__m128i h = simde_mm_unpackhi_epi32( gbl, arl );
+				l = simde_mm_packus_epi16( l, h );
+				simde_mm_store_si128( (simde__m128i *)&dstbits[x], l );
 			}
 		}
 		wstarty = weighty;
@@ -1209,4 +1208,3 @@ void TVPResampleImageSSE2( const tTVPResampleClipping &clip, const tTVPImageCopy
 	}
 }
 
-#endif

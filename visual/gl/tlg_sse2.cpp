@@ -1,5 +1,4 @@
 
-#ifdef __SSE2__
 #include "tjsCommHead.h"
 #include "tvpgl.h"
 #include "tvpgl_ia32_intf.h"
@@ -11,23 +10,23 @@ tjs_int TVPTLG5DecompressSlide_sse_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_i
 	tjs_int r = initialr;
 	tjs_uint flags = 0;
 	const tjs_uint8 *inlim = in + insize;
-	const __m64 mask = _mm_set1_pi32(0xffffffff);
+	const simde__m64 mask = simde_mm_set1_pi32(0xffffffff);
 	while(in < inlim ) {
 		if(((flags >>= 1) & 256) == 0) {
 			flags = in[0];
 			in++;
 			if( flags == 0 && in < (inlim-8) ) {	// copy 8byte
-				__m64 c = *(__m64 const*)in;
-				*(__m64 *)out = c;
-				*(__m64 *)&text[r] = c;
+				simde__m64 c = *(simde__m64 const*)in;
+				*(simde__m64 *)out = c;
+				*(simde__m64 *)&text[r] = c;
 				r += 8;
 				if( r > 4095 ) {
 					r &= 0x0FFF;
-					c = _mm_srli_pi64( c, (8 - r)*8 );
-					__m64 t = *(__m64 const*)text;
-					__m64 m = mask;
-					m = _mm_srli_pi64( m, (8 - r)*8 );
-					_mm_maskmove_si64( c, m, (char*)text );
+					c = simde_mm_srli_pi64( c, (8 - r)*8 );
+					simde__m64 t = *(simde__m64 const*)text;
+					simde__m64 m = mask;
+					m = simde_mm_srli_pi64( m, (8 - r)*8 );
+					simde_mm_maskmove_si64( c, m, (char*)text );
 				}
 				in += 8;
 				out += 8;
@@ -46,37 +45,37 @@ tjs_int TVPTLG5DecompressSlide_sse_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_i
 				in++;
 			}
 			while( mlen ) {
-				__m64 c = *(__m64 const*)&text[mpos];
-				*(__m64 *)out = c;
+				simde__m64 c = *(simde__m64 const*)&text[mpos];
+				*(simde__m64 *)out = c;
 				if( mlen < 8 ) {
 					if( (4096-mpos) < mlen ) {
 						tjs_int mrem = (4096-mpos);
 						out += mrem;
 						mlen -= mrem;
-						__m64 m = mask;
-						m = _mm_srli_pi64( m, (8-mrem)*8 );
-						_mm_maskmove_si64( c, m, (char*)&text[r] );
+						simde__m64 m = mask;
+						m = simde_mm_srli_pi64( m, (8-mrem)*8 );
+						simde_mm_maskmove_si64( c, m, (char*)&text[r] );
 						r += mrem;
 						if( r > 4095 ) {
 							r &= 0x0fff;
-							c = _mm_srli_pi64( c, (mrem-r)*8 );
+							c = simde_mm_srli_pi64( c, (mrem-r)*8 );
 							m = mask;
-							m = _mm_srli_pi64( m, (8-r)*8 );
-							_mm_maskmove_si64( c, m, (char*)text );
+							m = simde_mm_srli_pi64( m, (8-r)*8 );
+							simde_mm_maskmove_si64( c, m, (char*)text );
 						}
 						mpos = 0;
 					} else {
 						out += mlen;
-						__m64 m = mask;
-						m = _mm_srli_pi64( m, (8-mlen)*8 );
-						_mm_maskmove_si64( c, m, (char*)&text[r] );
+						simde__m64 m = mask;
+						m = simde_mm_srli_pi64( m, (8-mlen)*8 );
+						simde_mm_maskmove_si64( c, m, (char*)&text[r] );
 						r += mlen;
 						if( r > 4095 ) {
 							r &= 0x0fff;
-							c = _mm_srli_pi64( c, (mlen-r)*8 );
+							c = simde_mm_srli_pi64( c, (mlen-r)*8 );
 							m = mask;
-							m = _mm_srli_pi64( m, (8-r)*8 );
-							_mm_maskmove_si64( c, m, (char*)text );
+							m = simde_mm_srli_pi64( m, (8-r)*8 );
+							simde_mm_maskmove_si64( c, m, (char*)text );
 						}
 						mpos += mlen;
 						mpos &= 0x0fff;
@@ -86,29 +85,29 @@ tjs_int TVPTLG5DecompressSlide_sse_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_i
 					tjs_int mrem = (4096-mpos);
 					out += mrem;
 					mlen -= mrem;
-					__m64 m = mask;
-					m = _mm_srli_pi64( m, (8-mrem)*8 );
-					_mm_maskmove_si64( c, m, (char*)&text[r] );
+					simde__m64 m = mask;
+					m = simde_mm_srli_pi64( m, (8-mrem)*8 );
+					simde_mm_maskmove_si64( c, m, (char*)&text[r] );
 					r += mrem;
 					if( r > 4095 ) {
 						r &= 0x0fff;
-						c = _mm_srli_pi64( c, (mrem-r)*8 );
+						c = simde_mm_srli_pi64( c, (mrem-r)*8 );
 						m = mask;
-						m = _mm_srli_pi64( m, (8-r)*8 );
-						_mm_maskmove_si64( c, m, (char*)text );
+						m = simde_mm_srli_pi64( m, (8-r)*8 );
+						simde_mm_maskmove_si64( c, m, (char*)text );
 					}
 					mpos = 0;
 				} else {
 					out += 8;
 					mlen -= 8;
-					*(__m64*)&text[r] = c;
+					*(simde__m64*)&text[r] = c;
 					r += 8;
 					if( r > 4095 ) {
 						r &= 0x0fff;
-						c = _mm_srli_pi64( c, (8-r)*8 );
-						__m64 m = mask;
-						m = _mm_srli_pi64( m, (8-r)*8 );
-						_mm_maskmove_si64( c, m, (char*)text );
+						c = simde_mm_srli_pi64( c, (8-r)*8 );
+						simde__m64 m = mask;
+						m = simde_mm_srli_pi64( m, (8-r)*8 );
+						simde_mm_maskmove_si64( c, m, (char*)text );
 					}
 					mpos += 8;
 					mpos &= 0x0fff;
@@ -121,7 +120,7 @@ tjs_int TVPTLG5DecompressSlide_sse_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_i
 			r &= (4096 - 1);
 		}
 	}
-	_mm_empty();
+	simde_mm_empty();
 	return r;
 }
 #endif
@@ -131,26 +130,26 @@ tjs_int TVPTLG5DecompressSlide_sse2_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_
 	tjs_uint flags = 0;
 	const tjs_uint8 *inlim = in + insize;
 	// text と out、in は、+16余分に確保して、はみ出してもいいようにしておく
-	//const __m128i mask = _mm_set1_epi32(0xffffffff);
-	const __m128i mask = _mm_set_epi32(0,0,0xffffffff,0xffffffff);
+	//const simde__m128i mask = simde_mm_set1_epi32(0xffffffff);
+	const simde__m128i mask = simde_mm_set_epi32(0,0,0xffffffff,0xffffffff);
 	while(in < inlim ) {
 		if(((flags >>= 1) & 256) == 0) {
 			flags = in[0] | 0xff00;
 			in++;
 #if 1
 			if( flags == 0xff00 && r < (4096-8) && in < (inlim-8)  ) {	// copy 8byte
-				__m128i c = _mm_loadl_epi64( (__m128i const*)in );
-				_mm_storel_epi64( (__m128i *)out, c );
-				_mm_storel_epi64( (__m128i *)&text[r], c );	// 末尾はみ出すのを気にせずコピー
+				simde__m128i c = simde_mm_loadl_epi64( (simde__m128i const*)in );
+				simde_mm_storel_epi64( (simde__m128i *)out, c );
+				simde_mm_storel_epi64( (simde__m128i *)&text[r], c );	// 末尾はみ出すのを気にせずコピー
 				r += 8;
 #if 0
 				if( r > 4095 ) {
 					r &= 0x0FFF;
-					c = _mm_srli_epi64( c, (8 - r)*8 );
-					__m128i t = _mm_loadl_epi64( (__m128i const*)text );
-					__m128i m = mask;
-					m = _mm_srli_epi64( m, (8 - r)*8 );
-					_mm_maskmoveu_si128( c, m, (char*)text );
+					c = simde_mm_srli_epi64( c, (8 - r)*8 );
+					simde__m128i t = simde_mm_loadl_epi64( (simde__m128i const*)text );
+					simde__m128i m = mask;
+					m = simde_mm_srli_epi64( m, (8 - r)*8 );
+					simde_mm_maskmoveu_si128( c, m, (int8_t*)text );
 				}
 #endif
 				in += 8;
@@ -174,9 +173,9 @@ tjs_int TVPTLG5DecompressSlide_sse2_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_
 					// 末尾気にせずコピーしていい時は16byte単位でまとめてコピー
 					tjs_int count = mlen >> 4;
 					while( count-- ) {
-						__m128i c = _mm_loadu_si128( (__m128i const*)&text[mpos] );
-						_mm_storeu_si128( (__m128i *)out, c );
-						_mm_storeu_si128( (__m128i *)&text[r], c );
+						simde__m128i c = simde_mm_loadu_si128( (simde__m128i const*)&text[mpos] );
+						simde_mm_storeu_si128( (simde__m128i *)out, c );
+						simde_mm_storeu_si128( (simde__m128i *)&text[r], c );
 						mpos += 16; r += 16; out += 16;
 					}
 					mlen &= 0x0f;	// 余り
@@ -185,7 +184,7 @@ tjs_int TVPTLG5DecompressSlide_sse2_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_
 					}
 					continue;
 				}
-#if 0
+#if 1
 				while(mlen--) {
 					out[0] = text[r++] = text[mpos++]; out++;
 					mpos &= 0x0fff;
@@ -193,37 +192,37 @@ tjs_int TVPTLG5DecompressSlide_sse2_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_
 				}
 #else
 				while( mlen ) {
-					__m128i c = _mm_loadl_epi64( (__m128i const*)&text[mpos] );
-					_mm_storeu_si128( (__m128i *)out, c );
+					simde__m128i c = simde_mm_loadl_epi64( (simde__m128i const*)&text[mpos] );
+					simde_mm_storeu_si128( (simde__m128i *)out, c );
 					if( mlen < 8 ) {
 						if( (4096-mpos) < mlen ) {
 							tjs_int mrem = (4096-mpos);
 							out += mrem;
 							mlen -= mrem;
-							__m128i m = mask;
-							m = _mm_srli_epi64( m, (8-mrem)*8 );
-							_mm_maskmoveu_si128( c, m, (char*)&text[r] );
+							simde__m128i m = mask;
+							m = simde_mm_srli_epi64( m, (8-mrem)*8 );
+							simde_mm_maskmoveu_si128( c, m, (int8_t*)&text[r] );
 							r += mrem;
 							if( r > 4095 ) {
 								r &= 0x0fff;
-								c = _mm_srli_epi64( c, (mrem-r)*8 );
+								c = simde_mm_srli_epi64( c, (mrem-r)*8 );
 								m = mask;
-								m = _mm_srli_epi64( m, (8-r)*8 );
-								_mm_maskmoveu_si128( c, m, (char*)text );
+								m = simde_mm_srli_epi64( m, (8-r)*8 );
+								simde_mm_maskmoveu_si128( c, m, (int8_t*)text );
 							}
 							mpos = 0;
 						} else {
 							out += mlen;
-							__m128i m = mask;
-							m = _mm_srli_epi64( m, (8-mlen)*8 );
-							_mm_maskmoveu_si128( c, m, (char*)&text[r] );
+							simde__m128i m = mask;
+							m = simde_mm_srli_epi64( m, (8-mlen)*8 );
+							simde_mm_maskmoveu_si128( c, m, (int8_t*)&text[r] );
 							r += mlen;
 							if( r > 4095 ) {
 								r &= 0x0fff;
-								c = _mm_srli_epi64( c, (mlen-r)*8 );
+								c = simde_mm_srli_epi64( c, (mlen-r)*8 );
 								m = mask;
-								m = _mm_srli_epi64( m, (8-r)*8 );
-								_mm_maskmoveu_si128( c, m, (char*)text );
+								m = simde_mm_srli_epi64( m, (8-r)*8 );
+								simde_mm_maskmoveu_si128( c, m, (int8_t*)text );
 							}
 							mpos += mlen;
 							mpos &= 0x0fff;
@@ -233,29 +232,29 @@ tjs_int TVPTLG5DecompressSlide_sse2_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_
 						tjs_int mrem = (4096-mpos);
 						out += mrem;
 						mlen -= mrem;
-						__m128i m = mask;
-						m = _mm_srli_epi64( m, (8-mrem)*8 );
-						_mm_maskmoveu_si128( c, m, (char*)&text[r] );
+						simde__m128i m = mask;
+						m = simde_mm_srli_epi64( m, (8-mrem)*8 );
+						simde_mm_maskmoveu_si128( c, m, (int8_t*)&text[r] );
 						r += mrem;
 						if( r > 4095 ) {
 							r &= 0x0fff;
-							c = _mm_srli_epi64( c, (mrem-r)*8 );
+							c = simde_mm_srli_epi64( c, (mrem-r)*8 );
 							m = mask;
-							m = _mm_srli_epi64( m, (8-r)*8 );
-							_mm_maskmoveu_si128( c, m, (char*)text );
+							m = simde_mm_srli_epi64( m, (8-r)*8 );
+							simde_mm_maskmoveu_si128( c, m, (int8_t*)text );
 						}
 						mpos = 0;
 					} else {
 						out += 8;
 						mlen -= 8;
-						_mm_storel_epi64( (__m128i *)&text[r], c );
+						simde_mm_storel_epi64( (simde__m128i *)&text[r], c );
 						r += 8;
 						if( r > 4095 ) {
 							r &= 0x0fff;
-							c = _mm_srli_epi64( c, (8-r)*8 );
-							__m128i m = mask;
-							m = _mm_srli_epi64( m, (8-r)*8 );
-							_mm_maskmoveu_si128( c, m, (char*)text );
+							c = simde_mm_srli_epi64( c, (8-r)*8 );
+							simde__m128i m = mask;
+							m = simde_mm_srli_epi64( m, (8-r)*8 );
+							simde_mm_maskmoveu_si128( c, m, (int8_t*)text );
 						}
 						mpos += 8;
 						mpos &= 0x0fff;
@@ -285,56 +284,56 @@ void TVPTLG5ComposeColors3To4_sse2_c(tjs_uint8 *outp, const tjs_uint8 *upper, tj
 	tjs_uint32* b0 = (tjs_uint32*)buf[0];
 	tjs_uint32* b1 = (tjs_uint32*)buf[1];
 	tjs_uint32* b2 = (tjs_uint32*)buf[2];
-	__m128i pc = _mm_setzero_si128();
-	const __m128i opa(_mm_set1_epi32( 0xff000000 ));
-	const __m128i zero(_mm_setzero_si128());
+	simde__m128i pc = simde_mm_setzero_si128();
+	const simde__m128i opa(simde_mm_set1_epi32( 0xff000000 ));
+	const simde__m128i zero(simde_mm_setzero_si128());
 	tjs_int x = 0;
 	for( ; x < len; x+=4 ) {
-		__m128i c0 = _mm_cvtsi32_si128( *b0 );
-		__m128i c1 = _mm_cvtsi32_si128( *b1 );
-		__m128i c2 = _mm_cvtsi32_si128( *b2 );
-		c0 = _mm_unpacklo_epi8( c0, zero );
-		c0 = _mm_unpacklo_epi16( c0, zero );
-		c2 = _mm_unpacklo_epi8( c2, zero );
-		__m128i tmp = zero;
-		tmp = _mm_unpacklo_epi16( tmp, c2 );
-		c0 = _mm_or_si128( c0, tmp );		// 0 X 2 X
-		c1 = _mm_unpacklo_epi8( c1, c1 );	// XXXXXXXX 0 0 1 1 2 2 3 3
-		c1 = _mm_unpacklo_epi16( c1, c1 );	// 0000 1111 2222 3333
-		c0 = _mm_add_epi8( c0, c1 );
-		pc = _mm_add_epi8( pc, c0 );
+		simde__m128i c0 = simde_mm_cvtsi32_si128( *b0 );
+		simde__m128i c1 = simde_mm_cvtsi32_si128( *b1 );
+		simde__m128i c2 = simde_mm_cvtsi32_si128( *b2 );
+		c0 = simde_mm_unpacklo_epi8( c0, zero );
+		c0 = simde_mm_unpacklo_epi16( c0, zero );
+		c2 = simde_mm_unpacklo_epi8( c2, zero );
+		simde__m128i tmp = zero;
+		tmp = simde_mm_unpacklo_epi16( tmp, c2 );
+		c0 = simde_mm_or_si128( c0, tmp );		// 0 X 2 X
+		c1 = simde_mm_unpacklo_epi8( c1, c1 );	// XXXXXXXX 0 0 1 1 2 2 3 3
+		c1 = simde_mm_unpacklo_epi16( c1, c1 );	// 0000 1111 2222 3333
+		c0 = simde_mm_add_epi8( c0, c1 );
+		pc = simde_mm_add_epi8( pc, c0 );
 		tmp = pc;
-		c0 = _mm_srli_si128( c0, 4 );
-		pc = _mm_add_epi8( pc, c0 );
-		tmp = _mm_unpacklo_epi32( tmp, pc );
-		c0 = _mm_srli_si128( c0, 4 );
-		pc = _mm_add_epi8( pc, c0 );
-		__m128i tmp2 = pc;
-		c0 = _mm_srli_si128( c0, 4 );
-		pc = _mm_add_epi8( pc, c0 );
-		tmp2 = _mm_unpacklo_epi32( tmp2, pc );
-		tmp = _mm_unpacklo_epi64( tmp, tmp2 );
-		__m128i mup = _mm_loadu_si128( (__m128i const*)upper );
-		tmp = _mm_add_epi8( tmp, mup );
-		tmp = _mm_or_si128( tmp, opa );
-		_mm_storeu_si128( (__m128i*)outp, tmp );
+		c0 = simde_mm_srli_si128( c0, 4 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		tmp = simde_mm_unpacklo_epi32( tmp, pc );
+		c0 = simde_mm_srli_si128( c0, 4 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		simde__m128i tmp2 = pc;
+		c0 = simde_mm_srli_si128( c0, 4 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		tmp2 = simde_mm_unpacklo_epi32( tmp2, pc );
+		tmp = simde_mm_unpacklo_epi64( tmp, tmp2 );
+		simde__m128i mup = simde_mm_loadu_si128( (simde__m128i const*)upper );
+		tmp = simde_mm_add_epi8( tmp, mup );
+		tmp = simde_mm_or_si128( tmp, opa );
+		simde_mm_storeu_si128( (simde__m128i*)outp, tmp );
 		b0++; b1++; b2++; outp += 4*4; upper += 4*4;
 	}
 	tjs_uint8* bb0 = (tjs_uint8*)b0;
 	tjs_uint8* bb1 = (tjs_uint8*)b1;
 	tjs_uint8* bb2 = (tjs_uint8*)b2;
 	for( ; x < width; x++ ) {
-		__m128i c0 = _mm_cvtsi32_si128( *bb0 );
-		__m128i c1 = _mm_cvtsi32_si128( (*bb1)*0x00010101 );
-		__m128i c2 = _mm_cvtsi32_si128( *bb2 << 16 );
-		c0 = _mm_or_si128( c0, c2 );
-		c0 = _mm_add_epi8( c0, c1 );
-		pc = _mm_add_epi8( pc, c0 );
-		__m128i mup = _mm_cvtsi32_si128(*(tjs_uint32*)upper);
-		__m128i tmp = pc;
-		tmp = _mm_add_epi8( tmp, mup );
-		tmp = _mm_or_si128( tmp, opa );
-		*(tjs_uint32*)outp = _mm_cvtsi128_si32(tmp);
+		simde__m128i c0 = simde_mm_cvtsi32_si128( *bb0 );
+		simde__m128i c1 = simde_mm_cvtsi32_si128( (*bb1)*0x00010101 );
+		simde__m128i c2 = simde_mm_cvtsi32_si128( *bb2 << 16 );
+		c0 = simde_mm_or_si128( c0, c2 );
+		c0 = simde_mm_add_epi8( c0, c1 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		simde__m128i mup = simde_mm_cvtsi32_si128(*(tjs_uint32*)upper);
+		simde__m128i tmp = pc;
+		tmp = simde_mm_add_epi8( tmp, mup );
+		tmp = simde_mm_or_si128( tmp, opa );
+		*(tjs_uint32*)outp = simde_mm_cvtsi128_si32(tmp);
 		bb0++; bb1++; bb2++;
 		outp += 4; upper += 4;
 	}
@@ -346,43 +345,43 @@ void TVPTLG5ComposeColors4To4_sse2_c(tjs_uint8 *outp, const tjs_uint8 *upper, tj
 	tjs_uint32* b1 = (tjs_uint32*)buf[1];
 	tjs_uint32* b2 = (tjs_uint32*)buf[2];
 	tjs_uint32* b3 = (tjs_uint32*)buf[3];
-	__m128i pc = _mm_setzero_si128();
-	const __m128i zero(_mm_setzero_si128());
+	simde__m128i pc = simde_mm_setzero_si128();
+	const simde__m128i zero(simde_mm_setzero_si128());
 	tjs_int x = 0;
 	for( ; x < len; x+=4 ) {
-		__m128i c0 = _mm_cvtsi32_si128( *b0 );
-		__m128i c1 = _mm_cvtsi32_si128( *b1 );
-		__m128i c2 = _mm_cvtsi32_si128( *b2 );
-		__m128i c3 = _mm_cvtsi32_si128( *b3 );
-		c0 = _mm_unpacklo_epi8( c0, zero );
-		c0 = _mm_unpacklo_epi16( c0, zero );
-		c2 = _mm_unpacklo_epi8( c2, zero );
-		__m128i tmp = zero;
-		tmp = _mm_unpacklo_epi16( tmp, c2 );
-		c3 = _mm_unpacklo_epi8( c3, zero );
-		c3 = _mm_unpacklo_epi16( c3, zero );
-		c3 = _mm_slli_epi32( c3, 24 );
-		c0 = _mm_or_si128( c0, tmp );		// 0 X 2 X
-		c0 = _mm_or_si128( c0, c3 );		// 0 X 2 3
-		c1 = _mm_unpacklo_epi8( c1, c1 );	// XXXXXXXX 0 0 1 1 2 2 3 3
-		c1 = _mm_unpacklo_epi16( c1, c1 );	// 0000 1111 2222 3333
-		c1 = _mm_srli_epi32( c1, 8 );		// X000 X111 X222 X333
-		c0 = _mm_add_epi8( c0, c1 );
-		pc = _mm_add_epi8( pc, c0 );
+		simde__m128i c0 = simde_mm_cvtsi32_si128( *b0 );
+		simde__m128i c1 = simde_mm_cvtsi32_si128( *b1 );
+		simde__m128i c2 = simde_mm_cvtsi32_si128( *b2 );
+		simde__m128i c3 = simde_mm_cvtsi32_si128( *b3 );
+		c0 = simde_mm_unpacklo_epi8( c0, zero );
+		c0 = simde_mm_unpacklo_epi16( c0, zero );
+		c2 = simde_mm_unpacklo_epi8( c2, zero );
+		simde__m128i tmp = zero;
+		tmp = simde_mm_unpacklo_epi16( tmp, c2 );
+		c3 = simde_mm_unpacklo_epi8( c3, zero );
+		c3 = simde_mm_unpacklo_epi16( c3, zero );
+		c3 = simde_mm_slli_epi32( c3, 24 );
+		c0 = simde_mm_or_si128( c0, tmp );		// 0 X 2 X
+		c0 = simde_mm_or_si128( c0, c3 );		// 0 X 2 3
+		c1 = simde_mm_unpacklo_epi8( c1, c1 );	// XXXXXXXX 0 0 1 1 2 2 3 3
+		c1 = simde_mm_unpacklo_epi16( c1, c1 );	// 0000 1111 2222 3333
+		c1 = simde_mm_srli_epi32( c1, 8 );		// X000 X111 X222 X333
+		c0 = simde_mm_add_epi8( c0, c1 );
+		pc = simde_mm_add_epi8( pc, c0 );
 		tmp = pc;
-		c0 = _mm_srli_si128( c0, 4 );
-		pc = _mm_add_epi8( pc, c0 );
-		tmp = _mm_unpacklo_epi32( tmp, pc );
-		c0 = _mm_srli_si128( c0, 4 );
-		pc = _mm_add_epi8( pc, c0 );
-		__m128i tmp2 = pc;
-		c0 = _mm_srli_si128( c0, 4 );
-		pc = _mm_add_epi8( pc, c0 );
-		tmp2 = _mm_unpacklo_epi32( tmp2, pc );
-		tmp = _mm_unpacklo_epi64( tmp, tmp2 );
-		__m128i mup = _mm_loadu_si128( (__m128i const*)upper );
-		tmp = _mm_add_epi8( tmp, mup );
-		_mm_storeu_si128( (__m128i*)outp, tmp );
+		c0 = simde_mm_srli_si128( c0, 4 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		tmp = simde_mm_unpacklo_epi32( tmp, pc );
+		c0 = simde_mm_srli_si128( c0, 4 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		simde__m128i tmp2 = pc;
+		c0 = simde_mm_srli_si128( c0, 4 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		tmp2 = simde_mm_unpacklo_epi32( tmp2, pc );
+		tmp = simde_mm_unpacklo_epi64( tmp, tmp2 );
+		simde__m128i mup = simde_mm_loadu_si128( (simde__m128i const*)upper );
+		tmp = simde_mm_add_epi8( tmp, mup );
+		simde_mm_storeu_si128( (simde__m128i*)outp, tmp );
 		b0++; b1++; b2++; b3++; outp += 4*4; upper += 4*4;
 	}
 	tjs_uint8* bb0 = (tjs_uint8*)b0;
@@ -390,18 +389,18 @@ void TVPTLG5ComposeColors4To4_sse2_c(tjs_uint8 *outp, const tjs_uint8 *upper, tj
 	tjs_uint8* bb2 = (tjs_uint8*)b2;
 	tjs_uint8* bb3 = (tjs_uint8*)b3;
 	for( ; x < width; x++ ) {
-		__m128i c0 = _mm_cvtsi32_si128( *bb0 );
-		__m128i c1 = _mm_cvtsi32_si128( (*bb1)*0x00010101 );
-		__m128i c2 = _mm_cvtsi32_si128( *bb2 << 16 );
-		__m128i c3 = _mm_cvtsi32_si128( *bb3 << 24 );
-		c0 = _mm_or_si128( c0, c2 );
-		c0 = _mm_or_si128( c0, c3 );
-		c0 = _mm_add_epi8( c0, c1 );
-		pc = _mm_add_epi8( pc, c0 );
-		__m128i mup = _mm_cvtsi32_si128(*(tjs_uint32*)upper);
-		__m128i tmp = pc;
-		tmp = _mm_add_epi8( tmp, mup );
-		*(tjs_uint32*)outp = _mm_cvtsi128_si32(tmp);
+		simde__m128i c0 = simde_mm_cvtsi32_si128( *bb0 );
+		simde__m128i c1 = simde_mm_cvtsi32_si128( (*bb1)*0x00010101 );
+		simde__m128i c2 = simde_mm_cvtsi32_si128( *bb2 << 16 );
+		simde__m128i c3 = simde_mm_cvtsi32_si128( *bb3 << 24 );
+		c0 = simde_mm_or_si128( c0, c2 );
+		c0 = simde_mm_or_si128( c0, c3 );
+		c0 = simde_mm_add_epi8( c0, c1 );
+		pc = simde_mm_add_epi8( pc, c0 );
+		simde__m128i mup = simde_mm_cvtsi32_si128(*(tjs_uint32*)upper);
+		simde__m128i tmp = pc;
+		tmp = simde_mm_add_epi8( tmp, mup );
+		*(tjs_uint32*)outp = simde_mm_cvtsi128_si32(tmp);
 		bb0++; bb1++; bb2++; bb3++;
 		outp += 4; upper += 4;
 	}
@@ -411,258 +410,258 @@ void TVPTLG5ComposeColors4To4_sse2_c(tjs_uint8 *outp, const tjs_uint8 *upper, tj
 // This does reordering, color correlation filter, MED/AVG
 #define TVP_TLG6_W_BLOCK_SIZE		8
 
-static const __m128i g_mask( _mm_set1_epi32( 0x0000ff00 ) );
-static const __m128i b_mask( _mm_set1_epi32( 0x000000ff ) );
-static const __m128i r_mask( _mm_set1_epi32( 0x00ff0000 ) );
-static const __m128i a_mask( _mm_set1_epi32( 0xff000000 ) );
-static const __m128i g_d_mask( _mm_set1_epi32( 0x0000fe00 ) );
-static const __m128i r_d_mask( _mm_set1_epi32( 0x00fe0000 ) );
-static const __m128i b_d_mask( _mm_set1_epi32( 0x000000fe ) );
-static const __m128i avg_mask_fe( _mm_set1_epi32( 0xfefefefe ) );
-static const __m128i avg_mask_01( _mm_set1_epi32( 0x01010101 ) );
+static const simde__m128i g_mask( simde_mm_set1_epi32( 0x0000ff00 ) );
+static const simde__m128i b_mask( simde_mm_set1_epi32( 0x000000ff ) );
+static const simde__m128i r_mask( simde_mm_set1_epi32( 0x00ff0000 ) );
+static const simde__m128i a_mask( simde_mm_set1_epi32( 0xff000000 ) );
+static const simde__m128i g_d_mask( simde_mm_set1_epi32( 0x0000fe00 ) );
+static const simde__m128i r_d_mask( simde_mm_set1_epi32( 0x00fe0000 ) );
+static const simde__m128i b_d_mask( simde_mm_set1_epi32( 0x000000fe ) );
+static const simde__m128i avg_mask_fe( simde_mm_set1_epi32( 0xfefefefe ) );
+static const simde__m128i avg_mask_01( simde_mm_set1_epi32( 0x01010101 ) );
 
 // ( 0, IB, IG, IR)
 struct filter_insts_0_sse2 {
-	inline __m128i operator()( __m128i a ) const {
+	inline simde__m128i operator()( simde__m128i a ) const {
 		return a;
 	}
 };
 // ( 1, IB+IG, IG, IR+IG)
 struct filter_insts_1_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		__m128i c = a;
-		b = _mm_and_si128( b, g_mask );
-		c = _mm_and_si128( c, g_mask );
-		b = _mm_slli_epi32( b, 8 );	// g << 8
-		c = _mm_srli_epi32( c, 8 );	// g >> 8
-		a = _mm_add_epi8( a, b );	// r+g
-		a = _mm_add_epi8( a, c );	// b+g
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		simde__m128i c = a;
+		b = simde_mm_and_si128( b, g_mask );
+		c = simde_mm_and_si128( c, g_mask );
+		b = simde_mm_slli_epi32( b, 8 );	// g << 8
+		c = simde_mm_srli_epi32( c, 8 );	// g >> 8
+		a = simde_mm_add_epi8( a, b );	// r+g
+		a = simde_mm_add_epi8( a, c );	// b+g
 		return a;
 	}
 };
 // ( 2, IB, IG+IB, IR+IB+IG)
 struct filter_insts_2_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_slli_epi32( b, 8 );		// << 8
-		b = _mm_and_si128( b, g_mask );	// & 0x0000ff00
-		a = _mm_add_epi8( a, b );		// g+b
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_slli_epi32( b, 8 );		// << 8
+		b = simde_mm_and_si128( b, g_mask );	// & 0x0000ff00
+		a = simde_mm_add_epi8( a, b );		// g+b
 		b = a;
-		b = _mm_slli_epi32( b, 8 );		// << 8
-		b = _mm_and_si128( b, r_mask );	// & 0x00ff0000
-		a = _mm_add_epi8( a, b );		// r+g+b
+		b = simde_mm_slli_epi32( b, 8 );		// << 8
+		b = simde_mm_and_si128( b, r_mask );	// & 0x00ff0000
+		a = simde_mm_add_epi8( a, b );		// r+g+b
 		return a;
 	}
 };
 // ( 3, IB+IR+IG, IG+IR, IR)
 struct filter_insts_3_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_srli_epi32( b, 8 );		// >> 8
-		b = _mm_and_si128( b, g_mask );	// & 0x0000ff00
-		a = _mm_add_epi8( a, b );		// g+r
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_srli_epi32( b, 8 );		// >> 8
+		b = simde_mm_and_si128( b, g_mask );	// & 0x0000ff00
+		a = simde_mm_add_epi8( a, b );		// g+r
 		b = a;
-		b = _mm_srli_epi32( b, 8 );		// >> 8
-		b = _mm_and_si128( b, b_mask );	// & 0x000000ff
-		a = _mm_add_epi8( a, b );		// b+g+r
+		b = simde_mm_srli_epi32( b, 8 );		// >> 8
+		b = simde_mm_and_si128( b, b_mask );	// & 0x000000ff
+		a = simde_mm_add_epi8( a, b );		// b+g+r
 		return a;
 	}
 };
 // ( 4, IB+IR, IG+IB+IR, IR+IB+IR+IG)
 struct filter_insts_4_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_srli_epi32( b, 16 );	// >> 16
-		b = _mm_and_si128( b, b_mask );	// & 0x000000ff
-		a = _mm_add_epi8( a, b );		// b+r
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_srli_epi32( b, 16 );	// >> 16
+		b = simde_mm_and_si128( b, b_mask );	// & 0x000000ff
+		a = simde_mm_add_epi8( a, b );		// b+r
 		b = a;
-		b = _mm_slli_epi32( b, 8 );		// << 8
-		b = _mm_and_si128( b, g_mask );	// & 0x0000ff00
-		a = _mm_add_epi8( a, b );		// g+b+r
+		b = simde_mm_slli_epi32( b, 8 );		// << 8
+		b = simde_mm_and_si128( b, g_mask );	// & 0x0000ff00
+		a = simde_mm_add_epi8( a, b );		// g+b+r
 		b = a;
-		b = _mm_slli_epi32( b, 8 );		// << 8
-		b = _mm_and_si128( b, r_mask );	// & 0x00ff0000
-		a = _mm_add_epi8( a, b );		// r+g+b+r
+		b = simde_mm_slli_epi32( b, 8 );		// << 8
+		b = simde_mm_and_si128( b, r_mask );	// & 0x00ff0000
+		a = simde_mm_add_epi8( a, b );		// r+g+b+r
 		return a;
 	}
 };
 // ( 5, IB+IR, IG+IB+IR, IR)
 struct filter_insts_5_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_srli_epi32( b, 16 );
-		b = _mm_and_si128( b, b_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_srli_epi32( b, 16 );
+		b = simde_mm_and_si128( b, b_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_slli_epi32( b, 8 );
-		b = _mm_and_si128( b, g_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_slli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, g_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // ( 6, IB+IG, IG, IR)
 struct filter_insts_6_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, b_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, b_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // ( 7, IB, IG+IB, IR)
 struct filter_insts_7_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_slli_epi32( b, 8 );
-		b = _mm_and_si128( b, g_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_slli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, g_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // ( 8, IB, IG, IR+IG)
 struct filter_insts_8_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_slli_epi32( b, 8 );
-		b = _mm_and_si128( b, r_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_slli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, r_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // ( 9, IB+IG+IR+IB, IG+IR+IB, IR+IB)
 struct filter_insts_9_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_slli_epi32( b, 16 );
-		b = _mm_and_si128( b, r_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_slli_epi32( b, 16 );
+		b = simde_mm_and_si128( b, r_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, g_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, g_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, b_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, b_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // (10, IB+IR, IG+IR, IR)
 struct filter_insts_10_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		__m128i c = a;
-		b = _mm_srli_epi32( b, 8 );
-		c = _mm_srli_epi32( c, 16 );
-		b = _mm_and_si128( b, g_mask );
-		c = _mm_and_si128( c, b_mask );
-		a = _mm_add_epi8( a, b );
-		a = _mm_add_epi8( a, c );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		simde__m128i c = a;
+		b = simde_mm_srli_epi32( b, 8 );
+		c = simde_mm_srli_epi32( c, 16 );
+		b = simde_mm_and_si128( b, g_mask );
+		c = simde_mm_and_si128( c, b_mask );
+		a = simde_mm_add_epi8( a, b );
+		a = simde_mm_add_epi8( a, c );
 		return a;
 	}
 };
 // (11, IB, IG+IB, IR+IB)
 struct filter_insts_11_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		__m128i c = a;
-		b = _mm_slli_epi32( b, 8 );
-		c = _mm_slli_epi32( c, 16 );
-		b = _mm_and_si128( b, g_mask );
-		c = _mm_and_si128( c, r_mask );
-		a = _mm_add_epi8( a, b );
-		a = _mm_add_epi8( a, c );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		simde__m128i c = a;
+		b = simde_mm_slli_epi32( b, 8 );
+		c = simde_mm_slli_epi32( c, 16 );
+		b = simde_mm_and_si128( b, g_mask );
+		c = simde_mm_and_si128( c, r_mask );
+		a = simde_mm_add_epi8( a, b );
+		a = simde_mm_add_epi8( a, c );
 		return a;
 	}
 };
 // (12, IB, IG+IR+IB, IR+IB)
 struct filter_insts_12_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_slli_epi32( b, 16 );
-		b = _mm_and_si128( b, r_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_slli_epi32( b, 16 );
+		b = simde_mm_and_si128( b, r_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, g_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, g_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // (13, IB+IG, IG+IR+IB+IG, IR+IB+IG)
 struct filter_insts_13_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, b_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, b_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_slli_epi32( b, 16 );
-		b = _mm_and_si128( b, r_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_slli_epi32( b, 16 );
+		b = simde_mm_and_si128( b, r_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, g_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, g_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // (14, IB+IG+IR, IG+IR, IR+IB+IG+IR)
 struct filter_insts_14_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, g_mask );
-		a = _mm_add_epi8( a, b );
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, g_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_srli_epi32( b, 8 );
-		b = _mm_and_si128( b, b_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_srli_epi32( b, 8 );
+		b = simde_mm_and_si128( b, b_mask );
+		a = simde_mm_add_epi8( a, b );
 		b = a;
-		b = _mm_slli_epi32( b, 16 );
-		b = _mm_and_si128( b, r_mask );
-		a = _mm_add_epi8( a, b );
+		b = simde_mm_slli_epi32( b, 16 );
+		b = simde_mm_and_si128( b, r_mask );
+		a = simde_mm_add_epi8( a, b );
 		return a;
 	}
 };
 // (15, IB, IG+(IB<<1), IR+(IB<<1))
 struct filter_insts_15_sse2 {
-	inline __m128i operator()( __m128i a ) const {
-		__m128i b = a;
-		__m128i c = a;
-		b = _mm_slli_epi32( b, 8+1 );		// b <<= (8+1)
-		c = _mm_slli_epi32( c, 16+1 );		// c <<= (16+1)
-		b = _mm_and_si128( b, g_d_mask );	// b &= 0x0000fe00
-		c = _mm_and_si128( c, r_d_mask );	// c != 0x00fe0000
-		a = _mm_add_epi8( a, b );		// a += b;
-		a = _mm_add_epi8( a, c );		// a += c;
+	inline simde__m128i operator()( simde__m128i a ) const {
+		simde__m128i b = a;
+		simde__m128i c = a;
+		b = simde_mm_slli_epi32( b, 8+1 );		// b <<= (8+1)
+		c = simde_mm_slli_epi32( c, 16+1 );		// c <<= (16+1)
+		b = simde_mm_and_si128( b, g_d_mask );	// b &= 0x0000fe00
+		c = simde_mm_and_si128( c, r_d_mask );	// c != 0x00fe0000
+		a = simde_mm_add_epi8( a, b );		// a += b;
+		a = simde_mm_add_epi8( a, c );		// a += c;
 		return a;
 	}
 };
 #if 1
 // v でエラーが出るので、cを参照渡しとしておく、インライン化されて影響はないはず
-static inline __m128i do_med_sse2( __m128i a, __m128i b, const __m128i& c, __m128i v ) {
-	__m128i a2 = a;
-	a = _mm_max_epu8( a, b );	// = max_a_b
-	b = _mm_min_epu8( b, a2 );	// = min_a_b
-	v = _mm_add_epi8( v, a );
-	a = _mm_min_epu8( a, c );	// = max_a_b < c ? max_a_b : c
-	v = _mm_add_epi8( v, b );
-	a = _mm_max_epu8( a, b );	// = min_a_b < a ? a : min_a_b
-	return _mm_sub_epi8( v, a );
+static inline simde__m128i do_med_sse2( simde__m128i a, simde__m128i b, const simde__m128i& c, simde__m128i v ) {
+	simde__m128i a2 = a;
+	a = simde_mm_max_epu8( a, b );	// = max_a_b
+	b = simde_mm_min_epu8( b, a2 );	// = min_a_b
+	v = simde_mm_add_epi8( v, a );
+	a = simde_mm_min_epu8( a, c );	// = max_a_b < c ? max_a_b : c
+	v = simde_mm_add_epi8( v, b );
+	a = simde_mm_max_epu8( a, b );	// = min_a_b < a ? a : min_a_b
+	return simde_mm_sub_epi8( v, a );
 }
 #else
 #define do_med( a, b, c, v ) \
-	_mm_setzero_si128();{__m128i a2 = a; \
-	a = _mm_max_epu8( a, b ); \
-	b = _mm_min_epu8( b, a2 ); \
-	v = _mm_add_epi8( v, a ); \
-	a = _mm_min_epu8( a, c ); \
-	v = _mm_add_epi8( v, b ); \
-	a = _mm_max_epu8( a, b ); \
-	p = _mm_sub_epi8( v, a );}
+	simde_mm_setzero_si128();{simde__m128i a2 = a; \
+	a = simde_mm_max_epu8( a, b ); \
+	b = simde_mm_min_epu8( b, a2 ); \
+	v = simde_mm_add_epi8( v, a ); \
+	a = simde_mm_min_epu8( a, c ); \
+	v = simde_mm_add_epi8( v, b ); \
+	a = simde_mm_max_epu8( a, b ); \
+	p = simde_mm_sub_epi8( v, a );}
 #endif
 // v += max(a,b);
 // v += max(a,b) < c ? max(a,b) : c
@@ -673,21 +672,21 @@ static inline __m128i do_med_sse2( __m128i a, __m128i b, const __m128i& c, __m12
 // v -= min(p,u) < p ? p : min(p,u)
 
 struct filter_forward_input_sse2 {
-	inline __m128i first(tjs_uint32 *in) const {
-		return _mm_loadu_si128( (__m128i const*)&in[0] );
+	inline simde__m128i first(tjs_uint32 *in) const {
+		return simde_mm_loadu_si128( (simde__m128i const*)&in[0] );
 	}
-	inline __m128i second(tjs_uint32 *in) const {
-		return _mm_loadu_si128( (__m128i const*)&in[4] );
+	inline simde__m128i second(tjs_uint32 *in) const {
+		return simde_mm_loadu_si128( (simde__m128i const*)&in[4] );
 	}
 };
 struct filter_backward_input_sse2 {
-	inline __m128i first(tjs_uint32 *in) const {
-		__m128i minput = _mm_loadu_si128( (__m128i const*)&in[4] );
-		return _mm_shuffle_epi32( minput, _MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
+	inline simde__m128i first(tjs_uint32 *in) const {
+		simde__m128i minput = simde_mm_loadu_si128( (simde__m128i const*)&in[4] );
+		return simde_mm_shuffle_epi32( minput, SIMDE_MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
 	}
-	inline __m128i second(tjs_uint32 *in) const {
-		__m128i minput = _mm_loadu_si128( (__m128i const*)&in[0] );
-		return _mm_shuffle_epi32( minput, _MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
+	inline simde__m128i second(tjs_uint32 *in) const {
+		simde__m128i minput = simde_mm_loadu_si128( (simde__m128i const*)&in[0] );
+		return simde_mm_shuffle_epi32( minput, SIMDE_MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
 	}
 };
 
@@ -695,67 +694,67 @@ template<typename tfilter, typename tinput>
 static inline void do_filter_med_sse2( tjs_uint32& inp, tjs_uint32& inup, tjs_uint32 *in, tjs_uint32 *prevline, tjs_uint32 *curline ) {
 	tfilter filter;
 	tinput input;
-	__m128i p = _mm_cvtsi32_si128( inp );
-	__m128i up = _mm_cvtsi32_si128( inup );
+	simde__m128i p = simde_mm_cvtsi32_si128( inp );
+	simde__m128i up = simde_mm_cvtsi32_si128( inup );
 
-	__m128i minput = input.first( in );
-	__m128i u = _mm_loadu_si128( (__m128i const*)&prevline[0] );
+	simde__m128i minput = input.first( in );
+	simde__m128i u = simde_mm_loadu_si128( (simde__m128i const*)&prevline[0] );
 	minput = filter( minput );
 	p = do_med_sse2( p, u, up, minput );
 	up = u;
-	curline[0] = _mm_cvtsi128_si32( p );
+	curline[0] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_med_sse2( p, u, up, minput );
 	up = u;
-	curline[1] = _mm_cvtsi128_si32( p );
+	curline[1] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_med_sse2( p, u, up, minput );
 	up = u;
-	curline[2] = _mm_cvtsi128_si32( p );
+	curline[2] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_med_sse2( p, u, up, minput );
 	up = u;
-	curline[3] = _mm_cvtsi128_si32( p );
+	curline[3] = simde_mm_cvtsi128_si32( p );
 
 	minput = input.second( in );
-	u = _mm_loadu_si128( (__m128i const*)&prevline[4] );
+	u = simde_mm_loadu_si128( (simde__m128i const*)&prevline[4] );
 	minput = filter( minput );
 	p = do_med_sse2( p, u, up, minput );
 	up = u;
-	curline[4] = _mm_cvtsi128_si32( p );
+	curline[4] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_med_sse2( p, u, up, minput );
 	up = u;
-	curline[5] = _mm_cvtsi128_si32( p );
+	curline[5] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_med_sse2( p, u, up, minput );
 	up = u;
-	curline[6] = _mm_cvtsi128_si32( p );
+	curline[6] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_med_sse2( p, u, up, minput );
-	curline[7] = _mm_cvtsi128_si32( p );
+	curline[7] = simde_mm_cvtsi128_si32( p );
 
-	inp = _mm_cvtsi128_si32( p );
-	inup =  _mm_cvtsi128_si32( u );
+	inp = simde_mm_cvtsi128_si32( p );
+	inup =  simde_mm_cvtsi128_si32( u );
 }
 
 // c = up : は使ってないので、要らない
 // p, u, up, in
-static inline __m128i do_avg_sse2( __m128i a, __m128i b, /*__m128i c, */__m128i v ) {
-	a = _mm_avg_epu8( a, b );
-	return _mm_add_epi8( a, v );
+static inline simde__m128i do_avg_sse2( simde__m128i a, simde__m128i b, /*simde__m128i c, */simde__m128i v ) {
+	a = simde_mm_avg_epu8( a, b );
+	return simde_mm_add_epi8( a, v );
 }
 // TVP_TLG6_W_BLOCK_SIZE == 8
 // SSE2 なら 2回なので、アンロールしてしまっていいかも
@@ -763,187 +762,187 @@ template<typename tfilter, typename tinput>
 inline void do_filter_avg_sse2( tjs_uint32& inp, tjs_uint32& up, tjs_uint32 *in, tjs_uint32 *prevline, tjs_uint32 *curline ) {
 	tfilter filter;
 	tinput input;
-	__m128i p = _mm_cvtsi32_si128( inp );
-	__m128i minput = input.first( in );
-	__m128i u = _mm_loadu_si128( (__m128i const*)&prevline[0] );
+	simde__m128i p = simde_mm_cvtsi32_si128( inp );
+	simde__m128i minput = input.first( in );
+	simde__m128i u = simde_mm_loadu_si128( (simde__m128i const*)&prevline[0] );
 	minput = filter( minput );
 	p = do_avg_sse2( p, u, minput );
-	curline[0] = _mm_cvtsi128_si32( p );
+	curline[0] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_avg_sse2( p, u, minput );
-	curline[1] = _mm_cvtsi128_si32( p );
+	curline[1] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_avg_sse2( p, u, minput );
-	curline[2] = _mm_cvtsi128_si32( p );
+	curline[2] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_avg_sse2( p, u, minput );
-	curline[3] = _mm_cvtsi128_si32( p );
+	curline[3] = simde_mm_cvtsi128_si32( p );
 
 	minput = input.second( in );
-	u = _mm_loadu_si128( (__m128i const*)&prevline[4] );
+	u = simde_mm_loadu_si128( (simde__m128i const*)&prevline[4] );
 	minput = filter( minput );
 	p = do_avg_sse2( p, u, minput );
-	curline[4] = _mm_cvtsi128_si32( p );
+	curline[4] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_avg_sse2( p, u, minput );
-	curline[5] = _mm_cvtsi128_si32( p );
+	curline[5] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_avg_sse2( p, u, minput );
-	curline[6] = _mm_cvtsi128_si32( p );
+	curline[6] = simde_mm_cvtsi128_si32( p );
 
-	minput = _mm_srli_si128( minput, 4 );	// >> 32
-	u = _mm_srli_si128( u, 4 );	// >> 32
+	minput = simde_mm_srli_si128( minput, 4 );	// >> 32
+	u = simde_mm_srli_si128( u, 4 );	// >> 32
 	p = do_avg_sse2( p, u, minput );
-	curline[7] = _mm_cvtsi128_si32( p );
+	curline[7] = simde_mm_cvtsi128_si32( p );
 
-	inp = _mm_cvtsi128_si32( p );
-	up =  _mm_cvtsi128_si32( u );
+	inp = simde_mm_cvtsi128_si32( p );
+	up =  simde_mm_cvtsi128_si32( u );
 }
 #if 0 // MMX(SSE) 使う版遅い
-static inline __m64 do_med_sse( __m64 a, __m64 b, const __m64& c, __m64 v ) {
-	__m64 a2 = a;
-	a = _mm_max_pu8( a, b );	// = max_a_b
-	b = _mm_min_pu8( b, a2 );	// = min_a_b
-	v = _mm_add_pi8( v, a );
-	a = _mm_min_pu8( a, c );	// = max_a_b < c ? max_a_b : c
-	v = _mm_add_pi8( v, b );
-	a = _mm_max_pu8( a, b );	// = min_a_b < a ? a : min_a_b
-	return _mm_sub_pi8( v, a );
+static inline simde__m64 do_med_sse( simde__m64 a, simde__m64 b, const simde__m64& c, simde__m64 v ) {
+	simde__m64 a2 = a;
+	a = simde_mm_max_pu8( a, b );	// = max_a_b
+	b = simde_mm_min_pu8( b, a2 );	// = min_a_b
+	v = simde_mm_add_pi8( v, a );
+	a = simde_mm_min_pu8( a, c );	// = max_a_b < c ? max_a_b : c
+	v = simde_mm_add_pi8( v, b );
+	a = simde_mm_max_pu8( a, b );	// = min_a_b < a ? a : min_a_b
+	return simde_mm_sub_pi8( v, a );
 }
-static inline __m64 do_avg_sse( __m64 a, __m64 b, __m64 v ) {
-	a = _mm_avg_pu8( a, b );
-	return _mm_add_pi8( a, v );
+static inline simde__m64 do_avg_sse( simde__m64 a, simde__m64 b, simde__m64 v ) {
+	a = simde_mm_avg_pu8( a, b );
+	return simde_mm_add_pi8( a, v );
 }
 template<typename tfilter, typename tinput>
 static inline void do_filter_med_sse2_sse( tjs_uint32& inp, tjs_uint32& inup, tjs_uint32 *in, tjs_uint32 *prevline, tjs_uint32 *curline ) {
 	tfilter filter;
 	tinput input;
-	__m64 p = _mm_cvtsi32_si64(inp);
-	__m64 up = _mm_cvtsi32_si64(inup);
+	simde__m64 p = simde_mm_cvtsi32_si64(inp);
+	simde__m64 up = simde_mm_cvtsi32_si64(inup);
 
-	__m128i minput = input.first( in );
+	simde__m128i minput = input.first( in );
 	minput = filter( minput );
-	__m64 u = _mm_cvtsi32_si64( prevline[0] );
-	__m64 i = _mm_movepi64_pi64(minput);
+	simde__m64 u = simde_mm_cvtsi32_si64( prevline[0] );
+	simde__m64 i = simde_mm_movepi64_pi64(minput);
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[0] = _mm_cvtsi64_si32( p );
+	curline[0] = simde_mm_cvtsi64_si32( p );
 
-	i = _mm_srli_pi64( i, 32 );
-	u = _mm_cvtsi32_si64( prevline[1] );
+	i = simde_mm_srli_pi64( i, 32 );
+	u = simde_mm_cvtsi32_si64( prevline[1] );
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[1] = _mm_cvtsi64_si32( p );
+	curline[1] = simde_mm_cvtsi64_si32( p );
 
-	minput = _mm_srli_si128( minput, 8 );	// >> 64
-	i = _mm_movepi64_pi64(minput);
-	u = _mm_cvtsi32_si64( prevline[2] );
+	minput = simde_mm_srli_si128( minput, 8 );	// >> 64
+	i = simde_mm_movepi64_pi64(minput);
+	u = simde_mm_cvtsi32_si64( prevline[2] );
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[2] = _mm_cvtsi64_si32( p );
+	curline[2] = simde_mm_cvtsi64_si32( p );
 	
-	i = _mm_srli_pi64( i, 32 );	// >> 32
-	u = _mm_cvtsi32_si64( prevline[3] );
+	i = simde_mm_srli_pi64( i, 32 );	// >> 32
+	u = simde_mm_cvtsi32_si64( prevline[3] );
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[3] = _mm_cvtsi64_si32( p );
+	curline[3] = simde_mm_cvtsi64_si32( p );
 
 	minput = input.second( in );
 	minput = filter( minput );
-	u = _mm_cvtsi32_si64( prevline[4] );
-	i = _mm_movepi64_pi64(minput);
+	u = simde_mm_cvtsi32_si64( prevline[4] );
+	i = simde_mm_movepi64_pi64(minput);
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[4] = _mm_cvtsi64_si32( p );
+	curline[4] = simde_mm_cvtsi64_si32( p );
 	
-	i = _mm_srli_pi64( i, 32 );
-	u = _mm_cvtsi32_si64( prevline[5] );
+	i = simde_mm_srli_pi64( i, 32 );
+	u = simde_mm_cvtsi32_si64( prevline[5] );
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[5] = _mm_cvtsi64_si32( p );
+	curline[5] = simde_mm_cvtsi64_si32( p );
 
-	minput = _mm_srli_si128( minput, 8 );	// >> 64
-	i = _mm_movepi64_pi64(minput);
-	u = _mm_cvtsi32_si64( prevline[6] );
+	minput = simde_mm_srli_si128( minput, 8 );	// >> 64
+	i = simde_mm_movepi64_pi64(minput);
+	u = simde_mm_cvtsi32_si64( prevline[6] );
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[6] = _mm_cvtsi64_si32( p );
+	curline[6] = simde_mm_cvtsi64_si32( p );
 	
-	i = _mm_srli_pi64( i, 32 );	// >> 32
-	u = _mm_cvtsi32_si64( prevline[7] );
+	i = simde_mm_srli_pi64( i, 32 );	// >> 32
+	u = simde_mm_cvtsi32_si64( prevline[7] );
 	p = do_med_sse( p, u, up, i );
 	up = u;
-	curline[7] = _mm_cvtsi64_si32( p );
+	curline[7] = simde_mm_cvtsi64_si32( p );
 
-	inp = _mm_cvtsi64_si32( p );
-	inup =  _mm_cvtsi64_si32( u );
-	_mm_empty();
+	inp = simde_mm_cvtsi64_si32( p );
+	inup =  simde_mm_cvtsi64_si32( u );
+	simde_mm_empty();
 }
 
 template<typename tfilter, typename tinput>
 static inline void do_filter_avg_sse2_sse( tjs_uint32& inp, tjs_uint32& inup, tjs_uint32 *in, tjs_uint32 *prevline, tjs_uint32 *curline ) {
 	tfilter filter;
 	tinput input;
-	__m64 p = _mm_cvtsi32_si64(inp);
-	__m128i minput = input.first( in );
+	simde__m64 p = simde_mm_cvtsi32_si64(inp);
+	simde__m128i minput = input.first( in );
 	minput = filter( minput );
-	__m64 u = _mm_cvtsi32_si64( prevline[0] );
-	__m64 i = _mm_movepi64_pi64(minput);
+	simde__m64 u = simde_mm_cvtsi32_si64( prevline[0] );
+	simde__m64 i = simde_mm_movepi64_pi64(minput);
 	p = do_avg_sse( p, u, i );
-	curline[0] = _mm_cvtsi64_si32( p );
+	curline[0] = simde_mm_cvtsi64_si32( p );
 
-	i = _mm_srli_pi64( i, 32 );
-	u = _mm_cvtsi32_si64( prevline[1] );
+	i = simde_mm_srli_pi64( i, 32 );
+	u = simde_mm_cvtsi32_si64( prevline[1] );
 	p = do_avg_sse( p, u, i );
-	curline[1] = _mm_cvtsi64_si32( p );
+	curline[1] = simde_mm_cvtsi64_si32( p );
 
-	minput = _mm_srli_si128( minput, 8 );	// >> 64
-	i = _mm_movepi64_pi64(minput);
-	u = _mm_cvtsi32_si64( prevline[2] );
+	minput = simde_mm_srli_si128( minput, 8 );	// >> 64
+	i = simde_mm_movepi64_pi64(minput);
+	u = simde_mm_cvtsi32_si64( prevline[2] );
 	p = do_avg_sse( p, u, i );
-	curline[2] = _mm_cvtsi64_si32( p );
+	curline[2] = simde_mm_cvtsi64_si32( p );
 	
-	i = _mm_srli_pi64( i, 32 );	// >> 32
-	u = _mm_cvtsi32_si64( prevline[3] );
+	i = simde_mm_srli_pi64( i, 32 );	// >> 32
+	u = simde_mm_cvtsi32_si64( prevline[3] );
 	p = do_avg_sse( p, u, i );
-	curline[3] = _mm_cvtsi64_si32( p );
+	curline[3] = simde_mm_cvtsi64_si32( p );
 
 	minput = input.second( in );
 	minput = filter( minput );
-	u = _mm_cvtsi32_si64( prevline[4] );
-	i = _mm_movepi64_pi64(minput);
+	u = simde_mm_cvtsi32_si64( prevline[4] );
+	i = simde_mm_movepi64_pi64(minput);
 	p = do_avg_sse( p, u, i );
-	curline[4] = _mm_cvtsi64_si32( p );
+	curline[4] = simde_mm_cvtsi64_si32( p );
 	
-	i = _mm_srli_pi64( i, 32 );
-	u = _mm_cvtsi32_si64( prevline[5] );
+	i = simde_mm_srli_pi64( i, 32 );
+	u = simde_mm_cvtsi32_si64( prevline[5] );
 	p = do_avg_sse( p, u, i );
-	curline[5] = _mm_cvtsi64_si32( p );
+	curline[5] = simde_mm_cvtsi64_si32( p );
 
-	minput = _mm_srli_si128( minput, 8 );	// >> 64
-	i = _mm_movepi64_pi64(minput);
-	u = _mm_cvtsi32_si64( prevline[6] );
+	minput = simde_mm_srli_si128( minput, 8 );	// >> 64
+	i = simde_mm_movepi64_pi64(minput);
+	u = simde_mm_cvtsi32_si64( prevline[6] );
 	p = do_avg_sse( p, u, i );
-	curline[6] = _mm_cvtsi64_si32( p );
+	curline[6] = simde_mm_cvtsi64_si32( p );
 	
-	i = _mm_srli_pi64( i, 32 );	// >> 32
-	u = _mm_cvtsi32_si64( prevline[7] );
+	i = simde_mm_srli_pi64( i, 32 );	// >> 32
+	u = simde_mm_cvtsi32_si64( prevline[7] );
 	p = do_avg_sse( p, u, i );
-	curline[7] = _mm_cvtsi64_si32( p );
+	curline[7] = simde_mm_cvtsi64_si32( p );
 
-	inp = _mm_cvtsi64_si32( p );
-	inup =  _mm_cvtsi64_si32( u );
-	_mm_empty();
+	inp = simde_mm_cvtsi64_si32( p );
+	inup =  simde_mm_cvtsi64_si32( u );
+	simde_mm_empty();
 }
 #endif
 
@@ -1125,7 +1124,7 @@ void TVPTLG6DecodeLineGeneric_sse2_sse_c(tjs_uint32 *prevline, tjs_uint32 *curli
 			in += skipblockbytes;
 		}
 	}
-	_mm_empty();
+	simde_mm_empty();
 }
 void TVPTLG6DecodeLine_sse2_sse_c(tjs_uint32 *prevline, tjs_uint32 *curline, tjs_int width, tjs_int block_count, tjs_uint8 *filtertypes, tjs_int skipblockbytes, tjs_uint32 *in, tjs_uint32 initialp, tjs_int oddskip, tjs_int dir) {
 	TVPTLG6DecodeLineGeneric_sse2_sse_c(prevline, curline, width, 0, block_count,
@@ -1342,5 +1341,4 @@ void TVPTLG5ComposeColors4To4_test(tjs_uint8 *outp, const tjs_uint8 *upper, tjs_
 tlg6_golomb は、MMX 使っているが、一時変数として使われているのとプリフェッチのみ。SSE2 は意味なさげ
 tlg6_chroma は、MMX(SSE)が使われている
 */
-#endif
 #endif

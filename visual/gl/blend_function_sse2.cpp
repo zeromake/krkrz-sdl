@@ -1,6 +1,5 @@
 
 
-#ifdef __SSE2__
 
 #include "tjsCommHead.h"
 #include "tvpgl.h"
@@ -49,17 +48,17 @@ void TVPMakeAlphaFromKey_sse2_c(tjs_uint32 *dest, tjs_int len, tjs_uint32 key) {
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
 	if( dest < limit ) {
-		const __m128i mmkey = _mm_set1_epi32( key );
-		const __m128i mmask = _mm_set1_epi32( 0x00ffffff );
-		const __m128i alpha = _mm_set1_epi32( 0xff000000 );
+		const simde__m128i mmkey = simde_mm_set1_epi32( key );
+		const simde__m128i mmask = simde_mm_set1_epi32( 0x00ffffff );
+		const simde__m128i alpha = simde_mm_set1_epi32( 0xff000000 );
 		do {
-			__m128i md = _mm_load_si128( (__m128i const*)dest );
-			md = _mm_and_si128( md, mmask );	// d &= mask アルファをクリア(透明に)
-			__m128i mk = mmkey;
-			mk = _mm_cmpeq_epi32( mk, md );		// d == key ? 1111 : 0000
-			mk = _mm_andnot_si128( mk, alpha );	// maskalpha = (^cmpmask) & alpha
-			md = _mm_or_si128( md, mk );		// d |= maskalpha
-			_mm_stream_si128( (__m128i*)dest, md );
+			simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+			md = simde_mm_and_si128( md, mmask );	// d &= mask アルファをクリア(透明に)
+			simde__m128i mk = mmkey;
+			mk = simde_mm_cmpeq_epi32( mk, md );		// d == key ? 1111 : 0000
+			mk = simde_mm_andnot_si128( mk, alpha );	// maskalpha = (^cmpmask) & alpha
+			md = simde_mm_or_si128( md, mk );		// d |= maskalpha
+			simde_mm_stream_si128( (simde__m128i*)dest, md );
 			dest += 4;
 		} while( dest < limit );
 	}
@@ -79,10 +78,10 @@ void TVPSwapLine32_sse2_c(tjs_uint32 *line1, tjs_uint32 *line2, tjs_int len) {
 	tjs_int rem = (len>>2)<<2;
 	tjs_uint32 *limit = line1+rem;
 	while( line1 < limit ) {
-		__m128i ml1 = _mm_loadu_si128( (__m128i const*)line1 );
-		__m128i ml2 = _mm_loadu_si128( (__m128i const*)line2 );
-		_mm_storeu_si128( (__m128i*)line1, ml2 );
-		_mm_storeu_si128( (__m128i*)line2, ml1 );
+		simde__m128i ml1 = simde_mm_loadu_si128( (simde__m128i const*)line1 );
+		simde__m128i ml2 = simde_mm_loadu_si128( (simde__m128i const*)line2 );
+		simde_mm_storeu_si128( (simde__m128i*)line1, ml2 );
+		simde_mm_storeu_si128( (simde__m128i*)line2, ml1 );
 		line1+=4; line2+=4;
 	}
 	limit += (len-rem);
@@ -98,10 +97,10 @@ void TVPSwapLine8_sse2_c(tjs_uint8 *line1, tjs_uint8 *line2, tjs_int len) {
 	tjs_int rem = (len>>4)<<4;
 	tjs_uint8 *limit = line1+rem;
 	while( line1 < limit ) {
-		__m128i ml1 = _mm_loadu_si128( (__m128i const*)line1 );
-		__m128i ml2 = _mm_loadu_si128( (__m128i const*)line2 );
-		_mm_storeu_si128( (__m128i*)line1, ml2 );
-		_mm_storeu_si128( (__m128i*)line2, ml1 );
+		simde__m128i ml1 = simde_mm_loadu_si128( (simde__m128i const*)line1 );
+		simde__m128i ml2 = simde_mm_loadu_si128( (simde__m128i const*)line2 );
+		simde_mm_storeu_si128( (simde__m128i*)line1, ml2 );
+		simde_mm_storeu_si128( (simde__m128i*)line2, ml1 );
 		line1+=16; line2+=16;
 	}
 	limit += (len-rem);
@@ -119,12 +118,12 @@ void TVPReverse32_sse2_c(tjs_uint32 *pixels, tjs_int len) {
 	tjs_int rem = (len>>2)<<2;
 	tjs_uint32 *limit = pixels+rem;
 	while( pixels < limit ) {
-		__m128i ms = _mm_loadu_si128( (__m128i const*)pixels );
-		__m128i md = _mm_loadu_si128( (__m128i const*)&dest[-3] );
-		ms = _mm_shuffle_epi32( ms, _MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
-		md = _mm_shuffle_epi32( md, _MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
-		_mm_storeu_si128( (__m128i*)&dest[-3], ms );
-		_mm_storeu_si128( (__m128i*)pixels, md );
+		simde__m128i ms = simde_mm_loadu_si128( (simde__m128i const*)pixels );
+		simde__m128i md = simde_mm_loadu_si128( (simde__m128i const*)&dest[-3] );
+		ms = simde_mm_shuffle_epi32( ms, SIMDE_MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
+		md = simde_mm_shuffle_epi32( md, SIMDE_MM_SHUFFLE( 0, 1, 2, 3 ) );	// 逆転
+		simde_mm_storeu_si128( (simde__m128i*)&dest[-3], ms );
+		simde_mm_storeu_si128( (simde__m128i*)pixels, md );
 		pixels += 4; dest -= 4;
 	}
 	limit += (len-rem);
@@ -143,25 +142,25 @@ void TVPReverse8_sse2_c(tjs_uint8 *pixels, tjs_int len){
 	tjs_uint8 *limit = pixels+rem;
 	if( pixels < limit ) {
 		while( pixels < limit ) {
-			__m128i ms1 = _mm_loadu_si128( (__m128i const*)pixels );
-			__m128i md1 = _mm_loadu_si128( (__m128i const*)&dest[-15] );
-			ms1 = _mm_shuffle_epi32( ms1, _MM_SHUFFLE( 0, 1, 2, 3 ) );		// 逆転 32bit
-			ms1 = _mm_shufflelo_epi16( ms1, _MM_SHUFFLE( 2, 3, 0, 1 )  );	// 逆転 16bit
-			ms1 = _mm_shufflehi_epi16( ms1, _MM_SHUFFLE( 2, 3, 0, 1 )  );
-			__m128i msr = ms1;	// 逆転 8bit
-			ms1 = _mm_slli_epi16( ms1, 8 );	// << 8
-			msr = _mm_srli_epi16( msr, 8 );	// >> 8
-			ms1 = _mm_or_si128( ms1, msr );
-			_mm_storeu_si128( (__m128i*)&dest[-15], ms1 );
+			simde__m128i ms1 = simde_mm_loadu_si128( (simde__m128i const*)pixels );
+			simde__m128i md1 = simde_mm_loadu_si128( (simde__m128i const*)&dest[-15] );
+			ms1 = simde_mm_shuffle_epi32( ms1, SIMDE_MM_SHUFFLE( 0, 1, 2, 3 ) );		// 逆転 32bit
+			ms1 = simde_mm_shufflelo_epi16( ms1, SIMDE_MM_SHUFFLE( 2, 3, 0, 1 )  );	// 逆転 16bit
+			ms1 = simde_mm_shufflehi_epi16( ms1, SIMDE_MM_SHUFFLE( 2, 3, 0, 1 )  );
+			simde__m128i msr = ms1;	// 逆転 8bit
+			ms1 = simde_mm_slli_epi16( ms1, 8 );	// << 8
+			msr = simde_mm_srli_epi16( msr, 8 );	// >> 8
+			ms1 = simde_mm_or_si128( ms1, msr );
+			simde_mm_storeu_si128( (simde__m128i*)&dest[-15], ms1 );
 
-			md1 = _mm_shuffle_epi32( md1, _MM_SHUFFLE( 0, 1, 2, 3 ) );		// 逆転 32bit
-			md1 = _mm_shufflelo_epi16( md1, _MM_SHUFFLE( 2, 3, 0, 1 )  );	// 逆転 16bit
-			md1 = _mm_shufflehi_epi16( md1, _MM_SHUFFLE( 2, 3, 0, 1 )  );
-			__m128i mdr = md1;	// 逆転 8bit
-			md1 = _mm_slli_epi16( md1, 8 );	// << 8
-			mdr = _mm_srli_epi16( mdr, 8 );	// >> 8
-			md1 = _mm_or_si128( md1, mdr );
-			_mm_storeu_si128( (__m128i*)pixels, md1 );
+			md1 = simde_mm_shuffle_epi32( md1, SIMDE_MM_SHUFFLE( 0, 1, 2, 3 ) );		// 逆転 32bit
+			md1 = simde_mm_shufflelo_epi16( md1, SIMDE_MM_SHUFFLE( 2, 3, 0, 1 )  );	// 逆転 16bit
+			md1 = simde_mm_shufflehi_epi16( md1, SIMDE_MM_SHUFFLE( 2, 3, 0, 1 )  );
+			simde__m128i mdr = md1;	// 逆転 8bit
+			md1 = simde_mm_slli_epi16( md1, 8 );	// << 8
+			mdr = simde_mm_srli_epi16( mdr, 8 );	// >> 8
+			md1 = simde_mm_or_si128( md1, mdr );
+			simde_mm_storeu_si128( (simde__m128i*)pixels, md1 );
 			pixels += 16; dest -= 16;
 		}
 	}
@@ -174,21 +173,20 @@ void TVPReverse8_sse2_c(tjs_uint8 *pixels, tjs_int len){
 		pixels++;
 	}
 }
-#ifdef __SSSE3__
 void TVPReverse8_ssse3_c(tjs_uint8 *pixels, tjs_int len){
 	tjs_uint8 *dest = pixels + len -1;
 	len/=2;
 	tjs_int rem = (len>>4)<<4;
 	tjs_uint8 *limit = pixels+rem;
 	if( pixels < limit ) {
-		const __m128i mask(_mm_set_epi32(0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f));
+		const simde__m128i mask(simde_mm_set_epi32(0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f));
 		while( pixels < limit ) {
-			__m128i ms = _mm_loadu_si128( (__m128i const*)pixels );
-			__m128i md = _mm_loadu_si128( (__m128i const*)&dest[-15] );
-			ms = _mm_shuffle_epi8( ms, mask );	// 逆転
-			md = _mm_shuffle_epi8( md, mask );	// 逆転
-			_mm_storeu_si128( (__m128i*)&dest[-15], ms );
-			_mm_storeu_si128( (__m128i*)pixels, md );
+			simde__m128i ms = simde_mm_loadu_si128( (simde__m128i const*)pixels );
+			simde__m128i md = simde_mm_loadu_si128( (simde__m128i const*)&dest[-15] );
+			ms = simde_mm_shuffle_epi8( ms, mask );	// 逆転
+			md = simde_mm_shuffle_epi8( md, mask );	// 逆転
+			simde_mm_storeu_si128( (simde__m128i*)&dest[-15], ms );
+			simde_mm_storeu_si128( (simde__m128i*)pixels, md );
 			pixels += 16; dest -= 16;
 		}
 	}
@@ -201,34 +199,33 @@ void TVPReverse8_ssse3_c(tjs_uint8 *pixels, tjs_int len){
 		pixels++;
 	}
 }
-#endif
 struct sse2_make_alpha_from_key_functor {
 	const tjs_uint32 key_;
-	const __m128i mmkey;
-	const __m128i mmask;
-	const __m128i alpha;
+	const simde__m128i mmkey;
+	const simde__m128i mmask;
+	const simde__m128i alpha;
 	inline sse2_make_alpha_from_key_functor( tjs_uint32 key ) : key_(key),
-		mmkey(_mm_set1_epi32(key)), mmask(_mm_set1_epi32(0x00ffffff)), alpha(_mm_set1_epi32(0xff000000)) {}
+		mmkey(simde_mm_set1_epi32(key)), mmask(simde_mm_set1_epi32(0x00ffffff)), alpha(simde_mm_set1_epi32(0xff000000)) {}
 	inline tjs_uint32 operator()( tjs_uint32 d ) const {
 		d = d&0x00ffffff;
 		if( d != key_ ) d |= 0xff000000;
 		return d;
 	}
-	inline __m128i operator()( __m128i md ) const {
-		md = _mm_and_si128( md, mmask );	// d &= mask アルファをクリア(透明に)
-		__m128i mk = mmkey;
-		mk = _mm_cmpeq_epi32( mk, md );		// d == key ? 1111 : 0000
-		mk = _mm_andnot_si128( mk, alpha );	// maskalpha = (^cmpmask) & alpha
-		md = _mm_or_si128( md, mk );		// d |= maskalpha
+	inline simde__m128i operator()( simde__m128i md ) const {
+		md = simde_mm_and_si128( md, mmask );	// d &= mask アルファをクリア(透明に)
+		simde__m128i mk = mmkey;
+		mk = simde_mm_cmpeq_epi32( mk, md );		// d == key ? 1111 : 0000
+		mk = simde_mm_andnot_si128( mk, alpha );	// maskalpha = (^cmpmask) & alpha
+		md = simde_mm_or_si128( md, mk );		// d |= maskalpha
 		return md;
 	}
 };
 struct sse2_do_gray_scale {
-	const __m128i zero_;
-	const __m128i alphamask_;
-	__m128i lum_;
-	inline sse2_do_gray_scale() : zero_( _mm_setzero_si128() ), alphamask_(_mm_set1_epi32(0xff000000)), lum_(_mm_set1_epi32(0x0036B713)) {
-		lum_ = _mm_unpacklo_epi8( lum_, zero_ );
+	const simde__m128i zero_;
+	const simde__m128i alphamask_;
+	simde__m128i lum_;
+	inline sse2_do_gray_scale() : zero_( simde_mm_setzero_si128() ), alphamask_(simde_mm_set1_epi32(0xff000000)), lum_(simde_mm_set1_epi32(0x0036B713)) {
+		lum_ = simde_mm_unpacklo_epi8( lum_, zero_ );
 		// lum_ のアルファ成分をffにすれば誤差が少し出るがアルファのマスク等が必要なくなって少しだけ速くなる
 	}
 	inline tjs_uint32 operator()( tjs_uint32 s ) const {
@@ -238,48 +235,47 @@ struct sse2_do_gray_scale {
 		d = (d >> 8) * 0x10101 + (s & 0xff000000);
 		return d;
 	}
-	inline __m128i operator()( __m128i ms1 ) const {
-		__m128i ma = ms1;
-		ma = _mm_and_si128( ma, alphamask_ );
-		__m128i ms2 = ms1;
-		ms1 = _mm_unpacklo_epi8( ms1, zero_ );
-		ms2 = _mm_unpackhi_epi8( ms2, zero_ );
-		ms1 = _mm_mullo_epi16( ms1, lum_ );
-		ms2 = _mm_mullo_epi16( ms2, lum_ );
-		__m128i tmp1 = ms1;
-		__m128i tmp2 = ms2;
-		tmp1 = _mm_srli_epi64( tmp1, 32 );	// drop G B
-		tmp2 = _mm_srli_epi64( tmp2, 32 );
-		ms1 = _mm_add_epi16( ms1, tmp1 );	// G R+B
-		ms2 = _mm_add_epi16( ms2, tmp2 );
+	inline simde__m128i operator()( simde__m128i ms1 ) const {
+		simde__m128i ma = ms1;
+		ma = simde_mm_and_si128( ma, alphamask_ );
+		simde__m128i ms2 = ms1;
+		ms1 = simde_mm_unpacklo_epi8( ms1, zero_ );
+		ms2 = simde_mm_unpackhi_epi8( ms2, zero_ );
+		ms1 = simde_mm_mullo_epi16( ms1, lum_ );
+		ms2 = simde_mm_mullo_epi16( ms2, lum_ );
+		simde__m128i tmp1 = ms1;
+		simde__m128i tmp2 = ms2;
+		tmp1 = simde_mm_srli_epi64( tmp1, 32 );	// drop G B
+		tmp2 = simde_mm_srli_epi64( tmp2, 32 );
+		ms1 = simde_mm_add_epi16( ms1, tmp1 );	// G R+B
+		ms2 = simde_mm_add_epi16( ms2, tmp2 );
 		tmp1 = ms1;
 		tmp2 = ms2;
-		tmp1 = _mm_srli_epi64( tmp1, 16 );
-		tmp2 = _mm_srli_epi64( tmp2, 16 );
-		ms1 = _mm_add_epi16( ms1, tmp1 );	// R+G+B
-		ms2 = _mm_add_epi16( ms2, tmp2 );
-		ms1 = _mm_srli_epi16( ms1, 8 );
-		ms1 = _mm_shufflelo_epi16( ms1, _MM_SHUFFLE( 3, 0, 0, 0 )  );
-		ms1 = _mm_shufflehi_epi16( ms1, _MM_SHUFFLE( 3, 0, 0, 0 )  );
-		ms2 = _mm_srli_epi16( ms2, 8 );
-		ms2 = _mm_shufflelo_epi16( ms2, _MM_SHUFFLE( 3, 0, 0, 0 )  );
-		ms2 = _mm_shufflehi_epi16( ms2, _MM_SHUFFLE( 3, 0, 0, 0 )  );
-		ms1 = _mm_packus_epi16( ms1, ms2 );
-		ms1 = _mm_or_si128( ms1, ma );
+		tmp1 = simde_mm_srli_epi64( tmp1, 16 );
+		tmp2 = simde_mm_srli_epi64( tmp2, 16 );
+		ms1 = simde_mm_add_epi16( ms1, tmp1 );	// R+G+B
+		ms2 = simde_mm_add_epi16( ms2, tmp2 );
+		ms1 = simde_mm_srli_epi16( ms1, 8 );
+		ms1 = simde_mm_shufflelo_epi16( ms1, SIMDE_MM_SHUFFLE( 3, 0, 0, 0 )  );
+		ms1 = simde_mm_shufflehi_epi16( ms1, SIMDE_MM_SHUFFLE( 3, 0, 0, 0 )  );
+		ms2 = simde_mm_srli_epi16( ms2, 8 );
+		ms2 = simde_mm_shufflelo_epi16( ms2, SIMDE_MM_SHUFFLE( 3, 0, 0, 0 )  );
+		ms2 = simde_mm_shufflehi_epi16( ms2, SIMDE_MM_SHUFFLE( 3, 0, 0, 0 )  );
+		ms1 = simde_mm_packus_epi16( ms1, ms2 );
+		ms1 = simde_mm_or_si128( ms1, ma );
 		return ms1;
 	}
 };
 
-#ifdef __SSSE3__
 struct ssse3_do_gray_scale {
-	const __m128i zero_;
-	const __m128i alphamask_;
-	__m128i mask;
-	__m128i lum_;
-	inline ssse3_do_gray_scale() : zero_( _mm_setzero_si128() ), alphamask_(_mm_set1_epi32(0xff000000)), lum_(_mm_set1_epi32(0x0036B713)) {
-		lum_ = _mm_unpacklo_epi8( lum_, zero_ );
+	const simde__m128i zero_;
+	const simde__m128i alphamask_;
+	simde__m128i mask;
+	simde__m128i lum_;
+	inline ssse3_do_gray_scale() : zero_( simde_mm_setzero_si128() ), alphamask_(simde_mm_set1_epi32(0xff000000)), lum_(simde_mm_set1_epi32(0x0036B713)) {
+		lum_ = simde_mm_unpacklo_epi8( lum_, zero_ );
 		
-		mask = _mm_setr_epi8(0x00, 0x01, 0x02, 0x80, 0x03, 0x04, 0x05, 0x80, 0x06, 0x07, 0x08, 0x80, 0x09, 0x0A, 0x0B, 0x80);
+		mask = simde_mm_setr_epi8(0x00, 0x01, 0x02, 0x80, 0x03, 0x04, 0x05, 0x80, 0x06, 0x07, 0x08, 0x80, 0x09, 0x0A, 0x0B, 0x80);
 		// (0x1x2x3x0x1x2x3x)
 		//  0123456789abcdef
 	}
@@ -290,67 +286,66 @@ struct ssse3_do_gray_scale {
 		d = (d >> 8) * 0x10101 + (s & 0xff000000);
 		return d;
 	}
-	inline __m128i operator()( __m128i ms1 ) const {
-		__m128i ma = ms1;
-		ma = _mm_and_si128( ma, alphamask_ );
-		__m128i ms2 = ms1;
-		ms1 = _mm_unpacklo_epi8( ms1, zero_ );
-		ms2 = _mm_unpackhi_epi8( ms2, zero_ );
-		ms1 = _mm_mullo_epi16( ms1, lum_ );
-		ms2 = _mm_mullo_epi16( ms2, lum_ );
-		ms1 = _mm_hadd_epi16( ms1, ms2 );	// A+R G+B | A+R G+B ... (A=0)
-		ms1 = _mm_hadd_epi16( ms1, ms1 );	// A+R+G+B | A+R+G+B | A+R+G+B | A+R+G+B (01230123) : 8pixelまとめて処理すればもっと速そう
-		ms1 = _mm_shuffle_epi8( ms1, mask );
-		ms1 = _mm_or_si128( ms1, ma );
+	inline simde__m128i operator()( simde__m128i ms1 ) const {
+		simde__m128i ma = ms1;
+		ma = simde_mm_and_si128( ma, alphamask_ );
+		simde__m128i ms2 = ms1;
+		ms1 = simde_mm_unpacklo_epi8( ms1, zero_ );
+		ms2 = simde_mm_unpackhi_epi8( ms2, zero_ );
+		ms1 = simde_mm_mullo_epi16( ms1, lum_ );
+		ms2 = simde_mm_mullo_epi16( ms2, lum_ );
+		ms1 = simde_mm_hadd_epi16( ms1, ms2 );	// A+R G+B | A+R G+B ... (A=0)
+		ms1 = simde_mm_hadd_epi16( ms1, ms1 );	// A+R+G+B | A+R+G+B | A+R+G+B | A+R+G+B (01230123) : 8pixelまとめて処理すればもっと速そう
+		ms1 = simde_mm_shuffle_epi8( ms1, mask );
+		ms1 = simde_mm_or_si128( ms1, ma );
 		return ms1;
 	}
 };
-#endif
 // 通常のアルファから乗算済みアルファへ
 struct sse2_alpha_to_premulalpha {
-	const __m128i zero_;
-	const __m128i colormask_;
-	inline sse2_alpha_to_premulalpha() : zero_( _mm_setzero_si128() ), colormask_(_mm_set1_epi32(0x00ffffff)) {}
+	const simde__m128i zero_;
+	const simde__m128i colormask_;
+	inline sse2_alpha_to_premulalpha() : zero_( simde_mm_setzero_si128() ), colormask_(simde_mm_set1_epi32(0x00ffffff)) {}
 	inline tjs_uint32 operator()( tjs_uint32 s ) const {
-		__m128i ma = _mm_cvtsi32_si128( s>>24 );
-		ma = _mm_shufflelo_epi16( ma, _MM_SHUFFLE( 0, 0, 0, 0 )  );	// 00oo00oo00oo00oo
-		__m128i ms = _mm_cvtsi32_si128( s );
-		ms = _mm_unpacklo_epi16( ms, zero_ );
-		ms = _mm_mullo_epi16( ms, ma );		// s *= a
-		ms = _mm_srli_epi16( ms, 8 );		// s >>= 8
-		ms = _mm_packus_epi16( ms, ms );
-		return (_mm_cvtsi128_si32(ms)&0x00ffffff)|(s&0xff000000);
+		simde__m128i ma = simde_mm_cvtsi32_si128( s>>24 );
+		ma = simde_mm_shufflelo_epi16( ma, SIMDE_MM_SHUFFLE( 0, 0, 0, 0 )  );	// 00oo00oo00oo00oo
+		simde__m128i ms = simde_mm_cvtsi32_si128( s );
+		ms = simde_mm_unpacklo_epi16( ms, zero_ );
+		ms = simde_mm_mullo_epi16( ms, ma );		// s *= a
+		ms = simde_mm_srli_epi16( ms, 8 );		// s >>= 8
+		ms = simde_mm_packus_epi16( ms, ms );
+		return (simde_mm_cvtsi128_si32(ms)&0x00ffffff)|(s&0xff000000);
 	}
-	inline __m128i operator()( __m128i ms1 ) const {
-		__m128i ma1 = ms1;
-		ma1 = _mm_srli_epi32( ma1, 24 );
-		__m128i ma = ma1;
-		ma = _mm_slli_epi32( ma, 24 );
-		ma1 = _mm_packs_epi32( ma1, ma1 );		// 0 1 2 3 0 1 2 3
-		ma1 = _mm_unpacklo_epi16( ma1, ma1 );	// 0 0 1 1 2 2 3 3
-		__m128i ma2 = ma1;
-		ma1 = _mm_unpacklo_epi16( ma1, ma1 );	// 0 0 0 0 1 1 1 1
-		ma2 = _mm_unpackhi_epi16( ma2, ma2 );	// 2 2 2 2 3 3 3 3
+	inline simde__m128i operator()( simde__m128i ms1 ) const {
+		simde__m128i ma1 = ms1;
+		ma1 = simde_mm_srli_epi32( ma1, 24 );
+		simde__m128i ma = ma1;
+		ma = simde_mm_slli_epi32( ma, 24 );
+		ma1 = simde_mm_packs_epi32( ma1, ma1 );		// 0 1 2 3 0 1 2 3
+		ma1 = simde_mm_unpacklo_epi16( ma1, ma1 );	// 0 0 1 1 2 2 3 3
+		simde__m128i ma2 = ma1;
+		ma1 = simde_mm_unpacklo_epi16( ma1, ma1 );	// 0 0 0 0 1 1 1 1
+		ma2 = simde_mm_unpackhi_epi16( ma2, ma2 );	// 2 2 2 2 3 3 3 3
 
-		__m128i ms2 = ms1;
-		ms1 = _mm_unpacklo_epi8( ms1, zero_ );
-		ms1 = _mm_mullo_epi16( ms1, ma1 );		// s *= a
-		ms1 = _mm_srli_epi16( ms1, 8 );			// s >>= 8
-		ms2 = _mm_unpackhi_epi8( ms2, zero_ );
-		ms2 = _mm_mullo_epi16( ms2, ma2 );		// s *= a
-		ms2 = _mm_srli_epi16( ms2, 8 );			// s >>= 8
-		ms1 = _mm_packus_epi16( ms1, ms2 );
-		ms1 = _mm_and_si128( ms1, colormask_ );
-		return _mm_or_si128( ms1, ma );
+		simde__m128i ms2 = ms1;
+		ms1 = simde_mm_unpacklo_epi8( ms1, zero_ );
+		ms1 = simde_mm_mullo_epi16( ms1, ma1 );		// s *= a
+		ms1 = simde_mm_srli_epi16( ms1, 8 );			// s >>= 8
+		ms2 = simde_mm_unpackhi_epi8( ms2, zero_ );
+		ms2 = simde_mm_mullo_epi16( ms2, ma2 );		// s *= a
+		ms2 = simde_mm_srli_epi16( ms2, 8 );			// s >>= 8
+		ms1 = simde_mm_packus_epi16( ms1, ms2 );
+		ms1 = simde_mm_and_si128( ms1, colormask_ );
+		return simde_mm_or_si128( ms1, ma );
 	}
 };
 // 乗算済みアルファから通常アルファへ
 // alpha = alpha
 // color = color*255 / alpha
 struct sse2_premulalpha_to_alpha {
-	const __m128i colormask_;
-	const __m128 f65535_;
-	inline sse2_premulalpha_to_alpha() : colormask_(_mm_set1_epi32(0x00ffffff)), f65535_(_mm_set1_ps(65535.0f)) {}
+	const simde__m128i colormask_;
+	const simde__m128 f65535_;
+	inline sse2_premulalpha_to_alpha() : colormask_(simde_mm_set1_epi32(0x00ffffff)), f65535_(simde_mm_set1_ps(65535.0f)) {}
 	inline tjs_uint32 operator()( tjs_uint32 s ) const {
 		const tjs_uint8 *t = ((s >> 16) & 0xff00) + TVPDivTable;
 		return (s & 0xff000000) +
@@ -358,41 +353,41 @@ struct sse2_premulalpha_to_alpha {
 			(t[(s >>  8) & 0xff] <<  8) +
 			(t[ s        & 0xff]      );
 	}
-	inline __m128i operator()( __m128i ms ) const {
-		__m128i ma1 = ms;
-		ma1 = _mm_srli_epi32( ma1, 24 );
-		__m128i ma = ma1;
-		ma = _mm_slli_epi32( ma, 24 );
-		__m128 rcp = _mm_cvtepi32_ps(ma1);
+	inline simde__m128i operator()( simde__m128i ms ) const {
+		simde__m128i ma1 = ms;
+		ma1 = simde_mm_srli_epi32( ma1, 24 );
+		simde__m128i ma = ma1;
+		ma = simde_mm_slli_epi32( ma, 24 );
+		simde__m128 rcp = simde_mm_cvtepi32_ps(ma1);
 #if 1
-		rcp = _mm_rcp_ps(rcp);
+		rcp = simde_mm_rcp_ps(rcp);
 #else
 		rcp = m128_rcp_22bit_ps(rcp);	// 少し精度が良いが最大誤差が2なのは変わらず, 20%くらい遅くなる
 #endif
-		rcp = _mm_mul_ps(rcp, f65535_);
-		ma1 = _mm_cvtps_epi32(rcp);
-		ma1 = _mm_shufflelo_epi16( ma1, _MM_SHUFFLE( 2, 2, 0, 0 )  ); // 0 0 1 1 X 2 X 3
-		ma1 = _mm_shufflehi_epi16( ma1, _MM_SHUFFLE( 2, 2, 0, 0 )  ); // 0 0 1 1 2 2 3 3
-		__m128i ma2 = ma1;
-		ma1 = _mm_unpacklo_epi16( ma1, ma1 );	// 0 0 0 0 1 1 1 1
-		ma2 = _mm_unpackhi_epi16( ma2, ma2 );	// 2 2 2 2 3 3 3 3
-		__m128i ms1 = _mm_setzero_si128();
-		ms1 = _mm_unpacklo_epi8( ms1, ms );		// s 0 s 0 s 0 s 0 : 上位8ビットへ
-		ms1 = _mm_mulhi_epu16( ms1, ma1 );		// s / a
-		__m128i ms2 = _mm_setzero_si128();
-		ms2 = _mm_unpackhi_epi8( ms2, ms );
-		ms2 = _mm_mulhi_epu16( ms2, ma2 );		// s / a
+		rcp = simde_mm_mul_ps(rcp, f65535_);
+		ma1 = simde_mm_cvtps_epi32(rcp);
+		ma1 = simde_mm_shufflelo_epi16( ma1, SIMDE_MM_SHUFFLE( 2, 2, 0, 0 )  ); // 0 0 1 1 X 2 X 3
+		ma1 = simde_mm_shufflehi_epi16( ma1, SIMDE_MM_SHUFFLE( 2, 2, 0, 0 )  ); // 0 0 1 1 2 2 3 3
+		simde__m128i ma2 = ma1;
+		ma1 = simde_mm_unpacklo_epi16( ma1, ma1 );	// 0 0 0 0 1 1 1 1
+		ma2 = simde_mm_unpackhi_epi16( ma2, ma2 );	// 2 2 2 2 3 3 3 3
+		simde__m128i ms1 = simde_mm_setzero_si128();
+		ms1 = simde_mm_unpacklo_epi8( ms1, ms );		// s 0 s 0 s 0 s 0 : 上位8ビットへ
+		ms1 = simde_mm_mulhi_epu16( ms1, ma1 );		// s / a
+		simde__m128i ms2 = simde_mm_setzero_si128();
+		ms2 = simde_mm_unpackhi_epi8( ms2, ms );
+		ms2 = simde_mm_mulhi_epu16( ms2, ma2 );		// s / a
 
-		__m128i ss1 = ms1;
-		ss1 = _mm_srli_epi16( ss1, 15 );
-		__m128i ss2 = ms2;
-		ss2 = _mm_srli_epi16( ss2, 15 );
-		ss1 = _mm_packus_epi16( ss1, ss2 );
+		simde__m128i ss1 = ms1;
+		ss1 = simde_mm_srli_epi16( ss1, 15 );
+		simde__m128i ss2 = ms2;
+		ss2 = simde_mm_srli_epi16( ss2, 15 );
+		ss1 = simde_mm_packus_epi16( ss1, ss2 );
 
-		ms1 = _mm_packus_epi16( ms1, ms2 );
-		ms1 = _mm_sub_epi8( ms1, ss1 );		// 符号なし16bit飽和packのための処理
-		ms1 = _mm_and_si128( ms1, colormask_ );
-		return _mm_or_si128( ms1, ma );
+		ms1 = simde_mm_packus_epi16( ms1, ms2 );
+		ms1 = simde_mm_sub_epi8( ms1, ss1 );		// 符号なし16bit飽和packのための処理
+		ms1 = simde_mm_and_si128( ms1, colormask_ );
+		return simde_mm_or_si128( ms1, ma );
 	}
 };
 
@@ -417,8 +412,8 @@ static inline void convert_func_sse2( tjs_uint32 *dest, tjs_int len ) {
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
 	while( dest < limit ) {
-		__m128i md = _mm_load_si128( (__m128i const*)dest );
-		_mm_store_si128( (__m128i*)dest, func( md ) );
+		simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+		simde_mm_store_si128( (simde__m128i*)dest, func( md ) );
 		dest+=4;
 	}
 	limit += (len-rem);
@@ -445,8 +440,8 @@ static inline void convert_func_sse2( tjs_uint32 *dest, tjs_int len, const funct
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
 	while( dest < limit ) {
-		__m128i md = _mm_load_si128( (__m128i const*)dest );
-		_mm_store_si128( (__m128i*)dest, func( md ) );
+		simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+		simde_mm_store_si128( (simde__m128i*)dest, func( md ) );
 		dest+=4;
 	}
 	limit += (len-rem);
@@ -474,16 +469,16 @@ static inline void blend_func_sse2( tjs_uint32 * __restrict dest, const tjs_uint
 	tjs_uint32* limit = dest + rem;
 	if( (((size_t)src)&0xF) == 0 ) {
 		while( dest < limit ) {
-			__m128i md = _mm_load_si128( (__m128i const*)dest );
-			__m128i ms = _mm_load_si128( (__m128i const*)src );
-			_mm_store_si128( (__m128i*)dest, func( md, ms ) );
+			simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+			simde__m128i ms = simde_mm_load_si128( (simde__m128i const*)src );
+			simde_mm_store_si128( (simde__m128i*)dest, func( md, ms ) );
 			dest+=4; src+=4;
 		}
 	} else {
 		while( dest < limit ) {
-			__m128i md = _mm_load_si128( (__m128i const*)dest );
-			__m128i ms = _mm_loadu_si128( (__m128i const*)src );
-			_mm_store_si128( (__m128i*)dest, func( md, ms ) );
+			simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+			simde__m128i ms = simde_mm_loadu_si128( (simde__m128i const*)src );
+			simde_mm_store_si128( (simde__m128i*)dest, func( md, ms ) );
 			dest+=4; src+=4;
 		}
 	}
@@ -504,9 +499,9 @@ static inline void blend_func_sse2( tjs_uint8 * __restrict dest, const tjs_uint8
 	tjs_uint32 rem = (len>>4)<<4;
 	tjs_uint8* limit = dest + rem;
 	while( dest < limit ) {
-		__m128i md = _mm_loadu_si128( (__m128i const*)dest );
-		__m128i ms = _mm_loadu_si128( (__m128i const*)src );
-		_mm_storeu_si128( (__m128i*)dest, func( md, ms ) );
+		simde__m128i md = simde_mm_loadu_si128( (simde__m128i const*)dest );
+		simde__m128i ms = simde_mm_loadu_si128( (simde__m128i const*)src );
+		simde_mm_storeu_si128( (simde__m128i*)dest, func( md, ms ) );
 		dest+=16; src+=16;
 	}
 	limit += (len-rem);
@@ -531,10 +526,10 @@ static inline void overlap_blend_func_sse2( tjs_uint32 * dest, const tjs_uint32 
 		}
 		while( len >= 0 ) {
 			// 4ピクセルずつコピー, オーバーラップのケースは少ないのとCore i3/5/7以降ならアライメント関係なく速いので、アライメント気にせずコピー
-			__m128i md = _mm_loadu_si128( (__m128i const*)&(dest[len-3]) );
-			__m128i ms = _mm_loadu_si128( (__m128i const*)&(src[len-3]) );
+			simde__m128i md = simde_mm_loadu_si128( (simde__m128i const*)&(dest[len-3]) );
+			simde__m128i ms = simde_mm_loadu_si128( (simde__m128i const*)&(src[len-3]) );
 			md = func( md, ms );
-			_mm_storeu_si128( (__m128i*)&(dest[len-3]), md );
+			simde_mm_storeu_si128( (simde__m128i*)&(dest[len-3]), md );
 			len -= 4;
 		}
 	} else {
@@ -567,16 +562,16 @@ static inline void sd_blend_func_sse2( tjs_uint32 *dest, const tjs_uint32 *src1,
 	tjs_uint32* limit = dest + rem;
 	if( (((size_t)src1)&0xF) == 0 && (((size_t)src2)&0xF) == 0 ) {
 		while( dest < limit ) {
-			__m128i ms1 = _mm_load_si128( (__m128i const*)src1 );
-			__m128i ms2 = _mm_load_si128( (__m128i const*)src2 );
-			_mm_store_si128( (__m128i*)dest, func( ms1, ms2 ) );
+			simde__m128i ms1 = simde_mm_load_si128( (simde__m128i const*)src1 );
+			simde__m128i ms2 = simde_mm_load_si128( (simde__m128i const*)src2 );
+			simde_mm_store_si128( (simde__m128i*)dest, func( ms1, ms2 ) );
 			dest+=4; src1+=4; src2+=4;
 		}
 	} else {
 		while( dest < limit ) {
-			__m128i ms1 = _mm_loadu_si128( (__m128i const*)src1 );
-			__m128i ms2 = _mm_loadu_si128( (__m128i const*)src2 );
-			_mm_store_si128( (__m128i*)dest, func( ms1, ms2 ) );
+			simde__m128i ms1 = simde_mm_loadu_si128( (simde__m128i const*)src1 );
+			simde__m128i ms2 = simde_mm_loadu_si128( (simde__m128i const*)src2 );
+			simde_mm_store_si128( (simde__m128i*)dest, func( ms1, ms2 ) );
 			dest+=4; src1+=4; src2+=4;
 		}
 	}
@@ -606,42 +601,42 @@ static void blend_src_branch_func_sse2( tjs_uint32 * __restrict dest, const tjs_
 	}
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
-	const __m128i alphamask = _mm_set1_epi32(0xff000000);
-	const __m128i zero = _mm_setzero_si128();
+	const simde__m128i alphamask = simde_mm_set1_epi32(0xff000000);
+	const simde__m128i zero = simde_mm_setzero_si128();
 	if( (((size_t)src)&0xF) == 0 ) {
 		while( dest < limit ) {
-			__m128i ms = _mm_load_si128( (__m128i const*)src );
-			__m128i ma = ms;
-			ma = _mm_and_si128( ma, alphamask );
-			ma = _mm_cmpeq_epi32( ma, alphamask );
-			if( _mm_movemask_epi8(ma) == 0xffff ) {	// totally opaque
-				_mm_store_si128( (__m128i*)dest, ms );
+			simde__m128i ms = simde_mm_load_si128( (simde__m128i const*)src );
+			simde__m128i ma = ms;
+			ma = simde_mm_and_si128( ma, alphamask );
+			ma = simde_mm_cmpeq_epi32( ma, alphamask );
+			if( simde_mm_movemask_epi8(ma) == 0xffff ) {	// totally opaque
+				simde_mm_store_si128( (simde__m128i*)dest, ms );
 			} else {
 				ma = ms;
-				ma = _mm_and_si128( ma, alphamask );
-				ma = _mm_cmpeq_epi32( ma, zero );
-				if( _mm_movemask_epi8(ma) != 0xffff ) {
-					__m128i md = _mm_load_si128( (__m128i const*)dest );
-					_mm_store_si128( (__m128i*)dest, func( md, ms ) );
+				ma = simde_mm_and_si128( ma, alphamask );
+				ma = simde_mm_cmpeq_epi32( ma, zero );
+				if( simde_mm_movemask_epi8(ma) != 0xffff ) {
+					simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+					simde_mm_store_si128( (simde__m128i*)dest, func( md, ms ) );
 				}
 			}
 			dest+=4; src+=4;
 		}
 	} else {
 		while( dest < limit ) {
-			__m128i ms = _mm_loadu_si128( (__m128i const*)src );
-			__m128i ma = ms;
-			ma = _mm_and_si128( ma, alphamask );
-			ma = _mm_cmpeq_epi32( ma, alphamask );
-			if( _mm_movemask_epi8(ma) == 0xffff ) {	// totally opaque
-				_mm_store_si128( (__m128i*)dest, ms );
+			simde__m128i ms = simde_mm_loadu_si128( (simde__m128i const*)src );
+			simde__m128i ma = ms;
+			ma = simde_mm_and_si128( ma, alphamask );
+			ma = simde_mm_cmpeq_epi32( ma, alphamask );
+			if( simde_mm_movemask_epi8(ma) == 0xffff ) {	// totally opaque
+				simde_mm_store_si128( (simde__m128i*)dest, ms );
 			} else {
 				ma = ms;
-				ma = _mm_and_si128( ma, alphamask );
-				ma = _mm_cmpeq_epi32( ma, zero );
-				if( _mm_movemask_epi8(ma) != 0xffff ) {
-					__m128i md = _mm_load_si128( (__m128i const*)dest );
-					_mm_store_si128( (__m128i*)dest, func( md, ms ) );
+				ma = simde_mm_and_si128( ma, alphamask );
+				ma = simde_mm_cmpeq_epi32( ma, zero );
+				if( simde_mm_movemask_epi8(ma) != 0xffff ) {
+					simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+					simde_mm_store_si128( (simde__m128i*)dest, func( md, ms ) );
 				}
 			}
 			dest+=4; src+=4;
@@ -668,20 +663,20 @@ void sse2_interpolation_line_transform_copy(tjs_uint32 *dest, tjs_int len, const
 
 	const tjs_uint8* s = (tjs_uint8*)src;
 
-	__m128i mxy1 = _mm_cvtsi32_si128( sy );			// _mm_mul_epu32 のために下をsyとする
-	__m128i mx = _mm_cvtsi32_si128( sx );
-	mxy1 = _mm_unpacklo_epi32( mxy1, mx );			// 0 | 0 | sx | sy
-	__m128i mstep = _mm_cvtsi32_si128( stepy );
-	__m128i mstepx = _mm_cvtsi32_si128( stepx );
-	mstep = _mm_unpacklo_epi32( mstep, mstepx );	// 0 | 0 | stepx | stepy
-	__m128i mxy = mxy1;
-	mxy1 = _mm_add_epi32( mxy1, mstep );			// 1進める
-	mxy = _mm_unpacklo_epi64( mxy, mxy1 );			// ++sx | ++sy | sx | sy
-	mstep = _mm_unpacklo_epi64( mstep, mstep );		// stepx | stepy | stepx | stepy
-	__m128i mstep1 = mstep;
-	mstep = _mm_add_epi32( mstep, mstep );			// stepx*2 | stepy*2 | stepx*2 | stepy*2
-	__m128i mpitch = _mm_cvtsi32_si128( srcpitch );
-	mpitch = _mm_unpacklo_epi64( mpitch, mpitch );	// 0000 srcpitch 0000 srcpitch
+	simde__m128i mxy1 = simde_mm_cvtsi32_si128( sy );			// simde_mm_mul_epu32 のために下をsyとする
+	simde__m128i mx = simde_mm_cvtsi32_si128( sx );
+	mxy1 = simde_mm_unpacklo_epi32( mxy1, mx );			// 0 | 0 | sx | sy
+	simde__m128i mstep = simde_mm_cvtsi32_si128( stepy );
+	simde__m128i mstepx = simde_mm_cvtsi32_si128( stepx );
+	mstep = simde_mm_unpacklo_epi32( mstep, mstepx );	// 0 | 0 | stepx | stepy
+	simde__m128i mxy = mxy1;
+	mxy1 = simde_mm_add_epi32( mxy1, mstep );			// 1進める
+	mxy = simde_mm_unpacklo_epi64( mxy, mxy1 );			// ++sx | ++sy | sx | sy
+	mstep = simde_mm_unpacklo_epi64( mstep, mstep );		// stepx | stepy | stepx | stepy
+	simde__m128i mstep1 = mstep;
+	mstep = simde_mm_add_epi32( mstep, mstep );			// stepx*2 | stepy*2 | stepx*2 | stepy*2
+	simde__m128i mpitch = simde_mm_cvtsi32_si128( srcpitch );
+	mpitch = simde_mm_unpacklo_epi64( mpitch, mpitch );	// 0000 srcpitch 0000 srcpitch
 	
 	tjs_int count = (tjs_int)(((size_t)dest)&0xF);
 	if( count ) {
@@ -689,12 +684,12 @@ void sse2_interpolation_line_transform_copy(tjs_uint32 *dest, tjs_int len, const
 		count = count > len ? len : count;
 		tjs_uint32* limit = dest + count;
 		while( dest < limit ) {
-			__m128i mxyi = mxy;
-			int sy = _mm_cvtsi128_si32( mxyi );
-			mxyi = _mm_srli_epi64( mxyi, 32 );
-			int sx = _mm_cvtsi128_si32( mxyi );
+			simde__m128i mxyi = mxy;
+			int sy = simde_mm_cvtsi128_si32( mxyi );
+			mxyi = simde_mm_srli_epi64( mxyi, 32 );
+			int sx = simde_mm_cvtsi128_si32( mxyi );
 			*dest = func( *dest, inter( s, sy, sx, srcpitch ) );
-			mxy = _mm_add_epi32( mxy, mstep1 );	// sx,sy += stepx,stepy
+			mxy = simde_mm_add_epi32( mxy, mstep1 );	// sx,sy += stepx,stepy
 			dest++;
 		}
 		len -= count;
@@ -702,27 +697,27 @@ void sse2_interpolation_line_transform_copy(tjs_uint32 *dest, tjs_int len, const
 
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
-	const __m128i zero = _mm_setzero_si128();
+	const simde__m128i zero = simde_mm_setzero_si128();
 	while( dest < limit ) {
-		__m128i ms1 = inter( s, mxy, mpitch, srcpitch );
-		mxy = _mm_add_epi32( mxy, mstep );	// sx,sy += stepx,stepy
-		__m128i ms2 = inter( s, mxy, mpitch, srcpitch );
-		mxy = _mm_add_epi32( mxy, mstep );	// sx,sy += stepx,stepy
+		simde__m128i ms1 = inter( s, mxy, mpitch, srcpitch );
+		mxy = simde_mm_add_epi32( mxy, mstep );	// sx,sy += stepx,stepy
+		simde__m128i ms2 = inter( s, mxy, mpitch, srcpitch );
+		mxy = simde_mm_add_epi32( mxy, mstep );	// sx,sy += stepx,stepy
 		ms1 = inter.pack( ms1, ms2 );
-		//ms1 = _mm_packus_epi16( ms1, ms2 );
-		__m128i md = _mm_load_si128( (__m128i const*)dest );
-		_mm_store_si128( (__m128i*)dest, func( md, ms1 ) );
+		//ms1 = simde_mm_packus_epi16( ms1, ms2 );
+		simde__m128i md = simde_mm_load_si128( (simde__m128i const*)dest );
+		simde_mm_store_si128( (simde__m128i*)dest, func( md, ms1 ) );
 		dest += 4;
 	}
 	// 端数
 	limit += (len-rem);
 	while( dest < limit ) {
-		__m128i mxyi = mxy;
-		int sy = _mm_cvtsi128_si32( mxyi );
-		mxyi = _mm_srli_epi64( mxyi, 32 );
-		int sx = _mm_cvtsi128_si32( mxyi );
+		simde__m128i mxyi = mxy;
+		int sy = simde_mm_cvtsi128_si32( mxyi );
+		mxyi = simde_mm_srli_epi64( mxyi, 32 );
+		int sx = simde_mm_cvtsi128_si32( mxyi );
 		*dest = func( *dest, inter( s, sy, sx, srcpitch ) );
-		mxy = _mm_add_epi32( mxy, mstep1 );	// sx,sy += stepx,stepy
+		mxy = simde_mm_add_epi32( mxy, mstep1 );	// sx,sy += stepx,stepy
 		dest++;
 	}
 }
@@ -750,25 +745,25 @@ static inline void stretch_blend_func_sse2(tjs_uint32 *dest, tjs_int len, const 
 	tjs_uint32 rem = (len>>3)<<3;
 	tjs_uint32* limit = dest + rem;
 	while( dest < limit ) {
-		__m128i mdst = _mm_load_si128( (__m128i const*)&dest[0] );
-		__m128i msrc = _mm_cvtsi32_si128( src[srcstart >> 16] );
-		__m128i mtmp = _mm_cvtsi32_si128( src[(srcstart+srcstep) >> 16] );
-		msrc = _mm_unpacklo_epi32( msrc, mtmp );
-		__m128i mtm1 = _mm_cvtsi32_si128( src[(srcstart+srcstep*2) >> 16]  );
-		__m128i mtm2 = _mm_cvtsi32_si128( src[(srcstart+srcstep*3) >> 16] );
-		mtm1 = _mm_unpacklo_epi32( mtm1, mtm2 );
-		msrc = _mm_unpacklo_epi64( msrc, mtm1 );
-		_mm_store_si128((__m128i *)&dest[0], func( mdst, msrc ) );
+		simde__m128i mdst = simde_mm_load_si128( (simde__m128i const*)&dest[0] );
+		simde__m128i msrc = simde_mm_cvtsi32_si128( src[srcstart >> 16] );
+		simde__m128i mtmp = simde_mm_cvtsi32_si128( src[(srcstart+srcstep) >> 16] );
+		msrc = simde_mm_unpacklo_epi32( msrc, mtmp );
+		simde__m128i mtm1 = simde_mm_cvtsi32_si128( src[(srcstart+srcstep*2) >> 16]  );
+		simde__m128i mtm2 = simde_mm_cvtsi32_si128( src[(srcstart+srcstep*3) >> 16] );
+		mtm1 = simde_mm_unpacklo_epi32( mtm1, mtm2 );
+		msrc = simde_mm_unpacklo_epi64( msrc, mtm1 );
+		simde_mm_store_si128((simde__m128i *)&dest[0], func( mdst, msrc ) );
 
-		mdst = _mm_load_si128( (__m128i const*)&dest[4] );
-		msrc = _mm_cvtsi32_si128( src[(srcstart+srcstep*4) >> 16] );
-		mtmp = _mm_cvtsi32_si128( src[(srcstart+srcstep*5) >> 16] );
-		msrc = _mm_unpacklo_epi32( msrc, mtmp );
-		mtm1 = _mm_cvtsi32_si128( src[(srcstart+srcstep*6) >> 16]  );
-		mtm2 = _mm_cvtsi32_si128( src[(srcstart+srcstep*7) >> 16] );
-		mtm1 = _mm_unpacklo_epi32( mtm1, mtm2 );
-		msrc = _mm_unpacklo_epi64( msrc, mtm1 );
-		_mm_store_si128((__m128i *)&dest[4], func( mdst, msrc ) );
+		mdst = simde_mm_load_si128( (simde__m128i const*)&dest[4] );
+		msrc = simde_mm_cvtsi32_si128( src[(srcstart+srcstep*4) >> 16] );
+		mtmp = simde_mm_cvtsi32_si128( src[(srcstart+srcstep*5) >> 16] );
+		msrc = simde_mm_unpacklo_epi32( msrc, mtmp );
+		mtm1 = simde_mm_cvtsi32_si128( src[(srcstart+srcstep*6) >> 16]  );
+		mtm2 = simde_mm_cvtsi32_si128( src[(srcstart+srcstep*7) >> 16] );
+		mtm1 = simde_mm_unpacklo_epi32( mtm1, mtm2 );
+		msrc = simde_mm_unpacklo_epi64( msrc, mtm1 );
+		simde_mm_store_si128((simde__m128i *)&dest[4], func( mdst, msrc ) );
 		dest += 8;
 		srcstart += srcstep*8;
 	}
@@ -791,21 +786,21 @@ static inline void stretch_blend_inter_func_sse2(tjs_uint32 *dest, tjs_int len, 
 
 	sse2_bilinear_fixy_functor	inter(blend_y);
 
-	__m128i mstep1(_mm_set1_epi32( srcstep ));
-	__m128i mstep(mstep1);
-	mstep = _mm_add_epi32( mstep, mstep );	// step*2
-	mstep = _mm_add_epi32( mstep, mstep );	// step*4
+	simde__m128i mstep1(simde_mm_set1_epi32( srcstep ));
+	simde__m128i mstep(mstep1);
+	mstep = simde_mm_add_epi32( mstep, mstep );	// step*2
+	mstep = simde_mm_add_epi32( mstep, mstep );	// step*4
 #if 1
-	__m128i mstart(_mm_set_epi32( srcstart+srcstep*3, srcstart+srcstep*2, srcstart+srcstep, srcstart ));
+	simde__m128i mstart(simde_mm_set_epi32( srcstart+srcstep*3, srcstart+srcstep*2, srcstart+srcstep, srcstart ));
 #else
-	__m128i mstart(_mm_set1_epi32( srcstart ));
-	__m128i mtmp(mstep1);
-	mtmp = _mm_slli_si128( mtmp, 4 );	// << 4*8
-	mstart = _mm_add_epi32( mstart, mtmp );	// +step, +step, +step, +0
-	mtmp = _mm_slli_si128( mtmp, 4 );	// << 4*8
-	mstart = _mm_add_epi32( mstart, mtmp );	// +step*2, +step*2, +step, +0
-	mtmp = _mm_slli_si128( mtmp, 4 );	// << 4*8
-	mstart = _mm_add_epi32( mstart, mtmp );	// +step*3, +step*2, +step, +0
+	simde__m128i mstart(simde_mm_set1_epi32( srcstart ));
+	simde__m128i mtmp(mstep1);
+	mtmp = simde_mm_slli_si128( mtmp, 4 );	// << 4*8
+	mstart = simde_mm_add_epi32( mstart, mtmp );	// +step, +step, +step, +0
+	mtmp = simde_mm_slli_si128( mtmp, 4 );	// << 4*8
+	mstart = simde_mm_add_epi32( mstart, mtmp );	// +step*2, +step*2, +step, +0
+	mtmp = simde_mm_slli_si128( mtmp, 4 );	// << 4*8
+	mstart = simde_mm_add_epi32( mstart, mtmp );	// +step*3, +step*2, +step, +0
 #endif
 
 	tjs_int count = (tjs_int)((size_t)dest & 0xF);
@@ -814,9 +809,9 @@ static inline void stretch_blend_inter_func_sse2(tjs_uint32 *dest, tjs_int len, 
 		count = count > len ? len : count;
 		tjs_uint32* limit = dest + count;
 		while( dest < limit ) {
-			tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(mstart) );
+			tjs_uint32 s = inter( src1, src2, simde_mm_cvtsi128_si32(mstart) );
 			*dest = func( *dest, s  );
-			mstart = _mm_add_epi32( mstart, mstep1 );
+			mstart = simde_mm_add_epi32( mstart, mstep1 );
 			dest++;
 		}
 		len -= count;
@@ -824,17 +819,17 @@ static inline void stretch_blend_inter_func_sse2(tjs_uint32 *dest, tjs_int len, 
 	tjs_uint32 rem = (len>>2)<<2;
 	tjs_uint32* limit = dest + rem;
 	while( dest < limit ) {
-		__m128i mdst = _mm_load_si128( (__m128i const*)dest );
-		__m128i msrc = inter( src1, src2, mstart );
-		_mm_store_si128((__m128i *)dest, func( mdst, msrc ) );
-		mstart = _mm_add_epi32( mstart, mstep );
+		simde__m128i mdst = simde_mm_load_si128( (simde__m128i const*)dest );
+		simde__m128i msrc = inter( src1, src2, mstart );
+		simde_mm_store_si128((simde__m128i *)dest, func( mdst, msrc ) );
+		mstart = simde_mm_add_epi32( mstart, mstep );
 		dest += 4;
 	}
 	limit += (len-rem);
 	while( dest < limit ) {
-		tjs_uint32 s = inter( src1, src2, _mm_cvtsi128_si32(mstart) );
+		tjs_uint32 s = inter( src1, src2, simde_mm_cvtsi128_si32(mstart) );
 		*dest = func( *dest, s  );
-		mstart = _mm_add_epi32( mstart, mstep1 );
+		mstart = simde_mm_add_epi32( mstart, mstep1 );
 		dest++;
 	}
 }
@@ -1187,9 +1182,7 @@ extern void TVPApplyColorMap65_ao_sse2_c(tjs_uint32 *dest, const tjs_uint8 *src,
 extern void TVPApplyColorMap_ao_sse2_c(tjs_uint32 *dest, const tjs_uint8 *src, tjs_int len, tjs_uint32 color, tjs_int opa);
 
 extern void TVPConvert24BitTo32Bit_sse2_c(tjs_uint32 *dest, const tjs_uint8 *buf, tjs_int len);
-#ifdef __SSSE3__
 extern void TVPConvert24BitTo32Bit_ssse3_c(tjs_uint32 *dest, const tjs_uint8 *buf, tjs_int len);
-#endif
 
 //extern tjs_int TVPTLG5DecompressSlide_test( tjs_uint8 *out, const tjs_uint8 *in, tjs_int insize, tjs_uint8 *text, tjs_int initialr );
 //extern void TVPTLG5ComposeColors3To4_test(tjs_uint8 *outp, const tjs_uint8 *upper, tjs_uint8 * const * buf, tjs_int width);
@@ -1223,7 +1216,6 @@ void TVPDoGrayScale_ssse3_c(tjs_uint32 *dest, tjs_int len ) {
 	convert_func_sse2<ssse3_do_gray_scale>( dest, len );
 }
 #else
-#ifdef __SSSE3__
 void TVPDoGrayScale_ssse3_c(tjs_uint32 *dest, tjs_int len ) {
 	do_gray_scale_functor dogray;
 	tjs_int count = (tjs_int)((size_t)dest & 0xF);
@@ -1240,43 +1232,43 @@ void TVPDoGrayScale_ssse3_c(tjs_uint32 *dest, tjs_int len ) {
 	tjs_uint32 rem = (len>>3)<<3;
 	tjs_uint32* limit = dest + rem;
 	if( dest < limit ) {
-		const __m128i zero_( _mm_setzero_si128() );
-		const __m128i alphamask_(_mm_set1_epi32(0xff000000));
-		const __m128i lum_(_mm_unpacklo_epi8( _mm_set1_epi32(0x0036B713), zero_ ));
-		const __m128i mask (_mm_set_epi32(0x87070707,0x85050505,0x83030303,0x81010101));
-		const __m128i mask2(_mm_set_epi32(0x8f0f0f0f,0x8d0d0d0d,0x8b0b0b0b,0x89090909));
+		const simde__m128i zero_( simde_mm_setzero_si128() );
+		const simde__m128i alphamask_(simde_mm_set1_epi32(0xff000000));
+		const simde__m128i lum_(simde_mm_unpacklo_epi8( simde_mm_set1_epi32(0x0036B713), zero_ ));
+		const simde__m128i mask (simde_mm_set_epi32(0x87070707,0x85050505,0x83030303,0x81010101));
+		const simde__m128i mask2(simde_mm_set_epi32(0x8f0f0f0f,0x8d0d0d0d,0x8b0b0b0b,0x89090909));
 
 		do {
-			__m128i md1 = _mm_load_si128( (__m128i const*)(dest+0) );
-			__m128i md2 = _mm_load_si128( (__m128i const*)(dest+4) );
-			__m128i ma1 = md1;
-			__m128i ma2 = md2;
-			ma1 = _mm_and_si128( ma1, alphamask_ );
-			ma2 = _mm_and_si128( ma2, alphamask_ );
+			simde__m128i md1 = simde_mm_load_si128( (simde__m128i const*)(dest+0) );
+			simde__m128i md2 = simde_mm_load_si128( (simde__m128i const*)(dest+4) );
+			simde__m128i ma1 = md1;
+			simde__m128i ma2 = md2;
+			ma1 = simde_mm_and_si128( ma1, alphamask_ );
+			ma2 = simde_mm_and_si128( ma2, alphamask_ );
 
-			__m128i ms2 = md1;
-			md1 = _mm_unpacklo_epi8( md1, zero_ );
-			ms2 = _mm_unpackhi_epi8( ms2, zero_ );
-			md1 = _mm_mullo_epi16( md1, lum_ );
-			ms2 = _mm_mullo_epi16( ms2, lum_ );
-			md1 = _mm_hadd_epi16( md1, ms2 );	// A+R G+B | A+R G+B ... (A=0)
+			simde__m128i ms2 = md1;
+			md1 = simde_mm_unpacklo_epi8( md1, zero_ );
+			ms2 = simde_mm_unpackhi_epi8( ms2, zero_ );
+			md1 = simde_mm_mullo_epi16( md1, lum_ );
+			ms2 = simde_mm_mullo_epi16( ms2, lum_ );
+			md1 = simde_mm_hadd_epi16( md1, ms2 );	// A+R G+B | A+R G+B ... (A=0)
 
-			__m128i mt2 = md2;
-			md2 = _mm_unpacklo_epi8( md2, zero_ );
-			mt2 = _mm_unpackhi_epi8( mt2, zero_ );
-			md2 = _mm_mullo_epi16( md2, lum_ );
-			mt2 = _mm_mullo_epi16( mt2, lum_ );
-			md2 = _mm_hadd_epi16( md2, mt2 );	// A+R G+B | A+R G+B ... (A=0)
+			simde__m128i mt2 = md2;
+			md2 = simde_mm_unpacklo_epi8( md2, zero_ );
+			mt2 = simde_mm_unpackhi_epi8( mt2, zero_ );
+			md2 = simde_mm_mullo_epi16( md2, lum_ );
+			mt2 = simde_mm_mullo_epi16( mt2, lum_ );
+			md2 = simde_mm_hadd_epi16( md2, mt2 );	// A+R G+B | A+R G+B ... (A=0)
 
-			md1 = _mm_hadd_epi16( md1, md2 );	// A+R+G+B | A+R+G+B | A+R+G+B | A+R+G+B (01234567)
+			md1 = simde_mm_hadd_epi16( md1, md2 );	// A+R+G+B | A+R+G+B | A+R+G+B | A+R+G+B (01234567)
 			md2 = md1;
-			md1 = _mm_shuffle_epi8( md1, mask );
-			md1 = _mm_or_si128( md1, ma1 );
-			_mm_store_si128( (__m128i*)(dest+0), md1 );
+			md1 = simde_mm_shuffle_epi8( md1, mask );
+			md1 = simde_mm_or_si128( md1, ma1 );
+			simde_mm_store_si128( (simde__m128i*)(dest+0), md1 );
 			
-			md2 = _mm_shuffle_epi8( md2, mask2 );
-			md2 = _mm_or_si128( md2, ma2 );
-			_mm_store_si128( (__m128i*)(dest+4), md2 );
+			md2 = simde_mm_shuffle_epi8( md2, mask2 );
+			md2 = simde_mm_or_si128( md2, ma2 );
+			simde_mm_store_si128( (simde__m128i*)(dest+4), md2 );
 
 			dest += 8;
 		} while( dest < limit );
@@ -1288,7 +1280,6 @@ void TVPDoGrayScale_ssse3_c(tjs_uint32 *dest, tjs_int len ) {
 		dest++;
 	}
 }
-#endif
 #endif
 void TVPConvertAdditiveAlphaToAlpha_sse2_c(tjs_uint32 *buf, tjs_int len){
 	convert_func_sse2<sse2_premulalpha_to_alpha>( buf, len );
@@ -1543,14 +1534,12 @@ void TVPGL_SSE2_Init() {
 		}
 
 		// pixel format convert
-#ifdef __SSSE3__
 		if( TVPCPUType & TVP_CPU_HAS_SSSE3 )
 		{
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_ssse3_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_ssse3_c;
 		}
 		else
-#endif
 		{
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
@@ -1601,13 +1590,11 @@ void TVPGL_SSE2_Init() {
 		TVPSwapLine8 = TVPSwapLine8_sse2_c;
 		TVPSwapLine32 = TVPSwapLine32_sse2_c;
 		TVPReverse32 = TVPReverse32_sse2_c;
-#ifdef __SSSE3__
 		if( TVPCPUType & TVP_CPU_HAS_SSSE3 ) {
 			TVPReverse8 = TVPReverse8_ssse3_c;
 			TVPDoGrayScale = TVPDoGrayScale_ssse3_c;
 		}
 		else
-#endif
 		{
 			TVPReverse8 = TVPReverse8_sse2_c;
 			TVPDoGrayScale = TVPDoGrayScale_sse2_c;
@@ -1621,11 +1608,9 @@ void TVPGL_SSE2_Init() {
 
 		TVPInitializeResampleSSE2();
 	}
-#ifdef __AVX2__
 	if( TVPCPUType & TVP_CPU_HAS_AVX2 ) {
 		TVPGL_AVX2_Init();
 	}
-#endif
 }
 
 //#define SIMD_BLEND_TEST
@@ -1641,11 +1626,11 @@ enum CheckType {
 static void start_test( bool ischeckalpha, void* blend_a, void* blend_b, int check_type = CT_NOARMAL, tjs_int opa = 255 ) {
 	tjs_uint32 aux;
 	//unsigned long* src = _aligned_malloc( 256*256, 32 );
-	tjs_uint32* src = (tjs_uint32*)_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
-	tjs_uint32* src2 = (tjs_uint32*)_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
-	tjs_uint32* dst = (tjs_uint32*)_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
-	tjs_uint32* dst1 = (tjs_uint32*)_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
-	tjs_uint32* dst2 = (tjs_uint32*)_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
+	tjs_uint32* src = (tjs_uint32*)simde_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
+	tjs_uint32* src2 = (tjs_uint32*)simde_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
+	tjs_uint32* dst = (tjs_uint32*)simde_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
+	tjs_uint32* dst1 = (tjs_uint32*)simde_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
+	tjs_uint32* dst2 = (tjs_uint32*)simde_mm_malloc( 256*256*sizeof(tjs_uint32), 32 );
 
 	unsigned __int64 func_b_total = 0;
 	unsigned __int64 func_a_total = 0;
@@ -1767,11 +1752,11 @@ static void start_test( bool ischeckalpha, void* blend_a, void* blend_b, int che
 	printf( "mmx %lld : ", func_a_total );
 	printf( "rate %lld\n", (func_b_total)*100/(func_a_total) );
 
-	_mm_free( src );
-	_mm_free( src2 );
-	_mm_free( dst );
-	_mm_free( dst1 );
-	_mm_free( dst2 );
+	simde_mm_free( src );
+	simde_mm_free( src2 );
+	simde_mm_free( dst );
+	simde_mm_free( dst1 );
+	simde_mm_free( dst2 );
 }
 #define TEST_FUNC( name ) \
 	printf( "%s\n", #name );	\
@@ -1953,4 +1938,3 @@ void BlendTest_sse2_c() {
 
 #endif	// SIMD_BLEND_TEST
 
-#endif

@@ -1,6 +1,5 @@
 
 
-#ifdef __AVX2__
 
 #include "tjsCommHead.h"
 #include "tvpgl.h"
@@ -34,9 +33,9 @@ static inline void blend_func_avx2( tjs_uint32 * __restrict dest, const tjs_uint
 	tjs_uint32 rem = (len>>3)<<3;
 	tjs_uint32* limit = dest + rem;
 	while( dest < limit ) {
-		__m256i md = _mm256_loadu_si256( (__m256i const*)dest );
-		__m256i ms = _mm256_loadu_si256( (__m256i const*)src );
-		_mm256_storeu_si256( (__m256i*)dest, func( md, ms ) );
+		simde__m256i md = simde_mm256_loadu_si256( (simde__m256i const*)dest );
+		simde__m256i ms = simde_mm256_loadu_si256( (simde__m256i const*)src );
+		simde_mm256_storeu_si256( (simde__m256i*)dest, func( md, ms ) );
 		dest+=8; src+=8;
 	}
 	limit += (len-rem);
@@ -67,10 +66,10 @@ static inline void overlap_blend_func_avx2( tjs_uint32 * dest, const tjs_uint32 
 		}
 		while( len >= 0 ) {
 			// 8ピクセルずつコピー
-			__m256i md = _mm256_loadu_si256( (__m256i const*)&(dest[len-7]) );
-			__m256i ms = _mm256_loadu_si256( (__m256i const*)&(src[len-7]) );
+			simde__m256i md = simde_mm256_loadu_si256( (simde__m256i const*)&(dest[len-7]) );
+			simde__m256i ms = simde_mm256_loadu_si256( (simde__m256i const*)&(src[len-7]) );
 			md = func( md, ms );
-			_mm256_storeu_si256( (__m256i*)&(dest[len-7]), md );
+			simde_mm256_storeu_si256( (simde__m256i*)&(dest[len-7]), md );
 			len -= 8;
 		}
 	} else {
@@ -91,9 +90,9 @@ static inline void sd_blend_func_avx2( tjs_uint32 *dest, const tjs_uint32 *src1,
 	tjs_uint32 rem = (len>>3)<<3;
 	tjs_uint32* limit = dest + rem;
 	while( dest < limit ) {
-		__m256i ms1 = _mm256_loadu_si256( (__m256i const*)src1 );
-		__m256i ms2 = _mm256_loadu_si256( (__m256i const*)src2 );
-		_mm256_storeu_si256( (__m256i*)dest, func( ms1, ms2 ) );
+		simde__m256i ms1 = simde_mm256_loadu_si256( (simde__m256i const*)src1 );
+		simde__m256i ms2 = simde_mm256_loadu_si256( (simde__m256i const*)src2 );
+		simde_mm256_storeu_si256( (simde__m256i*)dest, func( ms1, ms2 ) );
 		dest+=8; src1+=8; src2+=8;
 	}
 	limit += (len-rem);
@@ -110,14 +109,14 @@ static void blend_src_branch_func_avx2( tjs_uint32 * __restrict dest, const tjs_
 
 	tjs_uint32 rem = (len>>3)<<3;
 	tjs_uint32* limit = dest + rem;
-	const __m256i alphamask = _mm256_set1_epi32(0xff000000);
+	const simde__m256i alphamask = simde_mm256_set1_epi32(0xff000000);
 	while( dest < limit ) {
-		__m256i ms = _mm256_loadu_si256( (__m256i const*)src );
-		if( _mm256_testc_si256( ms, alphamask ) ) {	// totally opaque
-			_mm256_storeu_si256( (__m256i*)dest, ms );
-		} else if( !_mm256_testz_si256( ms, alphamask ) ) {	// alpha != 0
-			__m256i md = _mm256_loadu_si256( (__m256i const*)dest );
-			_mm256_storeu_si256( (__m256i*)dest, func( md, ms ) );
+		simde__m256i ms = simde_mm256_loadu_si256( (simde__m256i const*)src );
+		if( simde_mm256_testc_si256( ms, alphamask ) ) {	// totally opaque
+			simde_mm256_storeu_si256( (simde__m256i*)dest, ms );
+		} else if( !simde_mm256_testz_si256( ms, alphamask ) ) {	// alpha != 0
+			simde__m256i md = simde_mm256_loadu_si256( (simde__m256i const*)dest );
+			simde_mm256_storeu_si256( (simde__m256i*)dest, func( md, ms ) );
 		}
 		dest+=8; src+=8;
 	}
@@ -379,5 +378,4 @@ void TVPGL_AVX2_Init() {
 		TVPInitializeResampleAVX2();
 	}
 }
-#endif
 

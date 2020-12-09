@@ -110,22 +110,16 @@ tjs_uint8 TVP_GUID_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT[16] =
 //---------------------------------------------------------------------------
 
 
-#ifdef __SSE__
 #include "DetectCPU.h"
-#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 #include "tvpgl_ia32_intf.h"
-#endif
-#endif
 
 //---------------------------------------------------------------------------
 // CPU specific optimized routine prototypes
 //---------------------------------------------------------------------------
 extern void PCMConvertLoopInt16ToFloat32(void * __restrict dest, const void * __restrict src, size_t numsamples);
 extern void PCMConvertLoopFloat32ToInt16(void * __restrict dest, const void * __restrict src, size_t numsamples);
-#ifdef __SSE__
 extern void PCMConvertLoopInt16ToFloat32_sse(void * __restrict dest, const void * __restrict src, size_t numsamples);
 extern void PCMConvertLoopFloat32ToInt16_sse(void * __restrict dest, const void * __restrict src, size_t numsamples);
-#endif
 
 
 //---------------------------------------------------------------------------
@@ -142,24 +136,16 @@ static void TVPConvertFloatPCMTo16bits(tjs_int16 *output, const float *input,
 	if(!downmix)
 	{
 		tjs_int total = channels * count;
-#ifdef __SSE__
-#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 		bool use_sse =
 				(TVPCPUType & TVP_CPU_HAS_MMX) &&
 				(TVPCPUType & TVP_CPU_HAS_SSE) &&
 				(TVPCPUType & TVP_CPU_HAS_CMOV);
-#else
-		bool use_sse = true;
-#endif
-#endif
 
-#ifdef __SSE__
 		if(use_sse)
 		{
 			PCMConvertLoopFloat32ToInt16_sse(output, input, total);
 		}
 		else
-#endif
 		{
 			PCMConvertLoopFloat32ToInt16(output, input, total);
 		}
@@ -396,23 +382,17 @@ static void TVPConvertIntegerPCMToFloat(float *output, const void *input,
 
 		if(validbits == 16)
 		{
-#ifdef __SSE__
 			// most popular
-#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 			bool use_sse =
 					(TVPCPUType & TVP_CPU_HAS_MMX) &&
 					(TVPCPUType & TVP_CPU_HAS_SSE) &&
 					(TVPCPUType & TVP_CPU_HAS_CMOV);
-#else
-			bool use_sse = true;
-#endif
 
 			if(use_sse)
 			{
 				PCMConvertLoopInt16ToFloat32_sse(output, p, total);
 			}
 			else
-#endif
 			{
 				PCMConvertLoopInt16ToFloat32(output, p, total);
 			}

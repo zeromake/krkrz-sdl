@@ -45,7 +45,6 @@
 
 #include "tjsCommHead.h"
 #include <memory.h>
-#ifdef __SSE__
 
 //---------------------------------------------------------------------------
 
@@ -56,20 +55,14 @@
 #endif
 
 
-#if	(defined(__SSE__)&&defined(__GNUC__))||defined(_MSC_VER)
 
 #if __cplusplus >= 201703L
 #define register
 #endif
 
 /* We need type definitions from the XMM header file.  */
-#include <xmmintrin.h>
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
-#ifdef	_MSC_VER
-#include <emmintrin.h>	// if gcc is 3.4, this file need to include.
-#endif
+#include <simde/x86/sse.h>
+#include <simde/x86/sse2.h>
 
 #ifdef __GNUC__
 #define _SALIGN16(x) static x __attribute__((aligned(16)))
@@ -78,9 +71,9 @@
 #define _SALIGN16(x) __declspec(align(16)) static x
 #define _ALIGN16(x) __declspec(align(16)) x
 #endif
-#define PM64(x)		(*(__m64*)(x))
-#define PM128(x)	(*(__m128*)(x))
-#define PM128I(x)	(*(__m128i*)(x))
+#define PM64(x)		(*(simde__m64*)(x))
+#define PM128(x)	(*(simde__m128*)(x))
+#define PM128I(x)	(*(simde__m128i*)(x))
 
 typedef union {
 	unsigned char	si8[8];
@@ -89,31 +82,27 @@ typedef union {
 	char			ssi8[8];
 	short			ssi16[4];
 	long			ssi32[2];
-	__m64			pi64;
+	simde__m64			pi64;
 } __m64x;
 
 #if		defined(_MSC_VER)
 typedef union __declspec(intrin_type) __declspec(align(16)) __m128x{
 	unsigned long	si32[4];
 	float			sf[4];
-	__m64			pi64[2];
-	__m128			ps;
-#ifdef	__SSE2__
-	__m128i			pi;
-	__m128d			pd;
-#endif
+	simde__m64			pi64[2];
+	simde__m128			ps;
+	simde__m128i			pi;
+	simde__m128d			pd;
 } __m128x;
 
 #elif	defined(__GNUC__)
 typedef union {
 	unsigned long	si32[4];
 	float			sf[4];
-	__m64			pi64[2];
-	__m128			ps;
-#ifdef	__SSE2__
-	__m128i			pi;
-	__m128d			pd;
-#endif
+	simde__m64			pi64[2];
+	simde__m128			ps;
+	simde__m128i			pi;
+	simde__m128d			pd;
 } __m128x __attribute__((aligned(16)));
 
 #endif
@@ -148,62 +137,61 @@ extern _ALIGN16(const float) PFV_8[4];
 extern _ALIGN16(const float) PFV_INIT[4];
 extern _ALIGN16(const float) PFV_0P5[4];
 
-inline __m128 _mm_untnorm_ps(__m128 x)
+inline simde__m128 simde_mm_untnorm_ps(simde__m128 x)
 {
 	_SALIGN16(const tjs_uint32)	PIV0[4]	 = {
 		0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000
 	};
-	register __m128 r;
-	r	 = _mm_and_ps(x, PM128(PCS_RRRR));
-	r	 = _mm_or_ps(x, PM128(PIV0));
+	register simde__m128 r;
+	r	 = simde_mm_and_ps(x, PM128(PCS_RRRR));
+	r	 = simde_mm_or_ps(x, PM128(PIV0));
 	return	r;
 }
 
-inline float _mm_add_horz(__m128 x)
+inline float simde_mm_add_horz(simde__m128 x)
 {
-	__m128	y;
-	y	 = _mm_movehl_ps(y, x);
-	x	 = _mm_add_ps(x, y);
+	simde__m128	y;
+	y	 = simde_mm_movehl_ps(y, x);
+	x	 = simde_mm_add_ps(x, y);
 	y	 = x;
-	y	 = _mm_shuffle_ps(y, y, _MM_SHUFFLE(1,1,1,1));
-	x	 = _mm_add_ss(x, y);
-	return _mm_cvtss_f32(x);
+	y	 = simde_mm_shuffle_ps(y, y, SIMDE_MM_SHUFFLE(1,1,1,1));
+	x	 = simde_mm_add_ss(x, y);
+	return simde_mm_cvtss_f32(x);
 }
 
-inline __m128 _mm_add_horz_ss(__m128 x)
+inline simde__m128 simde_mm_add_horz_ss(simde__m128 x)
 {
-	__m128	y;
-	y	 = _mm_movehl_ps(y, x);
-	x	 = _mm_add_ps(x, y);
+	simde__m128	y;
+	y	 = simde_mm_movehl_ps(y, x);
+	x	 = simde_mm_add_ps(x, y);
 	y	 = x;
-	y	 = _mm_shuffle_ps(y, y, _MM_SHUFFLE(1,1,1,1));
-	x	 = _mm_add_ss(x, y);
+	y	 = simde_mm_shuffle_ps(y, y, SIMDE_MM_SHUFFLE(1,1,1,1));
+	x	 = simde_mm_add_ss(x, y);
 	return x;
 }
 
-inline float _mm_max_horz(__m128 x)
+inline float simde_mm_max_horz(simde__m128 x)
 {
-	__m128	y;
-	y	 = _mm_movehl_ps(y, x);
-	x	 = _mm_max_ps(x, y);
+	simde__m128	y;
+	y	 = simde_mm_movehl_ps(y, x);
+	x	 = simde_mm_max_ps(x, y);
 	y	 = x;
-	y	 = _mm_shuffle_ps(y, y, _MM_SHUFFLE(1,1,1,1));
-	x	 = _mm_max_ss(x, y);
-	return _mm_cvtss_f32(x);
+	y	 = simde_mm_shuffle_ps(y, y, SIMDE_MM_SHUFFLE(1,1,1,1));
+	x	 = simde_mm_max_ss(x, y);
+	return simde_mm_cvtss_f32(x);
 }
 
-inline float _mm_min_horz(__m128 x)
+inline float simde_mm_min_horz(simde__m128 x)
 {
-	__m128	y;
-	y	 = _mm_movehl_ps(y, x);
-	x	 = _mm_min_ps(x, y);
+	simde__m128	y;
+	y	 = simde_mm_movehl_ps(y, x);
+	x	 = simde_mm_min_ps(x, y);
 	y	 = x;
-	y	 = _mm_shuffle_ps(y, y, _MM_SHUFFLE(1,1,1,1));
-	x	 = _mm_min_ss(x, y);
-	return _mm_cvtss_f32(x);
+	y	 = simde_mm_shuffle_ps(y, y, SIMDE_MM_SHUFFLE(1,1,1,1));
+	x	 = simde_mm_min_ss(x, y);
+	return simde_mm_cvtss_f32(x);
 }
 
-#endif /* (defined(__SSE__)&&defined(__GNUC__))||defined(_MSC_VER) */
 
 
 /**
@@ -219,5 +207,4 @@ inline bool IsAlignedTo128bits(const void * p)
 
 //---------------------------------------------------------------------------
 
-#endif
 #endif /* _XMMLIB_H_INCLUDED */

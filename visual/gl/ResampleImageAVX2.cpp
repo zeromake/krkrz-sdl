@@ -1,5 +1,4 @@
 
-#ifdef __AVX2__
 
 #define _USE_MATH_DEFINES
 
@@ -13,9 +12,10 @@
 #include <cmath>
 #include <vector>
 
-#include <xmmintrin.h> // SSE
-#include <emmintrin.h> // SSE2
-#include <immintrin.h> // AVX/AVX2
+#include <simde/x86/sse.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/avx.h>
+#include <simde/x86/avx2.h>
 
 #include "x86simdutil.h"
 #include "aligned_allocator.h"
@@ -23,15 +23,15 @@
 #include "WeightFunctorAVX.h"
 #include "ResampleImageInternal.h"
 
-static __m256 M256_PS_STEP;
-static __m256 M256_PS_8_0;
-static __m256 M256_PS_FIXED15;
-static __m256i M256_U32_FIXED_ROUND;
-static __m256i M256_U32_FIXED_COLOR_MASK;
-static __m256i M256_U32_FIXED_COLOR_MASK8;
-static __m256i M256_U32_TOP_MASK;
-static __m256 M256_EPSILON;
-static __m256 M256_ABS_MASK;
+static simde__m256 M256_PS_STEP;
+static simde__m256 M256_PS_8_0;
+static simde__m256 M256_PS_FIXED15;
+static simde__m256i M256_U32_FIXED_ROUND;
+static simde__m256i M256_U32_FIXED_COLOR_MASK;
+static simde__m256i M256_U32_FIXED_COLOR_MASK8;
+static simde__m256i M256_U32_TOP_MASK;
+static simde__m256 M256_EPSILON;
+static simde__m256 M256_ABS_MASK;
 
 
 /**
@@ -73,15 +73,15 @@ void TVPCalculateAxisAreaAvgAVX( int srcstart, int srcend, int srclength, int ds
 static bool InitializedResampleAVX2 = false;
 void TVPInitializeResampleAVX2() {
 	if( !InitializedResampleAVX2 ) {
-		M256_PS_STEP = ( _mm256_set_ps(7.0f,6.0f,5.0f,4.0f,3.0f,2.0f,1.0f,0.0f) );
-		M256_PS_8_0 = ( _mm256_set1_ps( 8.0f ) );
-		M256_PS_FIXED15 = ( _mm256_set1_ps( (float)(1<<15) ) );
-		M256_U32_FIXED_ROUND = ( (_mm256_set1_epi32(0x00200020)) );
-		M256_U32_FIXED_COLOR_MASK = ( (_mm256_set1_epi32(0x00ff00ff)) );
-		M256_U32_FIXED_COLOR_MASK8 = ( (_mm256_set1_epi32(0x000000ff)) );
-		M256_U32_TOP_MASK = ( _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0xffffffff) );
-		M256_EPSILON = ( _mm256_set1_ps( FLT_EPSILON ) );
-		M256_ABS_MASK = ( _mm256_castsi256_ps(_mm256_set1_epi32(0x7fffffff)) );
+		M256_PS_STEP = ( simde_mm256_set_ps(7.0f,6.0f,5.0f,4.0f,3.0f,2.0f,1.0f,0.0f) );
+		M256_PS_8_0 = ( simde_mm256_set1_ps( 8.0f ) );
+		M256_PS_FIXED15 = ( simde_mm256_set1_ps( (float)(1<<15) ) );
+		M256_U32_FIXED_ROUND = ( (simde_mm256_set1_epi32(0x00200020)) );
+		M256_U32_FIXED_COLOR_MASK = ( (simde_mm256_set1_epi32(0x00ff00ff)) );
+		M256_U32_FIXED_COLOR_MASK8 = ( (simde_mm256_set1_epi32(0x000000ff)) );
+		M256_U32_TOP_MASK = ( simde_mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0xffffffff) );
+		M256_EPSILON = ( simde_mm256_set1_ps( FLT_EPSILON ) );
+		M256_ABS_MASK = ( simde_mm256_castsi256_ps(simde_mm256_set1_epi32(0x7fffffff)) );
 		InitializedResampleAVX2 = true;
 	}
 }
@@ -126,38 +126,38 @@ struct AxisParamAVX2 {
 		}
 	}
 	// 合計値を求める
-	static inline __m256 sumWeight( float* weight, int len8 ) {
+	static inline simde__m256 sumWeight( float* weight, int len8 ) {
 		float* w = weight;
-		__m256 sum = _mm256_setzero_ps();
+		simde__m256 sum = simde_mm256_setzero_ps();
 		for( int i = 0; i < len8; i+=8 ) {
-			__m256 weight8 = _mm256_load_ps( w );
-			sum = _mm256_add_ps( sum, weight8 );
+			simde__m256 weight8 = simde_mm256_load_ps( w );
+			sum = simde_mm256_add_ps( sum, weight8 );
 			w += 8;
 		}
 		return m256_hsum_avx_ps(sum);
 	}
 	static inline void normalizeAndFixed( float* weight, tjs_uint32*& output, int& len, int len8, bool strip ) {
 		// 合計値を求める
-		__m256 sum = sumWeight( weight, len8 );
+		simde__m256 sum = sumWeight( weight, len8 );
 
 		// EPSILON より小さい場合は 0 を設定
-		const __m256 one = M256_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
-		__m256 onemask = _mm256_cmp_ps( sum, M256_EPSILON, _CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-		__m256 rcp = m256_rcp_22bit_ps( sum );
-		rcp = _mm256_mul_ps( rcp, one );	// 先にシフト分も掛けておく
-		rcp = _mm256_and_ps( rcp, onemask );
+		const simde__m256 one = M256_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
+		simde__m256 onemask = simde_mm256_cmp_ps( sum, M256_EPSILON, SIMDE_CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+		simde__m256 rcp = m256_rcp_22bit_ps( sum );
+		rcp = simde_mm256_mul_ps( rcp, one );	// 先にシフト分も掛けておく
+		rcp = simde_mm256_and_ps( rcp, onemask );
 		float* w = weight;
 		// 正規化と固定小数点化
 		for( int i = 0; i < len8; i+=8 ) {
-			__m256 weight8 = _mm256_load_ps( w ); w += 8;
-			weight8 = _mm256_mul_ps( weight8, rcp );
+			simde__m256 weight8 = simde_mm256_load_ps( w ); w += 8;
+			weight8 = simde_mm256_mul_ps( weight8, rcp );
 
 			// 固定小数点化
-			__m256i fix = _mm256_cvtps_epi32( weight8 );
-			fix = _mm256_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
-			fix = _mm256_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
-			//_mm256_store_si256( (__m256i*)output, fix );	// tjs_uint32 に short*2 で同じ値を格納する
-			_mm256_storeu_si256( (__m256i*)output, fix );	// tjs_uint32 に short*2 で同じ値を格納する
+			simde__m256i fix = simde_mm256_cvtps_epi32( weight8 );
+			fix = simde_mm256_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
+			fix = simde_mm256_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
+			//simde_mm256_store_si256( (simde__m256i*)output, fix );	// tjs_uint32 に short*2 で同じ値を格納する
+			simde_mm256_storeu_si256( (simde__m256i*)output, fix );	// tjs_uint32 に short*2 で同じ値を格納する
 			output += 8;
 		}
 		if( strip ) {
@@ -179,18 +179,18 @@ struct AxisParamAVX2 {
 	}
 	static inline void normalize( float* weight, float*& output, int& len, int len8, bool strip ) {
 		// 合計値を求める
-		__m256 sum = sumWeight( weight, len8 );
+		simde__m256 sum = sumWeight( weight, len8 );
 
 		// EPSILON より小さい場合は 0 を設定
-		__m256 onemask = _mm256_cmp_ps( sum, M256_EPSILON, _CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-		__m256 rcp = m256_rcp_22bit_ps( sum );
-		rcp = _mm256_and_ps( rcp, onemask );
+		simde__m256 onemask = simde_mm256_cmp_ps( sum, M256_EPSILON, SIMDE_CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+		simde__m256 rcp = m256_rcp_22bit_ps( sum );
+		rcp = simde_mm256_and_ps( rcp, onemask );
 		float* w = weight;
 		// 正規化
 		for( int i = 0; i < len8; i+=8 ) {
-			__m256 weight8 = _mm256_load_ps( w ); w += 8;
-			weight8 = _mm256_mul_ps( weight8, rcp );
-			_mm256_storeu_ps( (float*)output, weight8 );
+			simde__m256 weight8 = simde_mm256_load_ps( w ); w += 8;
+			weight8 = simde_mm256_mul_ps( weight8, rcp );
+			simde_mm256_storeu_ps( (float*)output, weight8 );
 			output += 8;
 		}
 		if( strip ) {
@@ -232,9 +232,9 @@ struct AxisParamAVX2 {
 #else
 			weight_.reserve( length );
 #endif
-			const __m256 delta8 = M256_PS_8_0;
-			const __m256 deltafirst = M256_PS_STEP;//_mm256_set_ps( 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f );
-			const __m256 absmask = M256_ABS_MASK;
+			const simde__m256 delta8 = M256_PS_8_0;
+			const simde__m256 deltafirst = M256_PS_STEP;//simde_mm256_set_ps( 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f );
+			const simde__m256 absmask = M256_ABS_MASK;
 			TWeight* output = &weight_[0];
 			for( int x = 0; x < dstlength; x++ ) {
 				float cx = (x+0.5f)*(float)srclength/(float)dstlength + srcstart;
@@ -252,16 +252,16 @@ struct AxisParamAVX2 {
 				}
 				start_.push_back( start );
 				int len = right - left;
-				__m256 dist8 = _mm256_set1_ps((float)left+0.5f-cx);
+				simde__m256 dist8 = simde_mm256_set1_ps((float)left+0.5f-cx);
 				int len8 = ((len+7)>>3)<<3;	// 8 の倍数化
 				float* w = weight;
 				// まずは最初の要素のみ処理する
-				dist8 = _mm256_add_ps( dist8, deltafirst );
-				_mm256_store_ps( w, func( _mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
+				dist8 = simde_mm256_add_ps( dist8, deltafirst );
+				simde_mm256_store_ps( w, func( simde_mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
 				w += 8;
 				for( int sx = 8; sx < len8; sx+=8 ) {
-					dist8 = _mm256_add_ps( dist8, delta8 );	// 8つずつスライド
-					_mm256_store_ps( w, func( _mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
+					dist8 = simde_mm256_add_ps( dist8, delta8 );	// 8つずつスライド
+					simde_mm256_store_ps( w, func( simde_mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
 					w += 8;
 				}
 				calculateWeight( weight, output, len, leftedge, rightedge, strip );
@@ -288,14 +288,14 @@ struct AxisParamAVX2 {
 			TWeight* output = &weight_[0];
 			const float delta = (float)dstlength/(float)srclength; // 転送先座標での位置増分
 
-			__m256 delta8 = _mm256_set1_ps(delta);
-			__m256 deltafirst = M256_PS_STEP;//_mm256_set_ps( 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f );
-			const __m256 absmask = M256_ABS_MASK;
-			deltafirst = _mm256_mul_ps( deltafirst, delta8 );	// 0 1 2 3 と順に加算されるようにする
+			simde__m256 delta8 = simde_mm256_set1_ps(delta);
+			simde__m256 deltafirst = M256_PS_STEP;//simde_mm256_set_ps( 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f );
+			const simde__m256 absmask = M256_ABS_MASK;
+			deltafirst = simde_mm256_mul_ps( deltafirst, delta8 );	// 0 1 2 3 と順に加算されるようにする
 			// 8倍する
-			delta8 = _mm256_add_ps( delta8, delta8 );
-			delta8 = _mm256_add_ps( delta8, delta8 );
-			delta8 = _mm256_add_ps( delta8, delta8 );
+			delta8 = simde_mm256_add_ps( delta8, delta8 );
+			delta8 = simde_mm256_add_ps( delta8, delta8 );
+			delta8 = simde_mm256_add_ps( delta8, delta8 );
 			for( int x = 0; x < dstlength; x++ ) {
 				float cx = (x+0.5f)*(float)srclength/(float)dstlength + srcstart;
 				int left = (int)std::floor(cx-rangex);
@@ -314,16 +314,16 @@ struct AxisParamAVX2 {
 				// 転送先座標での位置
 				int len = right-left;
 				float dx = (left+0.5f-cx) * delta;
-				__m256 dist8 = _mm256_set1_ps(dx);
+				simde__m256 dist8 = simde_mm256_set1_ps(dx);
 				int len8 = ((len+7)>>3)<<3;	// 8 の倍数化
 				float* w = weight;
 				// まずは最初の要素のみ処理する
-				dist8 = _mm256_add_ps( dist8, deltafirst );
-				_mm256_store_ps( w, func( _mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
+				dist8 = simde_mm256_add_ps( dist8, deltafirst );
+				simde_mm256_store_ps( w, func( simde_mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
 				w += 8;
 				for( int sx = 8; sx < len8; sx+=8 ) {
-					dist8 = _mm256_add_ps( dist8, delta8 );	// 8つずつスライド
-					_mm256_store_ps( w, func( _mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
+					dist8 = simde_mm256_add_ps( dist8, delta8 );	// 8つずつスライド
+					simde_mm256_store_ps( w, func( simde_mm256_and_ps( dist8, absmask ) ) );	// 絶対値+weight計算
 					w += 8;
 				}
 				calculateWeight( weight, output, len, leftedge, rightedge, strip );
@@ -339,12 +339,12 @@ struct AxisParamAVX2 {
 		}
 	}
 	// 合計値を求める
-	static inline __m256 sumWeightUnalign( float* weight, int len8 ) {
+	static inline simde__m256 sumWeightUnalign( float* weight, int len8 ) {
 		float* w = weight;
-		__m256 sum = _mm256_setzero_ps();
+		simde__m256 sum = simde_mm256_setzero_ps();
 		for( int i = 0; i < len8; i+=8 ) {
-			__m256 weight8 = _mm256_loadu_ps( w );
-			sum = _mm256_add_ps( sum, weight8 );
+			simde__m256 weight8 = simde_mm256_loadu_ps( w );
+			sum = simde_mm256_add_ps( sum, weight8 );
 			w += 8;
 		}
 		return m256_hsum_avx_ps(sum);
@@ -353,7 +353,7 @@ struct AxisParamAVX2 {
 	void normalizeAreaAvg( float* wstart, float* dweight, tjs_uint size, bool strip ) {
 		const int count = (const int)length_.size();
 		int dwindex = 0;
-		const __m256 epsilon = M256_EPSILON;
+		const simde__m256 epsilon = M256_EPSILON;
 		for( int i = 0; i < count; i++ ) {
 			float* dw = dweight;
 			int len = length_[i];
@@ -375,7 +375,7 @@ struct AxisParamAVX2 {
 			dweight = dw;
 
 			// 合計値を求める
-			__m256 sum;
+			simde__m256 sum;
 			if( strip ) {
 				sum = sumWeightUnalign( w, len8 );
 			} else {
@@ -383,14 +383,14 @@ struct AxisParamAVX2 {
 			}
 
 			// EPSILON より小さい場合は 0 を設定
-			__m256 onemask = _mm256_cmp_ps( sum, epsilon, _CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-			__m256 rcp = m256_rcp_22bit_ps( sum );
-			rcp = _mm256_and_ps( rcp, onemask );
+			simde__m256 onemask = simde_mm256_cmp_ps( sum, epsilon, SIMDE_CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+			simde__m256 rcp = m256_rcp_22bit_ps( sum );
+			rcp = simde_mm256_and_ps( rcp, onemask );
 			// 正規化
 			for( int j = 0; j < len8; j += 8 ) {
-				__m256 weight8 = _mm256_loadu_ps( w );
-				weight8 = _mm256_mul_ps( weight8, rcp );
-				_mm256_storeu_ps( (float*)w, weight8 );
+				simde__m256 weight8 = simde_mm256_loadu_ps( w );
+				weight8 = simde_mm256_mul_ps( weight8, rcp );
+				simde_mm256_storeu_ps( (float*)w, weight8 );
 				w += 8;
 			}
 			if( strip ) {
@@ -411,8 +411,8 @@ struct AxisParamAVX2 {
 		work.reserve( size );
 #endif
 		int dwindex = 0;
-		const __m256 one = M256_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
-		const __m256 epsilon = M256_EPSILON;
+		const simde__m256 one = M256_PS_FIXED15; // 符号付なので。あと正規化されているから、最大値は1になる
+		const simde__m256 epsilon = M256_EPSILON;
 		for( int i = 0; i < count; i++ ) {
 			float* dw = &work[0];
 			int len = length_[i];
@@ -433,22 +433,22 @@ struct AxisParamAVX2 {
 			}
 
 			// 合計値を求める
-			__m256 sum = sumWeight( w, len8 );
+			simde__m256 sum = sumWeight( w, len8 );
 
 			// EPSILON より小さい場合は 0 を設定
-			__m256 onemask = _mm256_cmp_ps( sum, epsilon, _CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; _mm_cmpgt_ps
-			__m256 rcp = m256_rcp_22bit_ps( sum );
-			rcp = _mm256_mul_ps( rcp, one );	// 先にシフト分も掛けておく
-			rcp = _mm256_and_ps( rcp, onemask );
+			simde__m256 onemask = simde_mm256_cmp_ps( sum, epsilon, SIMDE_CMP_GT_OS ); // sum > FLT_EPSILON ? 0xffffffff : 0; simde_mm_cmpgt_ps
+			simde__m256 rcp = m256_rcp_22bit_ps( sum );
+			rcp = simde_mm256_mul_ps( rcp, one );	// 先にシフト分も掛けておく
+			rcp = simde_mm256_and_ps( rcp, onemask );
 			// 正規化
 			for( int j = 0; j < len8; j += 8 ) {
-				__m256 weight8 = _mm256_load_ps( w ); w += 8;
-				weight8 = _mm256_mul_ps( weight8, rcp );
+				simde__m256 weight8 = simde_mm256_load_ps( w ); w += 8;
+				weight8 = simde_mm256_mul_ps( weight8, rcp );
 				// 固定小数点化
-				__m256i fix = _mm256_cvtps_epi32( weight8 );
-				fix = _mm256_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
-				fix = _mm256_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
-				_mm256_storeu_si256( (__m256i*)dweight, fix );	// tjs_uint32 に short*2 で同じ値を格納する
+				simde__m256i fix = simde_mm256_cvtps_epi32( weight8 );
+				fix = simde_mm256_packs_epi32( fix, fix );		// 16bit化 [01 02 03 04 01 02 03 04]
+				fix = simde_mm256_unpacklo_epi16( fix, fix );	// 01 01 02 02 03 03 04 04
+				simde_mm256_storeu_si256( (simde__m256i*)dweight, fix );	// tjs_uint32 に short*2 で同じ値を格納する
 				dweight += 8;
 			}
 			if( strip ) {
@@ -519,54 +519,54 @@ public:
 			weightx += paramx_.length_[x];
 		}
 		const tjs_uint32* src = srcbits;
-		const __m256i cmask = M256_U32_FIXED_COLOR_MASK;
-		const __m256i storemask = M256_U32_TOP_MASK;
-		const __m256i fixround = M256_U32_FIXED_ROUND;
+		const simde__m256i cmask = M256_U32_FIXED_COLOR_MASK;
+		const simde__m256i storemask = M256_U32_TOP_MASK;
+		const simde__m256i fixround = M256_U32_FIXED_ROUND;
 		for( int x = offsetx; x < dstwidth; x++ ) {
 			const int left = paramx_.start_[x];
 			int right = left + paramx_.length_[x];
-			__m256i color_lo = _mm256_setzero_si256();
-			__m256i color_hi = _mm256_setzero_si256();
+			simde__m256i color_lo = simde_mm256_setzero_si256();
+			simde__m256i color_hi = simde_mm256_setzero_si256();
 			// 8ピクセルずつ処理する
 			for( int sx = left; sx < right; sx+=8 ) {
-				__m256i col8 = _mm256_loadu_si256( (const __m256i*)&src[sx] ); // 8ピクセル読み込み
-				__m256i weight8 = _mm256_loadu_si256( (const __m256i*)weightx ); // ウェイト(固定少数)8つ(16bitで16)読み込み 0 1 2 3 アライメント済み
+				simde__m256i col8 = simde_mm256_loadu_si256( (const simde__m256i*)&src[sx] ); // 8ピクセル読み込み
+				simde__m256i weight8 = simde_mm256_loadu_si256( (const simde__m256i*)weightx ); // ウェイト(固定少数)8つ(16bitで16)読み込み 0 1 2 3 アライメント済み
 				weightx += 8;
 
-				__m256i col = _mm256_and_si256( col8, cmask );	// 00 RR 00 BB & 0x00ff00ff
-				col = _mm256_slli_epi16( col, 7 );	// << 7
-				col = _mm256_mulhi_epi16( col, weight8 );
-				color_lo = _mm256_adds_epi16( color_lo, col );
+				simde__m256i col = simde_mm256_and_si256( col8, cmask );	// 00 RR 00 BB & 0x00ff00ff
+				col = simde_mm256_slli_epi16( col, 7 );	// << 7
+				col = simde_mm256_mulhi_epi16( col, weight8 );
+				color_lo = simde_mm256_adds_epi16( color_lo, col );
 
-				col = _mm256_srli_epi16( col8, 8 );	// 00 AA 00 GG
-				col = _mm256_slli_epi16( col, 7 );	// << 7
-				col = _mm256_mulhi_epi16( col, weight8 );
-				color_hi = _mm256_adds_epi16( color_hi, col );
+				col = simde_mm256_srli_epi16( col8, 8 );	// 00 AA 00 GG
+				col = simde_mm256_slli_epi16( col, 7 );	// << 7
+				col = simde_mm256_mulhi_epi16( col, weight8 );
+				color_hi = simde_mm256_adds_epi16( color_hi, col );
 			}
 			{	// AVX - 水平加算
-				__m256i sumlo = color_lo;
-				color_lo = _mm256_shuffle_epi32( color_lo, _MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
-				sumlo = _mm256_adds_epi16( sumlo, color_lo );
-				color_lo = _mm256_shuffle_epi32( sumlo, _MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
-				sumlo = _mm256_adds_epi16( sumlo, color_lo );
-				color_lo = _mm256_permute2x128_si256( sumlo, sumlo, 0 << 4 | 1 ); // 128bit で前後反転
-				sumlo = _mm256_adds_epi16( sumlo, color_lo );
-				sumlo = _mm256_adds_epi16( sumlo, fixround );
-				sumlo = _mm256_srai_epi16( sumlo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
+				simde__m256i sumlo = color_lo;
+				color_lo = simde_mm256_shuffle_epi32( color_lo, SIMDE_MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
+				sumlo = simde_mm256_adds_epi16( sumlo, color_lo );
+				color_lo = simde_mm256_shuffle_epi32( sumlo, SIMDE_MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
+				sumlo = simde_mm256_adds_epi16( sumlo, color_lo );
+				color_lo = simde_mm256_permute2x128_si256( sumlo, sumlo, 0 << 4 | 1 ); // 128bit で前後反転
+				sumlo = simde_mm256_adds_epi16( sumlo, color_lo );
+				sumlo = simde_mm256_adds_epi16( sumlo, fixround );
+				sumlo = simde_mm256_srai_epi16( sumlo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
 
-				__m256i sumhi = color_hi;
-				color_hi = _mm256_shuffle_epi32( color_hi, _MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
-				sumhi = _mm256_adds_epi16( sumhi, color_hi );
-				color_hi = _mm256_shuffle_epi32( sumhi, _MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
-				sumhi = _mm256_adds_epi16( sumhi, color_hi );
-				color_hi = _mm256_permute2x128_si256( sumhi, sumhi, 0 << 4 | 1 ); // 128bit で前後反転
-				sumhi = _mm256_adds_epi16( sumhi, color_hi );
-				sumhi = _mm256_adds_epi16( sumhi, fixround );
-				sumhi = _mm256_srai_epi16( sumhi, 6 ); // 固定小数点から整数化
+				simde__m256i sumhi = color_hi;
+				color_hi = simde_mm256_shuffle_epi32( color_hi, SIMDE_MM_SHUFFLE(1,0,3,2) ); // 0 1 2 3 + 1 0 3 2
+				sumhi = simde_mm256_adds_epi16( sumhi, color_hi );
+				color_hi = simde_mm256_shuffle_epi32( sumhi, SIMDE_MM_SHUFFLE(2,3,0,1) ); // 3 2 1 0
+				sumhi = simde_mm256_adds_epi16( sumhi, color_hi );
+				color_hi = simde_mm256_permute2x128_si256( sumhi, sumhi, 0 << 4 | 1 ); // 128bit で前後反転
+				sumhi = simde_mm256_adds_epi16( sumhi, color_hi );
+				sumhi = simde_mm256_adds_epi16( sumhi, fixround );
+				sumhi = simde_mm256_srai_epi16( sumhi, 6 ); // 固定小数点から整数化
 
-				sumlo = _mm256_unpacklo_epi16( sumlo, sumhi );
-				sumlo = _mm256_packus_epi16( sumlo, sumlo );
-				_mm256_maskstore_epi32( (int*)dstbits, storemask, sumlo );
+				sumlo = simde_mm256_unpacklo_epi16( sumlo, sumhi );
+				sumlo = simde_mm256_packus_epi16( sumlo, sumlo );
+				simde_mm256_maskstore_epi32( (int*)dstbits, storemask, sumlo );
 			}
 			dstbits++;
 		}
@@ -581,42 +581,42 @@ public:
 		const int len = paramy_.length_min_[y];
 		const int bottom = top + len;
 		const tjs_uint32* weighty = wstarty;
-		const __m256i cmask = M256_U32_FIXED_COLOR_MASK;
-		const __m256i fixround = M256_U32_FIXED_ROUND;
+		const simde__m256i cmask = M256_U32_FIXED_COLOR_MASK;
+		const simde__m256i fixround = M256_U32_FIXED_ROUND;
 		//const tjs_uint32* srctop = (const tjs_uint32*)src->GetScanLine(top+srcrect.top) + srcrect.left;
 		const tjs_uint32* srctop = (const tjs_uint32*)src->GetScanLine(top) + srcrect.left;	// 軸計算時にオフセットは計算済み
 		tjs_int stride = src->GetPitchBytes()/(int)sizeof(tjs_uint32);
 		for( int x = 0; x < srcwidth; x+=8 ) {
 			weighty = wstarty;
-			__m256i color_lo = _mm256_setzero_si256();
-			__m256i color_hi = _mm256_setzero_si256();
+			simde__m256i color_lo = simde_mm256_setzero_si256();
+			simde__m256i color_hi = simde_mm256_setzero_si256();
 			const tjs_uint32* srcbits = &srctop[x];
 			for( int sy = top; sy < bottom; sy++ ) {
-				__m256i col8 = _mm256_loadu_si256( (const __m256i*)srcbits ); // 8列読み込み
+				simde__m256i col8 = simde_mm256_loadu_si256( (const simde__m256i*)srcbits ); // 8列読み込み
 				srcbits += stride;
-				__m256i weight8 = _mm256_set1_epi32( (int)*weighty ); // weight は、同じ値を設定
+				simde__m256i weight8 = simde_mm256_set1_epi32( (int)*weighty ); // weight は、同じ値を設定
 				weighty++;
 
-				__m256i col = _mm256_and_si256( col8, cmask );	// 00 RR 00 BB
-				col = _mm256_slli_epi16( col, 7 );	// << 7
-				col = _mm256_mulhi_epi16( col, weight8 );
-				color_lo = _mm256_adds_epi16( color_lo, col );
+				simde__m256i col = simde_mm256_and_si256( col8, cmask );	// 00 RR 00 BB
+				col = simde_mm256_slli_epi16( col, 7 );	// << 7
+				col = simde_mm256_mulhi_epi16( col, weight8 );
+				color_lo = simde_mm256_adds_epi16( color_lo, col );
 
-				col = _mm256_srli_epi16( col8, 8 );	// 00 AA 00 GG
-				col = _mm256_slli_epi16( col, 7 );	// << 7
-				col = _mm256_mulhi_epi16( col, weight8 );
-				color_hi = _mm256_adds_epi16( color_hi, col );
+				col = simde_mm256_srli_epi16( col8, 8 );	// 00 AA 00 GG
+				col = simde_mm256_slli_epi16( col, 7 );	// << 7
+				col = simde_mm256_mulhi_epi16( col, weight8 );
+				color_hi = simde_mm256_adds_epi16( color_hi, col );
 			}
 			{
-				color_lo = _mm256_adds_epi16( color_lo, fixround );
-				color_hi = _mm256_adds_epi16( color_hi, fixround );
-				color_lo = _mm256_srai_epi16( color_lo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
-				color_hi = _mm256_srai_epi16( color_hi, 6 ); // 固定小数点から整数化
-				__m256i lo = _mm256_unpacklo_epi16( color_lo, color_hi );
-				__m256i hi = _mm256_unpackhi_epi16( color_lo, color_hi );
-				color_lo = _mm256_packus_epi16( lo, hi );
-				//_mm256_storeu_si256( (__m256i *)&dstbits[x], color_lo );
-				_mm256_store_si256( (__m256i *)&dstbits[x], color_lo );
+				color_lo = simde_mm256_adds_epi16( color_lo, fixround );
+				color_hi = simde_mm256_adds_epi16( color_hi, fixround );
+				color_lo = simde_mm256_srai_epi16( color_lo, 6 ); // 固定小数点から整数化 - << 15, << 7, >> 16 = 6
+				color_hi = simde_mm256_srai_epi16( color_hi, 6 ); // 固定小数点から整数化
+				simde__m256i lo = simde_mm256_unpacklo_epi16( color_lo, color_hi );
+				simde__m256i hi = simde_mm256_unpackhi_epi16( color_lo, color_hi );
+				color_lo = simde_mm256_packus_epi16( lo, hi );
+				//simde_mm256_storeu_si256( (simde__m256i *)&dstbits[x], color_lo );
+				simde_mm256_store_si256( (simde__m256i *)&dstbits[x], color_lo );
 			}
 		}
 		wstarty = weighty;
@@ -841,61 +841,61 @@ public:
 	 * 横方向の処理 (後に処理)
 	 */
 	inline void samplingHorizontal( tjs_uint32* dstbits, const int offsetx, const int dstwidth, const tjs_uint32* srcbits ) {
-		const __m256i cmask = M256_U32_FIXED_COLOR_MASK8;	// 8bit化するためのマスク
+		const simde__m256i cmask = M256_U32_FIXED_COLOR_MASK8;	// 8bit化するためのマスク
 		const float* weightx = &paramx_.weight_[0];
 		// まずoffset分をスキップ
 		for( int x = 0; x < offsetx; x++ ) {
 			weightx += paramx_.length_[x];
 		}
 		const tjs_uint32* src = srcbits;
-		const __m256i storemask = M256_U32_TOP_MASK;
-		const __m256i zero = _mm256_setzero_si256();
+		const simde__m256i storemask = M256_U32_TOP_MASK;
+		const simde__m256i zero = simde_mm256_setzero_si256();
 		for( int x = offsetx; x < dstwidth; x++ ) {
 			const int left = paramx_.start_[x];
 			int right = left + paramx_.length_[x];
-			__m256 color_elm = _mm256_setzero_ps();
+			simde__m256 color_elm = simde_mm256_setzero_ps();
 			// 8ピクセルずつ処理する
 			for( int sx = left; sx < right; sx+=8 ) {
-				__m256i col8 = _mm256_loadu_si256( (const __m256i*)&src[sx] ); // 8ピクセル読み込み
-				__m256 weight8 = _mm256_loadu_ps( (const float*)weightx ); // ウェイト8つ
+				simde__m256i col8 = simde_mm256_loadu_si256( (const simde__m256i*)&src[sx] ); // 8ピクセル読み込み
+				simde__m256 weight8 = simde_mm256_loadu_ps( (const float*)weightx ); // ウェイト8つ
 				weightx += 8;
 
 				// a r g b | a r g b と 2つずつ処理するから、weight もその形にインターリーブ
-				__m256i collo = _mm256_unpacklo_epi8( col8, zero );		// 00 01 00 02 00 03 0 04 00 05 00 06...
-				__m256i col = _mm256_unpacklo_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
-				__m256 colf = _mm256_cvtepi32_ps( col );
-				__m256 wlo = _mm256_unpacklo_ps( weight8, weight8 );
-				__m256 w = _mm256_unpacklo_ps( wlo, wlo );	// 00 00 00 00 04 04 04 04
-				colf = _mm256_mul_ps( colf, w );
-				color_elm = _mm256_add_ps( color_elm, colf );
+				simde__m256i collo = simde_mm256_unpacklo_epi8( col8, zero );		// 00 01 00 02 00 03 0 04 00 05 00 06...
+				simde__m256i col = simde_mm256_unpacklo_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
+				simde__m256 colf = simde_mm256_cvtepi32_ps( col );
+				simde__m256 wlo = simde_mm256_unpacklo_ps( weight8, weight8 );
+				simde__m256 w = simde_mm256_unpacklo_ps( wlo, wlo );	// 00 00 00 00 04 04 04 04
+				colf = simde_mm256_mul_ps( colf, w );
+				color_elm = simde_mm256_add_ps( color_elm, colf );
 				
-				col = _mm256_unpackhi_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
-				colf = _mm256_cvtepi32_ps( col );				// int to float
-				w = _mm256_unpackhi_ps( wlo, wlo );
-				colf = _mm256_mul_ps( colf, w );
-				color_elm = _mm256_add_ps( color_elm, colf );
+				col = simde_mm256_unpackhi_epi16( collo, zero );		// 00 00 00 01 00 00 00 02...
+				colf = simde_mm256_cvtepi32_ps( col );				// int to float
+				w = simde_mm256_unpackhi_ps( wlo, wlo );
+				colf = simde_mm256_mul_ps( colf, w );
+				color_elm = simde_mm256_add_ps( color_elm, colf );
 				
-				__m256i colhi = _mm256_unpackhi_epi8( col8, zero );	// 00 01 00 02 00 03 0 04 00 05 00 06...
-				col = _mm256_unpacklo_epi16( colhi, zero );			// 00 00 00 01 00 00 00 02...
-				colf = _mm256_cvtepi32_ps( col );					// int to float
-				__m256 whi = _mm256_unpackhi_ps( weight8, weight8 );
-				w = _mm256_unpacklo_ps( whi, whi );
-				colf = _mm256_mul_ps( colf, w );
-				color_elm = _mm256_add_ps( color_elm, colf );
+				simde__m256i colhi = simde_mm256_unpackhi_epi8( col8, zero );	// 00 01 00 02 00 03 0 04 00 05 00 06...
+				col = simde_mm256_unpacklo_epi16( colhi, zero );			// 00 00 00 01 00 00 00 02...
+				colf = simde_mm256_cvtepi32_ps( col );					// int to float
+				simde__m256 whi = simde_mm256_unpackhi_ps( weight8, weight8 );
+				w = simde_mm256_unpacklo_ps( whi, whi );
+				colf = simde_mm256_mul_ps( colf, w );
+				color_elm = simde_mm256_add_ps( color_elm, colf );
 				
-				col = _mm256_unpackhi_epi16( colhi, zero );		// 00 00 00 01 00 00 00 02...
-				colf = _mm256_cvtepi32_ps( col );				// int to float
-				w = _mm256_unpackhi_ps( whi, whi );
-				colf = _mm256_mul_ps( colf, w );
-				color_elm = _mm256_add_ps( color_elm, colf );
+				col = simde_mm256_unpackhi_epi16( colhi, zero );		// 00 00 00 01 00 00 00 02...
+				colf = simde_mm256_cvtepi32_ps( col );				// int to float
+				w = simde_mm256_unpackhi_ps( whi, whi );
+				colf = simde_mm256_mul_ps( colf, w );
+				color_elm = simde_mm256_add_ps( color_elm, colf );
 			}
 			{	// AVX - 前後128bit加算
-				__m256 color_rev = _mm256_permute2f128_ps(color_elm, color_elm, 0 << 4 | 1 );	// 前後入れかえ
-				color_elm = _mm256_add_ps( color_elm, color_rev );
-				__m256i color = _mm256_cvtps_epi32( color_elm );
-				color = _mm256_packus_epi32( color, color );
-				color = _mm256_packus_epi16( color, color );
-				_mm256_maskstore_epi32( (int*)dstbits, storemask, color );
+				simde__m256 color_rev = simde_mm256_permute2f128_ps(color_elm, color_elm, 0 << 4 | 1 );	// 前後入れかえ
+				color_elm = simde_mm256_add_ps( color_elm, color_rev );
+				simde__m256i color = simde_mm256_cvtps_epi32( color_elm );
+				color = simde_mm256_packus_epi32( color, color );
+				color = simde_mm256_packus_epi16( color, color );
+				simde_mm256_maskstore_epi32( (int*)dstbits, storemask, color );
 			}
 			dstbits++;
 		}
@@ -908,60 +908,60 @@ public:
 		const int len = paramy_.length_min_[y];
 		const int bottom = top + len;
 		const float* weighty = wstarty;
-		const __m256i cmask = M256_U32_FIXED_COLOR_MASK8;
+		const simde__m256i cmask = M256_U32_FIXED_COLOR_MASK8;
 		const tjs_uint32* srctop = (const tjs_uint32*)src->GetScanLine(top) + srcrect.left;
 		tjs_int stride = src->GetPitchBytes()/(int)sizeof(tjs_uint32);
 		for( int x = 0; x < srcwidth; x+=8 ) {
 			weighty = wstarty;
-			__m256 color_a = _mm256_setzero_ps();
-			__m256 color_r = _mm256_setzero_ps();
-			__m256 color_g = _mm256_setzero_ps();
-			__m256 color_b = _mm256_setzero_ps();
+			simde__m256 color_a = simde_mm256_setzero_ps();
+			simde__m256 color_r = simde_mm256_setzero_ps();
+			simde__m256 color_g = simde_mm256_setzero_ps();
+			simde__m256 color_b = simde_mm256_setzero_ps();
 			const tjs_uint32* srcbits = &srctop[x];
 			for( int sy = top; sy < bottom; sy++ ) {
-				__m256i col8 = _mm256_loadu_si256( (const __m256i*)srcbits ); // 8列読み込み
+				simde__m256i col8 = simde_mm256_loadu_si256( (const simde__m256i*)srcbits ); // 8列読み込み
 				srcbits += stride;
-				__m256 weight8 = _mm256_set1_ps( *weighty ); // weight は、同じ値を設定
+				simde__m256 weight8 = simde_mm256_set1_ps( *weighty ); // weight は、同じ値を設定
 				weighty++;
 				
-				__m256i c = _mm256_srli_epi32( col8, 24 );
-				__m256 cf = _mm256_cvtepi32_ps(c);
-				cf = _mm256_mul_ps( cf, weight8 );
-				color_a = _mm256_add_ps( color_a, cf );
+				simde__m256i c = simde_mm256_srli_epi32( col8, 24 );
+				simde__m256 cf = simde_mm256_cvtepi32_ps(c);
+				cf = simde_mm256_mul_ps( cf, weight8 );
+				color_a = simde_mm256_add_ps( color_a, cf );
 
-				c = _mm256_srli_epi32( col8, 16 );
-				c = _mm256_and_si256( c, cmask );
-				cf = _mm256_cvtepi32_ps(c);
-				cf = _mm256_mul_ps( cf, weight8 );
-				color_r = _mm256_add_ps( color_r, cf );
+				c = simde_mm256_srli_epi32( col8, 16 );
+				c = simde_mm256_and_si256( c, cmask );
+				cf = simde_mm256_cvtepi32_ps(c);
+				cf = simde_mm256_mul_ps( cf, weight8 );
+				color_r = simde_mm256_add_ps( color_r, cf );
 				
-				c = _mm256_srli_epi32( col8, 8 );
-				c = _mm256_and_si256( c, cmask );
-				cf = _mm256_cvtepi32_ps(c);
-				cf = _mm256_mul_ps( cf, weight8 );
-				color_g = _mm256_add_ps( color_g, cf );
+				c = simde_mm256_srli_epi32( col8, 8 );
+				c = simde_mm256_and_si256( c, cmask );
+				cf = simde_mm256_cvtepi32_ps(c);
+				cf = simde_mm256_mul_ps( cf, weight8 );
+				color_g = simde_mm256_add_ps( color_g, cf );
 
-				c = _mm256_and_si256( col8, cmask );
-				cf = _mm256_cvtepi32_ps(c);
-				cf = _mm256_mul_ps( cf, weight8 );
-				color_b = _mm256_add_ps( color_b, cf );
+				c = simde_mm256_and_si256( col8, cmask );
+				cf = simde_mm256_cvtepi32_ps(c);
+				cf = simde_mm256_mul_ps( cf, weight8 );
+				color_b = simde_mm256_add_ps( color_b, cf );
 			}
 			{
-				__m256i a = _mm256_cvtps_epi32( color_a );
-				__m256i r = _mm256_cvtps_epi32( color_r );
-				__m256i g = _mm256_cvtps_epi32( color_g );
-				__m256i b = _mm256_cvtps_epi32( color_b );
+				simde__m256i a = simde_mm256_cvtps_epi32( color_a );
+				simde__m256i r = simde_mm256_cvtps_epi32( color_r );
+				simde__m256i g = simde_mm256_cvtps_epi32( color_g );
+				simde__m256i b = simde_mm256_cvtps_epi32( color_b );
 				// インターリーブ
-				__m256i arl = _mm256_unpacklo_epi32( r, a );
-				__m256i arh = _mm256_unpackhi_epi32( r, a );
-				arl = _mm256_packs_epi32( arl, arh );	// a r a r a r ar
-				__m256i gbl = _mm256_unpacklo_epi32( b, g );
-				__m256i gbh = _mm256_unpackhi_epi32( b, g );
-				gbl = _mm256_packs_epi32( gbl, gbh );	// g b g b g b g b
-				__m256i l = _mm256_unpacklo_epi32( gbl, arl );
-				__m256i h = _mm256_unpackhi_epi32( gbl, arl );
-				l = _mm256_packus_epi16( l, h );
-				_mm256_store_si256( (__m256i *)&dstbits[x], l );
+				simde__m256i arl = simde_mm256_unpacklo_epi32( r, a );
+				simde__m256i arh = simde_mm256_unpackhi_epi32( r, a );
+				arl = simde_mm256_packs_epi32( arl, arh );	// a r a r a r ar
+				simde__m256i gbl = simde_mm256_unpacklo_epi32( b, g );
+				simde__m256i gbh = simde_mm256_unpackhi_epi32( b, g );
+				gbl = simde_mm256_packs_epi32( gbl, gbh );	// g b g b g b g b
+				simde__m256i l = simde_mm256_unpacklo_epi32( gbl, arl );
+				simde__m256i h = simde_mm256_unpackhi_epi32( gbl, arl );
+				l = simde_mm256_packus_epi16( l, h );
+				simde_mm256_store_si256( (simde__m256i *)&dstbits[x], l );
 			}
 		}
 		wstarty = weighty;
@@ -1161,24 +1161,32 @@ void TVPBicubicResampleAVX2Fix( const tTVPResampleClipping &clip, const tTVPImag
 	BicubicWeightAVX weightfunc(sharpness);
 	ResamplerAVX2Fix sampler;
 	sampler.ResampleMT( clip, blendfunc, dest, destrect, src, srcrect, BicubicWeightAVX::RANGE, weightfunc );
+#ifdef __AVX__
 	_mm256_zeroupper();
+#endif
 }
 void TVPBicubicResampleAVX2( const tTVPResampleClipping &clip, const tTVPImageCopyFuncBase* blendfunc, tTVPBaseBitmap *dest, const tTVPRect &destrect, const tTVPBaseBitmap *src, const tTVPRect &srcrect, float sharpness ) {
 	BicubicWeightAVX weightfunc(sharpness);
 	ResamplerAVX2 sampler;
 	sampler.ResampleMT( clip, blendfunc, dest, destrect, src, srcrect, BicubicWeightAVX::RANGE, weightfunc );
+#ifdef __AVX__
 	_mm256_zeroupper();
+#endif
 }
 
 void TVPAreaAvgResampleAVX2Fix( const tTVPResampleClipping &clip, const tTVPImageCopyFuncBase* blendfunc, tTVPBaseBitmap *dest, const tTVPRect &destrect, const tTVPBaseBitmap *src, const tTVPRect &srcrect ) {
 	ResamplerAVX2Fix sampler;
 	sampler.ResampleAreaAvgMT( clip, blendfunc, dest, destrect, src, srcrect );
+#ifdef __AVX__
 	_mm256_zeroupper();
+#endif
 }
 void TVPAreaAvgResampleAVX2( const tTVPResampleClipping &clip, const tTVPImageCopyFuncBase* blendfunc, tTVPBaseBitmap *dest, const tTVPRect &destrect, const tTVPBaseBitmap *src, const tTVPRect &srcrect ) {
 	ResamplerAVX2 sampler;
 	sampler.ResampleAreaAvgMT( clip, blendfunc, dest, destrect, src, srcrect );
+#ifdef __AVX__
 	_mm256_zeroupper();
+#endif
 }
 
 template<typename TWeightFunc>
@@ -1186,7 +1194,9 @@ void TVPWeightResampleAVX2Fix( const tTVPResampleClipping &clip, const tTVPImage
 	TWeightFunc weightfunc;
 	ResamplerAVX2Fix sampler;
 	sampler.ResampleMT( clip, blendfunc, dest, destrect, src, srcrect, TWeightFunc::RANGE, weightfunc );
+#ifdef __AVX__
 	_mm256_zeroupper();
+#endif
 }
 
 template<typename TWeightFunc>
@@ -1194,7 +1204,9 @@ void TVPWeightResampleAVX2( const tTVPResampleClipping &clip, const tTVPImageCop
 	TWeightFunc weightfunc;
 	ResamplerAVX2 sampler;
 	sampler.ResampleMT( clip, blendfunc, dest, destrect, src, srcrect, TWeightFunc::RANGE, weightfunc );
+#ifdef __AVX__
 	_mm256_zeroupper();
+#endif
 }
 /**
  * 拡大縮小する AVX2 版
@@ -1272,4 +1284,3 @@ void TVPResampleImageAVX2( const tTVPResampleClipping &clip, const tTVPImageCopy
 	}
 }
 
-#endif

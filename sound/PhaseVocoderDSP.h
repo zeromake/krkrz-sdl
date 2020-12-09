@@ -158,9 +158,7 @@ public:
 	//!				実装は opt_default ディレクトリ下などに置かれる。
 	//!				(PhaseVocoderDSP.cpp内にはこれの実装はない)
 	void ProcessCore(int ch);
-#ifdef __SSE__
 	void ProcessCore_sse(int ch);
-#endif
 };
 //---------------------------------------------------------------------------
 

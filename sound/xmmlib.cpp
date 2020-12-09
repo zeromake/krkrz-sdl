@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef __SSE__
 #include "xmmlib.h"
 
 
@@ -104,4 +103,3 @@ _ALIGN16(const float) PFV_0P5[4]		 = {0.5f,	0.5f,	0.5f,	0.5f};
 
 //---------------------------------------------------------------------------
 
-#endif

@@ -27,9 +27,7 @@
 //---------------------------------------------------------------------------
 
 void rdft(int, int, float * __restrict, int * __restrict, float * __restrict);
-#ifdef __SSE__
 void rdft_sse(int, int, float * __restrict, int * __restrict, float * __restrict);
-#endif
 
 //---------------------------------------------------------------------------
 
