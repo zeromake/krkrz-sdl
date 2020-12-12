@@ -4,6 +4,7 @@ CXX := i686-w64-mingw32-g++
 AR := i686-w64-mingw32-ar
 ASM := nasm
 WINDRES := i686-w64-mingw32-windres
+STRIP := i686-w64-mingw32-strip
 # CFLAGS_OPT := -O0
 CFLAGS_OPT := -Ofast
 GIT_TAG := $(shell git describe --abbrev=0 --tags)
@@ -77,21 +78,26 @@ OBJECTS := $(OBJECTS:.cpp=.o)
 OBJECTS := $(OBJECTS:.asm=.o)
 OBJECTS := $(OBJECTS:.utf8.rc=.o)
 
-BINARY ?= tvpwin32.exe
+BINARY ?= tvpwin32_unstripped.exe
+BINARY_STRIPPED ?= tvpwin32.exe
 ARCHIVE ?= tvpwin32.$(GIT_TAG).7z
 
-all: $(BINARY)
+all: $(BINARY_STRIPPED)
 
 archive: $(ARCHIVE)
 
 clean:
-	rm -f $(OBJECTS) $(BINARY) $(ARCHIVE)
+	rm -f $(OBJECTS) $(BINARY) $(BINARY_STRIPPED) $(ARCHIVE)
 
 vcproj/tvpwin32.utf8.rc: vcproj/string_table_chs.utf8.rc vcproj/string_table_en.utf8.rc vcproj/string_table_jp.utf8.rc
 
-$(ARCHIVE): $(BINARY)
+$(ARCHIVE): $(BINARY_STRIPPED)
 	rm -f $(ARCHIVE)
 	7z a $@ $^
+
+$(BINARY_STRIPPED): $(BINARY)
+	@printf '\t%s %s\n' STRIP $@
+	$(STRIP) -o $@ $^
 
 $(BINARY): $(OBJECTS) 
 	@printf '\t%s %s\n' LNK $@
