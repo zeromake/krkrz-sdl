@@ -136,7 +136,8 @@ protected:
 	FT_Face Face;	//!< FreeType face オブジェクト
 	tTJSBinaryStream* File;	 //!< tTJSBinaryStream オブジェクト
 	std::vector<tjs_string> FaceNames; //!< Face名を列挙した配列
-	std::unique_ptr<tjs_uint8[]> FontImage;
+	//std::unique_ptr<tjs_uint8[]> FontImage;
+	ttstr FontPath;
 
 private:
 	FT_StreamRec Stream;
@@ -446,15 +447,16 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 opt
 		} 
 
 		// ファイルを開く
-		File = TVPCreateBinaryStreamForRead(fontname,TJS_W("") );
+		FontPath = fontname;
+		File = TVPCreateBinaryStreamForRead(FontPath,TJS_W("") );
 		if( File == NULL ) {
-			TVPThrowExceptionMessage( TVPCannotOpenFontFile, fontname );
+			TVPThrowExceptionMessage( TVPCannotOpenFontFile, FontPath );
 		}
 
 		// FT_StreamRec の各フィールドを埋める
 		FT_StreamRec * fsr = &Stream;
 //#ifndef ANDROID
-#if 0
+#if 1
 		fsr->base = 0;
 		fsr->size = static_cast<unsigned long>(File->GetSize());
 		fsr->pos = 0;
@@ -555,9 +557,10 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &filename, std::vector<Fo
 
 	try {
 		// ファイルを開く
-		File = TVPCreateBinaryStreamForRead( filename,TJS_W("") );
+		FontPath = filename;
+		File = TVPCreateBinaryStreamForRead( FontPath,TJS_W("") );
 		if( File == NULL ) {
-			TVPThrowExceptionMessage( TVPCannotOpenFontFile, filename );
+			TVPThrowExceptionMessage( TVPCannotOpenFontFile, FontPath );
 		}
 
 		// FT_StreamRec の各フィールドを埋める
@@ -631,6 +634,14 @@ unsigned long tGenericFreeTypeFace::IoFunc( FT_Stream stream, unsigned long offs
 	tGenericFreeTypeFace * _this =
 		static_cast<tGenericFreeTypeFace*>(stream->descriptor.pointer);
 
+	if (!_this->File)
+	{
+		_this->File = TVPCreateBinaryStreamForRead(_this->FontPath, TJS_W(""));
+		if( _this->File == NULL ) {
+			return 0;
+		}
+	}
+
 	size_t result;
 	if(count == 0)
 	{
@@ -656,6 +667,13 @@ unsigned long tGenericFreeTypeFace::IoFunc( FT_Stream stream, unsigned long offs
  */
 void tGenericFreeTypeFace::CloseFunc( FT_Stream  stream )
 {
+	tGenericFreeTypeFace * _this =
+		static_cast<tGenericFreeTypeFace*>(stream->descriptor.pointer);
+	if (_this->File)
+	{
+		delete _this->File;
+		_this->File = NULL;
+	}
 }
 //---------------------------------------------------------------------------
 
@@ -715,7 +733,9 @@ tFreeTypeFace::tFreeTypeFace(const std::vector<tjs_string> &fontname, tjs_uint32
 		Faces[i]->FontName = fontname[i];
 
 		// フォントを開く
+#if 0
 		if( ( options & TVP_FACE_OPTIONS_FILE ) == 0 )
+#endif
 		{
 			Faces[i]->Face.reset( FreeTypeFaceList->GetFace( fontname[i], options ) );
 		}
