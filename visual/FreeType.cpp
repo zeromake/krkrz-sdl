@@ -69,6 +69,7 @@ struct FontInfo {
 	tjs_string	facename;
 	std::string	path;		// 
 	tjs_string	filename;
+	std::unique_ptr<tTJSBinaryStream> file;
 	tjs_uint	index;
 	std::string	stylename;
 	tjs_uint	num_glyphs;
@@ -135,6 +136,7 @@ class tGenericFreeTypeFace : public tBaseFreeTypeFace
 protected:
 	FT_Face Face;	//!< FreeType face オブジェクト
 	tTJSBinaryStream* File;	 //!< tTJSBinaryStream オブジェクト
+	bool NoScope = false;
 	std::vector<tjs_string> FaceNames; //!< Face名を列挙した配列
 	//std::unique_ptr<tjs_uint8[]> FontImage;
 	ttstr FontPath;
@@ -143,7 +145,7 @@ private:
 	FT_StreamRec Stream;
 
 public:
-	tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 options);
+	tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 options, tTJSBinaryStream* file );
 	tGenericFreeTypeFace(const std::string& path, const ttstr &fontname, tjs_uint32 index );
 	tGenericFreeTypeFace(const ttstr &filename, std::vector<FontInfo*>& fonst, std::vector<tjs_string>* faces );
 	virtual ~tGenericFreeTypeFace();
@@ -213,7 +215,11 @@ static void TVPLoadFont( FT_Open_Args& arg, std::vector<FontInfo*>& fonts, std::
 			}
 			info->facename = wname;
 			if( path ) info->path = *path;
-			if( filename ) info->filename = *filename;
+			if( filename )
+			{
+				info->filename = *filename;
+				info->file.reset(TVPCreateBinaryStreamForRead(info->filename, TJS_W("")));
+			}
 			info->index = f;
 			info->stylename = std::string(face->style_name);
 			info->num_glyphs = face->num_glyphs;
@@ -373,7 +379,7 @@ tBaseFreeTypeFace* tTVPFreeTypeFaceList::GetFace( const tjs_string& facename, tj
 		} );
 		if( f != faces_.end() ) {
 			FontInfo* font = *f;
-			return new tGenericFreeTypeFace( ttstr( font->filename ), TVP_FACE_OPTIONS_FACE_INDEX( font->index ) );
+			return new tGenericFreeTypeFace( ttstr( font->filename ), TVP_FACE_OPTIONS_FACE_INDEX( font->index ), font->file.get() );
 		}
 		// スタイル気にせず検索する
 		f = std::find_if( faces_.begin(), faces_.end(),
@@ -383,7 +389,7 @@ tBaseFreeTypeFace* tTVPFreeTypeFaceList::GetFace( const tjs_string& facename, tj
 		});
 		if( f != faces_.end() ) {
 			FontInfo* font = *f;
-			return new tGenericFreeTypeFace( ttstr( font->filename ), TVP_FACE_OPTIONS_FACE_INDEX( font->index ) );
+			return new tGenericFreeTypeFace( ttstr( font->filename ), TVP_FACE_OPTIONS_FACE_INDEX( font->index ), font->file.get() );
 		}
 	} else {
 		FaceKey key( facename, options&( TVP_TF_ITALIC | TVP_TF_BOLD ) );
@@ -434,23 +440,26 @@ void tTVPFreeTypeFaceList::GetFontList(std::vector<ttstr> & list, tjs_uint32 fla
  * @param fontname	フォント名
  * @param options	オプション(TVP_TF_XXXX 定数かTVP_FACE_OPTIONS_XXXX定数の組み合わせ)
  */
-tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 options) : File(NULL)
+tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 options, tTJSBinaryStream* file = NULL) : File(NULL)
 {
 	// フィールドの初期化
 	Face = NULL;
 	memset(&Stream, 0, sizeof(Stream));
 
 	try {
-		if(File) {
-			delete File;
-			File = NULL;
-		} 
-
 		// ファイルを開く
 		FontPath = fontname;
-		File = TVPCreateBinaryStreamForRead(FontPath,TJS_W("") );
-		if( File == NULL ) {
-			TVPThrowExceptionMessage( TVPCannotOpenFontFile, FontPath );
+		if (!file)
+		{
+			NoScope = true;
+			File = TVPCreateBinaryStreamForRead(FontPath,TJS_W("") );
+			if( File == NULL ) {
+				TVPThrowExceptionMessage( TVPCannotOpenFontFile, FontPath );
+			}
+		}
+		else
+		{
+			File = file;
 		}
 
 		// FT_StreamRec の各フィールドを埋める
@@ -580,6 +589,10 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &filename, std::vector<Fo
 		args.stream = &Stream;
 		tjs_string fontname = filename.AsStdString();
 		TVPLoadFont( args, fonts, nullptr, faces, nullptr, &fontname );
+		if(File) {
+			delete File;
+			File = NULL;
+		}
 	}
 	catch(...)
 	{
@@ -594,7 +607,7 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &filename, std::vector<Fo
 tGenericFreeTypeFace::~tGenericFreeTypeFace()
 {
 	if(Face) FT_Done_Face(Face), Face = NULL;
-	if(File) {
+	if(NoScope && File) {
 		delete File;
 		File = NULL;
 	}
@@ -667,13 +680,6 @@ unsigned long tGenericFreeTypeFace::IoFunc( FT_Stream stream, unsigned long offs
  */
 void tGenericFreeTypeFace::CloseFunc( FT_Stream  stream )
 {
-	tGenericFreeTypeFace * _this =
-		static_cast<tGenericFreeTypeFace*>(stream->descriptor.pointer);
-	if (_this->File)
-	{
-		delete _this->File;
-		_this->File = NULL;
-	}
 }
 //---------------------------------------------------------------------------
 
