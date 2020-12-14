@@ -507,6 +507,7 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 opt
 				TVPEncodeUTF8ToUTF16( wname, std::string(name) );
 				FaceNames.push_back( wname );
 				face_num = face->num_faces;
+				if(face) FT_Done_Face(face), face = NULL;
 			}
 		}
 
