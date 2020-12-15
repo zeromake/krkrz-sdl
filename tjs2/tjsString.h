@@ -19,8 +19,7 @@
 #endif
 #include "tjsVariantString.h"
 
-#if 0
-#if defined (__clang__) && (ANDROID)
+#if 1
 template<typename T>
 tjs_string to_format_str( T value, const tjs_char* format ) {
     tjs_char buff[128];
@@ -50,7 +49,6 @@ inline tjs_string to_tjs_string( unsigned long value ) { return to_format_str( v
 inline tjs_string to_tjs_string( unsigned long long value ) { return to_format_str( value, TJS_W("%llu") ); }
 inline tjs_string to_tjs_string( float value ) { return to_format_str( value, TJS_W("%f") ); }
 inline tjs_string to_tjs_string( double value ) { return to_format_str( value, TJS_W("%lf") ); }
-#endif
 
 
 namespace TJS
