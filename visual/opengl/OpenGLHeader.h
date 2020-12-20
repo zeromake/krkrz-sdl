@@ -2,6 +2,13 @@
 #ifndef OpenGLHeaderH
 #define OpenGLHeaderH
 
+#ifdef __EMSCRIPTEN__
+#include <EGL/egl.h>
+#include <GLES3/gl31.h>
+#else
+#include "OpenGLHeaderSDL2.h"
+#endif
+#if 0
 #ifdef WIN32
 #include "OpenGLHeaderWin32.h"
 #elif defined( ANDROID )
@@ -9,6 +16,7 @@
 #include <EGL/egl.h>
 #include <GLES/gl.h>
 #include "gl3stub.h"
+#endif
 #endif
 
 
