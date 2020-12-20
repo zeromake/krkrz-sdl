@@ -23,9 +23,7 @@
 #include "LayerManager.h"
 #include "VideoOvlIntf.h"
 #include "DrawDevice.h"
-#if 0
 #include "CanvasIntf.h"
-#endif
 
 #include "Application.h"
 
@@ -137,9 +135,7 @@ tTVPUniqueTagForInputEvent tTVPOnTouchRotateInputEvent        ::Tag;
 tTVPUniqueTagForInputEvent tTVPOnMultiTouchInputEvent         ::Tag;
 tTVPUniqueTagForInputEvent tTVPOnHintChangeInputEvent         ::Tag;
 tTVPUniqueTagForInputEvent tTVPOnDisplayRotateInputEvent      ::Tag;
-#if 0
 tTVPUniqueTagForInputEvent tTVPOnDrawInputEvent               ::Tag;
-#endif
 //---------------------------------------------------------------------------
 
 
@@ -157,9 +153,7 @@ tTJSNI_BaseWindow::tTJSNI_BaseWindow()
 	WindowExposedRegion.clear();
 	WindowUpdating = false;
 	DrawDevice = NULL;
-#if 0
 	CanvasInstance = nullptr;
-#endif
 }
 //---------------------------------------------------------------------------
 tTJSNI_BaseWindow::~tTJSNI_BaseWindow()
@@ -199,7 +193,6 @@ tTJSNI_BaseWindow::Construct(tjs_int numparams, tTJSVariant **param,
 	return TJS_S_OK;
 }
 //---------------------------------------------------------------------------
-#if 0
 void tTJSNI_BaseWindow::CreateCanvas( iTJSDispatch2 *tjs_obj )
 {
 	if( TVPIsEnableDrawDevice() == false )
@@ -237,15 +230,12 @@ void tTJSNI_BaseWindow::ReleaseCanvasSurface() {
 		CanvasInstance->ReleaseWindowSurface();
 	}
 }
-#endif
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD
 tTJSNI_BaseWindow::Invalidate()
 {
-#if 0
 	// stop draw cycle
 	if( DrawCycleTimer ) DrawCycleTimer->Terminate();
-#endif
 
 	// remove from list
 	TVPUnregisterWindowToList(static_cast<tTJSNI_Window*>(this));
@@ -309,10 +299,8 @@ tTJSNI_BaseWindow::Invalidate()
 	// release draw device
 	SetDrawDeviceObject(tTJSVariant());
 
-#if 0
 	// release canvas
 	SetCanvasObject(tTJSVariant());
-#endif
 
 	inherited::Invalidate();
 
@@ -335,7 +323,6 @@ void tTJSNI_BaseWindow::FireOnActivate(bool activate_or_deactivate)
 		);
 }
 //---------------------------------------------------------------------------
-#if 0
 void tTJSNI_BaseWindow::StartDrawing()
 {
 	if( DrawCycleTimer ) DrawCycleTimer->ResetDrawCycle();
@@ -346,7 +333,6 @@ void tTJSNI_BaseWindow::StartDrawingInternal()
 {
 	TVPPostInputEvent( new tTVPOnDrawInputEvent( this ), TVP_EPT_REMOVE_POST /* to discard redundant events */ );
 }
-#endif
 //---------------------------------------------------------------------------
 void tTJSNI_BaseWindow::SetDrawDeviceObject(const tTJSVariant & val)
 {
@@ -372,7 +358,6 @@ void tTJSNI_BaseWindow::SetDrawDeviceObject(const tTJSVariant & val)
 	}
 }
 //---------------------------------------------------------------------------
-#if 0
 void tTJSNI_BaseWindow::SetCanvasObject(const tTJSVariant & val)
 {
 	if( CanvasObject.Type() == tvtObject )
@@ -394,7 +379,6 @@ void tTJSNI_BaseWindow::SetCanvasObject(const tTJSVariant & val)
 		}
 	}
 }
-#endif
 //---------------------------------------------------------------------------
 void tTJSNI_BaseWindow::OnClose()
 {
@@ -720,7 +704,6 @@ void tTJSNI_BaseWindow::OnDisplayRotate( tjs_int orientation, tjs_int rotate, tj
 	if(DrawDevice) DrawDevice->OnDisplayRotate(orientation, rotate, bpp, hresolution, vresolution);
 }
 //---------------------------------------------------------------------------
-#if 0
 class TVPFinishDrawing {
 	tTVPDrawCycleTimer* Timer;
 public:
@@ -746,7 +729,6 @@ void tTJSNI_BaseWindow::OnDraw() {
 	}
 	if( CanvasInstance ) CanvasInstance->EndDrawing();
 }
-#endif
 //---------------------------------------------------------------------------
 void tTJSNI_BaseWindow::ClearInputEvents()
 {
@@ -771,9 +753,7 @@ void TJS_INTF_METHOD tTJSNI_BaseWindow::UnregisterLayerManager(iTVPLayerManager 
 //---------------------------------------------------------------------------
 void tTJSNI_BaseWindow::NotifyWindowExposureToLayer(const tTVPRect &cliprect)
 {
-#if 0
 	if( CanvasInstance ) StartDrawing();
-#endif
 	if( DrawDevice ) DrawDevice->RequestInvalidation(cliprect);
 }
 //---------------------------------------------------------------------------
@@ -907,7 +887,6 @@ bool tTJSNI_BaseWindow::GetWaitVSync() const
 	return WaitVSync;
 }
 //---------------------------------------------------------------------------
-#if 0
 void tTJSNI_BaseWindow::SetDrawCycle( tjs_uint32 cycle ) {
 	if( !CanvasInstance ) return;
 	if( cycle == 0 ) return;
@@ -925,7 +904,6 @@ tjs_uint32 tTJSNI_BaseWindow::GetDrawCycle() const {
 void tTJSNI_BaseWindow::ResetDrawCycle() {
 	if( !CanvasInstance ) return;
 }
-#endif
 //---------------------------------------------------------------------------
 
 
@@ -1118,7 +1096,6 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/hideMouseCursor)
 }
 TJS_END_NATIVE_METHOD_DECL(/*func. name*/hideMouseCursor)
 //----------------------------------------------------------------------
-#if 0
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/fireOnDraw)
 {
 	TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -1126,7 +1103,6 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/fireOnDraw)
 	return TJS_S_OK;
 }
 TJS_END_NATIVE_METHOD_DECL(/*func. name*/fireOnDraw )
-#endif
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/postInputEvent)
 {
@@ -2118,7 +2094,6 @@ TJS_BEGIN_NATIVE_PROP_DECL(waitVSync)
 }
 TJS_END_NATIVE_PROP_DECL(waitVSync)
 //---------------------------------------------------------------------------
-#if 0
 TJS_BEGIN_NATIVE_PROP_DECL(canvas)
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
@@ -2132,7 +2107,6 @@ TJS_BEGIN_NATIVE_PROP_DECL(canvas)
 	TJS_DENY_NATIVE_PROP_SETTER
 }
 TJS_END_NATIVE_PROP_DECL(canvas)
-#endif
 //---------------------------------------------------------------------------
 TJS_BEGIN_NATIVE_PROP_DECL(layerTreeOwnerInterface)
 {
@@ -2148,7 +2122,6 @@ TJS_BEGIN_NATIVE_PROP_DECL(layerTreeOwnerInterface)
 }
 TJS_END_NATIVE_PROP_DECL(layerTreeOwnerInterface)
 //----------------------------------------------------------------------
-#if 0
 TJS_BEGIN_NATIVE_PROP_DECL( drawCycle )
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
@@ -2170,7 +2143,6 @@ TJS_BEGIN_NATIVE_PROP_DECL( drawCycle )
 	TJS_END_NATIVE_PROP_SETTER
 }
 TJS_END_NATIVE_PROP_DECL( drawCycle )
-#endif
 //---------------------------------------------------------------------------
 TJS_BEGIN_NATIVE_PROP_DECL( displayDensity )
 {

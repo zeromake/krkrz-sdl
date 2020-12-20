@@ -19,9 +19,7 @@
 #include "ObjectList.h"
 #include "DrawDevice.h"
 #include "LayerTreeOwner.h"
-#if 0
 #include "DrawCycleTimer.h"
-#endif
 
 #include <memory>
 
@@ -171,10 +169,8 @@ public:
 	bool IsMainWindow() const;
 	virtual bool GetWindowActive() = 0;
 	void FireOnActivate(bool activate_or_deactivate);
-#if 0
 	void StartDrawing();
 	void StartDrawingInternal();
-#endif
 
 	//-- interface to draw device
 public:
@@ -186,7 +182,6 @@ public:
 	virtual void ResetDrawDevice() = 0;
 	virtual iTJSDispatch2 * GetWindowDispatch() { if(Owner) Owner->AddRef(); return Owner; }
 
-#if 0
 	//-- interface to canvas
 public:
 	tTJSVariant CanvasObject; //!< Current Canvas TJS2 Object
@@ -197,7 +192,6 @@ public:
 
 	void UpdateCanvasSurface();
 	void ReleaseCanvasSurface();
-#endif
 
 	//----- event dispatching
 public:
@@ -241,10 +235,8 @@ public:
 
 	void OnDisplayRotate( tjs_int orientation, tjs_int rotate, tjs_int bpp, tjs_int hresolution, tjs_int vresolution );
 
-#if 0
 	// onDraw for Canvas
 	void OnDraw();
-#endif
 
 	void ClearInputEvents();
 
@@ -296,9 +288,7 @@ public:
 
 	//----- vsync
 protected:
-#if 0
 	std::unique_ptr<tTVPDrawCycleTimer> DrawCycleTimer;
-#endif
 	bool WaitVSync;
 	virtual void UpdateVSyncThread() = 0;
 
@@ -306,11 +296,11 @@ public:
 	void SetWaitVSync( bool enable );
 	bool GetWaitVSync() const;
 
-#if 0
 	void SetDrawCycle( tjs_uint32 cycle );
 	tjs_uint32 GetDrawCycle() const;
 	void ResetDrawCycle();
 
+#if 0
 	void SetCursorByStorage( const ttstr &storage );
 	void SetCursorByNumber( tjs_int num );
 	tjs_int GetCursor() const { return Cursor; }
@@ -710,7 +700,6 @@ public:
 	{ ((tTJSNI_BaseWindow*)GetSource())->OnDisplayRotate( Orientation, Rotate, BPP, HorizontalResolution, VerticalResolution ); }
 };
 //---------------------------------------------------------------------------
-#if 0
 class tTVPOnDrawInputEvent : public tTVPBaseInputEvent
 {
 	static tTVPUniqueTagForInputEvent Tag;
@@ -719,7 +708,6 @@ public:
 	void Deliver() const
 	{ ((tTJSNI_BaseWindow*)GetSource())->OnDraw(); }
 };
-#endif
 //---------------------------------------------------------------------------
 
 
