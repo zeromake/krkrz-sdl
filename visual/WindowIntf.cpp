@@ -891,8 +891,10 @@ void tTJSNI_BaseWindow::SetDrawCycle( tjs_uint32 cycle ) {
 	if( !CanvasInstance ) return;
 	if( cycle == 0 ) return;
 
+#if 0
 	if( !DrawCycleTimer ) DrawCycleTimer.reset( new tTVPDrawCycleTimer(this) );
 	DrawCycleTimer->SetDrawCycle( cycle );
+#endif
 }
 //---------------------------------------------------------------------------
 tjs_uint32 tTJSNI_BaseWindow::GetDrawCycle() const {
