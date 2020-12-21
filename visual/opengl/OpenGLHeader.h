@@ -23,6 +23,8 @@
 extern void TVPInitializeOpenGLPlatform();
 
 
+#if 0
 TJS_EXP_FUNC_DEF(void*, TVPeglGetProcAddress, (const char * procname));
+#endif
 
 #endif

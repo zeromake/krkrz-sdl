@@ -2,7 +2,11 @@
 #include "tjsCommHead.h"
 #include "GLFrameBufferObject.h"
 #include "DebugIntf.h"
+#if 0
 #include "OpenGLScreen.h"
+#else
+#include "OpenGLScreenSDL2.h"
+#endif
 #include "BitmapIntf.h"
 #include "LayerBitmapIntf.h"
 #include "tvpgl.h"
@@ -92,7 +96,7 @@ bool GLFrameBufferObject::exchangeTexture( GLuint tex_id ) {
 bool GLFrameBufferObject::readFrameBuffer( tjs_uint x, tjs_uint y, tjs_uint width, tjs_uint height, tjs_uint8* dest, bool front ) {
 	glReadBuffer( front ? GL_FRONT : GL_BACK );
 	glReadPixels( x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, dest );
-	return tTVPOpenGLScreen::CheckEGLErrorAndLog();
+	return tTVPOpenGLScreen::CheckGLErrorAndLog( TJS_W( "glReadPixels" ) );
 }
 bool GLFrameBufferObject::readTextureToBitmap( tTVPBaseBitmap* bmp ) {
 	if( !bmp ) {

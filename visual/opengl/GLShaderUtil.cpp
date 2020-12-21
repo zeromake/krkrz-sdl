@@ -8,7 +8,11 @@
 
 #include "GLShaderUtil.h"
 #include "DebugIntf.h"
+#if 0
 #include "OpenGLScreen.h"
+#else
+#include "OpenGLScreenSDL2.h"
+#endif
 
 GLuint CompileShader(GLenum type, const std::string &source)
 {
