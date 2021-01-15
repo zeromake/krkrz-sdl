@@ -19,7 +19,9 @@
 #include "ObjectList.h"
 #include "DrawDevice.h"
 #include "LayerTreeOwner.h"
+#ifdef KRKRZ_ENABLE_CANVAS
 #include "DrawCycleTimer.h"
+#endif
 
 #include <memory>
 
@@ -169,8 +171,10 @@ public:
 	bool IsMainWindow() const;
 	virtual bool GetWindowActive() = 0;
 	void FireOnActivate(bool activate_or_deactivate);
+#ifdef KRKRZ_ENABLE_CANVAS
 	void StartDrawing();
 	void StartDrawingInternal();
+#endif
 
 	//-- interface to draw device
 public:
@@ -182,6 +186,7 @@ public:
 	virtual void ResetDrawDevice() = 0;
 	virtual iTJSDispatch2 * GetWindowDispatch() { if(Owner) Owner->AddRef(); return Owner; }
 
+#ifdef KRKRZ_ENABLE_CANVAS
 	//-- interface to canvas
 public:
 	tTJSVariant CanvasObject; //!< Current Canvas TJS2 Object
@@ -192,6 +197,7 @@ public:
 
 	void UpdateCanvasSurface();
 	void ReleaseCanvasSurface();
+#endif
 
 	//----- event dispatching
 public:
@@ -235,8 +241,10 @@ public:
 
 	void OnDisplayRotate( tjs_int orientation, tjs_int rotate, tjs_int bpp, tjs_int hresolution, tjs_int vresolution );
 
+#ifdef KRKRZ_ENABLE_CANVAS
 	// onDraw for Canvas
 	void OnDraw();
+#endif
 
 	void ClearInputEvents();
 
@@ -288,7 +296,9 @@ public:
 
 	//----- vsync
 protected:
+#ifdef KRKRZ_ENABLE_CANVAS
 	std::unique_ptr<tTVPDrawCycleTimer> DrawCycleTimer;
+#endif
 	bool WaitVSync;
 	virtual void UpdateVSyncThread() = 0;
 
@@ -296,9 +306,11 @@ public:
 	void SetWaitVSync( bool enable );
 	bool GetWaitVSync() const;
 
+#ifdef KRKRZ_ENABLE_CANVAS
 	void SetDrawCycle( tjs_uint32 cycle );
 	tjs_uint32 GetDrawCycle() const;
 	void ResetDrawCycle();
+#endif
 
 #if 0
 	void SetCursorByStorage( const ttstr &storage );
@@ -700,6 +712,7 @@ public:
 	{ ((tTJSNI_BaseWindow*)GetSource())->OnDisplayRotate( Orientation, Rotate, BPP, HorizontalResolution, VerticalResolution ); }
 };
 //---------------------------------------------------------------------------
+#ifdef KRKRZ_ENABLE_CANVAS
 class tTVPOnDrawInputEvent : public tTVPBaseInputEvent
 {
 	static tTVPUniqueTagForInputEvent Tag;
@@ -708,6 +721,7 @@ public:
 	void Deliver() const
 	{ ((tTJSNI_BaseWindow*)GetSource())->OnDraw(); }
 };
+#endif
 //---------------------------------------------------------------------------
 
 

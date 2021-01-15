@@ -52,6 +52,7 @@
 #include "BitmapLayerTreeOwner.h"
 #include "Extension.h"
 
+#ifdef KRKRZ_ENABLE_CANVAS
 #include "CanvasIntf.h"
 #include "OffscreenIntf.h"
 #include "TextureIntf.h"
@@ -60,6 +61,7 @@
 #include "ShaderProgramIntf.h"
 #include "VertexBufferIntf.h"
 #include "VertexBinderIntf.h"
+#endif
 
 //---------------------------------------------------------------------------
 // global variables
@@ -214,6 +216,7 @@ void TVPInitScriptEngine()
 	REGISTER_OBJECT(Bitmap, TVPCreateNativeClass_Bitmap());
 	REGISTER_OBJECT(ImageFunction, TVPCreateNativeClass_ImageFunction());
 	REGISTER_OBJECT(BitmapLayerTreeOwner, TVPCreateNativeClass_BitmapLayerTreeOwner());
+#ifdef KRKRZ_ENABLE_CANVAS
 	REGISTER_OBJECT(Canvas, TVPCreateNativeClass_Canvas());
 	REGISTER_OBJECT(Texture, TVPCreateNativeClass_Texture());
 	REGISTER_OBJECT(Offscreen, TVPCreateNativeClass_Offscreen());
@@ -222,6 +225,7 @@ void TVPInitScriptEngine()
 	REGISTER_OBJECT(ShaderProgram, TVPCreateNativeClass_ShaderProgram());
 	REGISTER_OBJECT(VertexBuffer, TVPCreateNativeClass_VertexBuffer());
 	REGISTER_OBJECT(VertexBinder, TVPCreateNativeClass_VertexBinder());
+#endif
 
 	/* WaveSoundBuffer and its filters */
 	iTJSDispatch2 * waveclass = NULL;
