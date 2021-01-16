@@ -20,9 +20,11 @@
 #include <algorithm>
 #include <assert.h>
 
+#if 0
 #ifdef ANDROID
 #include <pthread.h>
 #include <semaphore.h>
+#endif
 #endif
 
 

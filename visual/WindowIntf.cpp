@@ -1002,7 +1002,7 @@ TJS_END_NATIVE_METHOD_DECL(/*func. name*/showModal)
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/setMaskRegion)
 {
-#ifdef ANDROID
+#if 0
 	return TJS_E_NOTIMPL;
 #else
 	TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -1017,7 +1017,7 @@ TJS_END_NATIVE_METHOD_DECL(/*func. name*/setMaskRegion)
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/removeMaskRegion)
 {
-#ifdef ANDROID
+#if 0
 	return TJS_E_NOTIMPL;
 #else
 	TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -1948,7 +1948,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(imeMode) // not defaultImeMode
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
-#ifdef ANDROID
+#if 0
 		return TJS_E_NOTIMPL;
 #else
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -1960,7 +1960,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(imeMode) // not defaultImeMode
 
 	TJS_BEGIN_NATIVE_PROP_SETTER
 	{
-#ifdef ANDROID
+#if 0
 		return TJS_E_NOTIMPL;
 #else
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -1976,7 +1976,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(mouseCursorState)
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
-#ifdef ANDROID
+#if 0
 		return TJS_E_NOTIMPL;
 #else
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -1988,7 +1988,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(mouseCursorState)
 
 	TJS_BEGIN_NATIVE_PROP_SETTER
 	{
-#ifdef ANDROID
+#if 0
 		return TJS_E_NOTIMPL;
 #else
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window);
@@ -2178,6 +2178,7 @@ TJS_BEGIN_NATIVE_PROP_DECL( displayDensity )
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
+#if 0
 #ifdef WIN32
 		*result = (tjs_int)::GetDeviceCaps( ::GetDC(0), LOGPIXELSX );
 #elif defined( ANDROID )
@@ -2185,6 +2186,8 @@ TJS_BEGIN_NATIVE_PROP_DECL( displayDensity )
 #else
 		*result = (tjs_int)96;
 #endif
+#endif
+		*result = (tjs_int)96;
 		return TJS_S_OK;
 	}
 	TJS_END_NATIVE_PROP_GETTER

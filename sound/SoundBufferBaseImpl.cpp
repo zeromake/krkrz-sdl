@@ -15,8 +15,10 @@
 #if 1 || defined(WIN32)
 #include "WaveImpl.h"
 #endif
+#if 0
 #ifdef ANDROID
 extern void TVPWaveSoundBufferCommitSettings();
+#endif
 #endif
 
 #include "TVPTimer.h"
