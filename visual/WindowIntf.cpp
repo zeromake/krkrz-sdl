@@ -860,13 +860,13 @@ void tTJSNI_BaseWindow::SetCursorByStorage( const ttstr &storage )
 	Cursor = TVPGetCursor( storage );
 	SetWindowMouseCursor( Cursor );
 }
+#endif
 //---------------------------------------------------------------------------
 void tTJSNI_BaseWindow::SetCursorByNumber( tjs_int num )
 {
 	Cursor = num;
 	SetWindowMouseCursor( Cursor );
 }
-#endif
 //---------------------------------------------------------------------------
 
 
@@ -2196,7 +2196,6 @@ TJS_BEGIN_NATIVE_PROP_DECL( displayDensity )
 }
 TJS_END_NATIVE_PROP_DECL( displayDensity )
 //---------------------------------------------------------------------------
-#if 0
 TJS_BEGIN_NATIVE_PROP_DECL( mouseCursor ) {
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
@@ -2210,7 +2209,11 @@ TJS_BEGIN_NATIVE_PROP_DECL( mouseCursor ) {
 	{
 		TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Window );
 		if( param->Type() == tvtString )
+#if 0
 			_this->SetCursorByStorage( *param );
+#else
+			{}
+#endif
 		else
 			_this->SetCursorByNumber( *param );
 		return TJS_S_OK;
@@ -2218,7 +2221,6 @@ TJS_BEGIN_NATIVE_PROP_DECL( mouseCursor ) {
 	TJS_END_NATIVE_PROP_SETTER
 }
 TJS_END_NATIVE_PROP_DECL( mouseCursor )
-#endif
 //----------------------------------------------------------------------
 	
 

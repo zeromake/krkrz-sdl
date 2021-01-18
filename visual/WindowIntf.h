@@ -151,9 +151,7 @@ class tTJSNI_BaseWindow : public tTJSNativeInstance, public iTVPWindow, public i
 private:
 	std::vector<tTJSVariantClosure> ObjectVector;
 	bool ObjectVectorLocked;
-#if 0
 	tjs_int Cursor = 0; // mouse cursor
-#endif
 
 protected:
 	iTJSDispatch2 *Owner;
@@ -314,10 +312,10 @@ public:
 
 #if 0
 	void SetCursorByStorage( const ttstr &storage );
+#endif
 	void SetCursorByNumber( tjs_int num );
 	tjs_int GetCursor() const { return Cursor; }
 	virtual void SetWindowMouseCursor( tjs_int cursor ) {} // set window mouse cursor
-#endif
 };
 //---------------------------------------------------------------------------
 
