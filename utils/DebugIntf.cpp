@@ -438,8 +438,12 @@ void TVPAddLog(const ttstr &line, bool appendtoimportant)
 	//OutputDebugStringW( TJS_W("\n") );
 #endif	// ENABLE_DEBUGGER
 
+#if 1
+	Application->PrintConsole( line.c_str(), line.GetLen(), appendtoimportant );
+#else
 #ifdef TVP_LOG_TO_COMMANDLINE_CONSOLE
 	Application->PrintConsole( buf.c_str(), buf.length(), appendtoimportant );
+#endif
 #endif
 
 	if(TVPLoggingToFile) TVPLogStreamHolder.Log(buf);
