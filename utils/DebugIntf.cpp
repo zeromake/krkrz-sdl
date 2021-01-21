@@ -589,8 +589,8 @@ void TVPSetLogLocation(const ttstr &loc)
 	else
 	{
 		TJS_strcpy(TVPNativeLogLocation, native.AsStdString().c_str());
-		if(TVPNativeLogLocation[TJS_strlen(TVPNativeLogLocation)-1] != TJS_W('\\'))
-			TJS_strcat(TVPNativeLogLocation, TJS_W("\\"));
+		if(TVPNativeLogLocation[TJS_strlen(TVPNativeLogLocation)-1] != TJS_W('/'))
+			TJS_strcat(TVPNativeLogLocation, TJS_W("/"));
 	}
 
 	TVPLogStreamHolder.Reopen();
