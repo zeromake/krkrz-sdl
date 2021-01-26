@@ -27,7 +27,7 @@ tTVPTmpBitmapImage::~tTVPTmpBitmapImage() {
 		MetaInfo = NULL;
 	}
 }
-tTVPImageLoadCommand::tTVPImageLoadCommand() : owner_(NULL), bmp_(NULL), dest_(NULL) {}
+tTVPImageLoadCommand::tTVPImageLoadCommand() : owner_(NULL), bmp_(NULL), dest_(NULL), stream_(NULL) {}
 tTVPImageLoadCommand::~tTVPImageLoadCommand() {
 	if( owner_ ) {
 		owner_->Release();
@@ -38,6 +38,11 @@ tTVPImageLoadCommand::~tTVPImageLoadCommand() {
 		dest_ = NULL;
 	}
 	bmp_ = NULL;
+	if (stream_)
+	{
+		delete stream_;
+		stream_ = NULL;
+	}
 }
 
 static void TVPLoadGraphicAsync_SizeCallback(void *callbackdata, tjs_uint w, tjs_uint h)
@@ -134,7 +139,7 @@ void tTVPAsyncImageLoader::HandleLoadedImage() {
 				param[0] = tTJSVariant((iTJSDispatch2*)NULL,(iTJSDispatch2*)NULL);
 				param[1] = 1; // true async
 				param[2] = 1; // true error
-				param[3] = cmd->result_; // error_mes
+				param[3] = TVPFormatMessage(cmd->result_.c_str(), cmd->path_); // error_mes
 				static ttstr eventname(TJS_W("onLoaded"));
 				if( cmd->owner_->IsValid(0,NULL,NULL,cmd->owner_) == TJS_S_TRUE ) {
 					TVPPostEvent(cmd->owner_, cmd->owner_, eventname, 0, TVP_EPT_IMMEDIATE, 4, param);
@@ -218,6 +223,12 @@ void tTVPAsyncImageLoader::PushLoadQueue( iTJSDispatch2 *owner, tTJSNI_Bitmap *b
 	cmd->bmp_ = bmp;
 	cmd->path_ = nname;
 	cmd->dest_ = new tTVPTmpBitmapImage();
+	cmd->stream_ = TVPCreateStream(cmd->path_);
+	cmd->handler_ = TVPGetGraphicLoadHandler(TVPExtractStorageExt(cmd->path_));
+	if (!cmd->handler_)
+	{
+		TVPThrowExceptionMessage(TVPUnknownGraphicFormat, cmd->path_);
+	}
 	cmd->result_.Clear();
 	{
 		// キューをロックしてプッシュ
@@ -258,26 +269,13 @@ void tTVPAsyncImageLoader::LoadingThread() {
 	}
 }
 void tTVPAsyncImageLoader::LoadImageFromCommand( tTVPImageLoadCommand* cmd ) {
-	ttstr ext = TVPExtractStorageExt(cmd->path_);
-	tTVPGraphicHandlerType* handler = NULL;
-	if(ext == TJS_W("")) {
-		cmd->result_ = TJS_W("Filename extension not found");
-	} else {
-		handler = TVPGetGraphicLoadHandler(ext);
-	}
-	if( handler ) {
-		try {
-			tTVPStreamHolder holder(cmd->path_);
-			(handler->Load)(handler->FormatData, (void*)cmd->dest_, TVPLoadGraphicAsync_SizeCallback,
-				TVPLoadGraphicAsync_ScanLineCallback, TVPLoadGraphicAsync_MetaInfoPushCallback,
-				holder.Get(), -1, glmNormal );
-		} catch(...) {
-			// 例外は全てキャッチ
-			cmd->result_ = TVPFormatMessage(TVPImageLoadError, cmd->path_);
-		}
-	} else {
-		// error
-		cmd->result_ = TVPFormatMessage(TVPUnknownGraphicFormat, cmd->path_);
+	try {
+		(cmd->handler_->Load)(cmd->handler_->FormatData, (void*)cmd->dest_, TVPLoadGraphicAsync_SizeCallback,
+			TVPLoadGraphicAsync_ScanLineCallback, TVPLoadGraphicAsync_MetaInfoPushCallback,
+			cmd->stream_, -1, glmNormal );
+	} catch(...) {
+		// 例外は全てキャッチ
+		cmd->result_ = TVPImageLoadError;
 	}
 }
 
