@@ -27,7 +27,7 @@ tTVPTmpBitmapImage::~tTVPTmpBitmapImage() {
 		MetaInfo = NULL;
 	}
 }
-tTVPImageLoadCommand::tTVPImageLoadCommand() : owner_(NULL), bmp_(NULL), dest_(NULL), stream_(NULL) {}
+tTVPImageLoadCommand::tTVPImageLoadCommand() : owner_(NULL), bmp_(NULL), dest_(NULL) {}
 tTVPImageLoadCommand::~tTVPImageLoadCommand() {
 	if( owner_ ) {
 		owner_->Release();
@@ -38,11 +38,6 @@ tTVPImageLoadCommand::~tTVPImageLoadCommand() {
 		dest_ = NULL;
 	}
 	bmp_ = NULL;
-	if (stream_)
-	{
-		delete stream_;
-		stream_ = NULL;
-	}
 }
 
 static void TVPLoadGraphicAsync_SizeCallback(void *callbackdata, tjs_uint w, tjs_uint h)
@@ -223,7 +218,6 @@ void tTVPAsyncImageLoader::PushLoadQueue( iTJSDispatch2 *owner, tTJSNI_Bitmap *b
 	cmd->bmp_ = bmp;
 	cmd->path_ = nname;
 	cmd->dest_ = new tTVPTmpBitmapImage();
-	cmd->stream_ = TVPCreateStream(cmd->path_);
 	cmd->handler_ = TVPGetGraphicLoadHandler(TVPExtractStorageExt(cmd->path_));
 	if (!cmd->handler_)
 	{
@@ -270,9 +264,10 @@ void tTVPAsyncImageLoader::LoadingThread() {
 }
 void tTVPAsyncImageLoader::LoadImageFromCommand( tTVPImageLoadCommand* cmd ) {
 	try {
+		tTVPStreamHolder holder(cmd->path_);
 		(cmd->handler_->Load)(cmd->handler_->FormatData, (void*)cmd->dest_, TVPLoadGraphicAsync_SizeCallback,
 			TVPLoadGraphicAsync_ScanLineCallback, TVPLoadGraphicAsync_MetaInfoPushCallback,
-			cmd->stream_, -1, glmNormal );
+			holder.Get(), -1, glmNormal );
 	} catch(...) {
 		// 例外は全てキャッチ
 		cmd->result_ = TVPImageLoadError;

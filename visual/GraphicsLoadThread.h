@@ -26,7 +26,6 @@ struct tTVPImageLoadCommand {
 	ttstr					path_;
 	tTVPTmpBitmapImage*		dest_;
 	ttstr					result_;
-	tTJSBinaryStream*		stream_;
 	tTVPGraphicHandlerType*	handler_;
 	tTVPImageLoadCommand();
 	~tTVPImageLoadCommand();
