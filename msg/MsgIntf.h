@@ -22,11 +22,11 @@
 
 #include "MsgImpl.h"
 
-#ifdef _WIN32
-#define WIDEN2(x) L ## x
+#if defined(__WCHAR_MAX__) && (__WCHAR_MAX__ != 0x7fff && __WCHAR_MAX__ != 0xffff)
+#define WIDEN2(x) u ## x
 #define WIDEN(x) WIDEN2(x)
 #else
-#define WIDEN2(x) u ## x
+#define WIDEN2(x) L ## x
 #define WIDEN(x) WIDEN2(x)
 #endif
 
