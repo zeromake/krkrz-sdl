@@ -3,7 +3,7 @@
 #define __SIMD_DEF_X86_X64_H__
 
 
-#if defined(__vita__)
+#if defined(__vita__) || defined(__SWITCH__)
 #include <simde/simde/simde-common.h>
 #undef SIMDE_HAVE_FENV_H
 #endif

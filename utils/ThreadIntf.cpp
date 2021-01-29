@@ -92,7 +92,7 @@ tTVPThreadPriority tTVPThread::GetPriority()
 	}
 
 	return ttpNormal;
-#elif defined(__EMSCRIPTEN__)
+#elif defined(__EMSCRIPTEN__) || defined(__SWITCH__)
 	return ttpNormal;
 #else
 	if (!GetHandle())
@@ -151,7 +151,7 @@ void tTVPThread::SetPriority(tTVPThreadPriority pri)
 	}
 
 	::SetThreadPriority( GetHandle(), npri);
-#elif defined(__EMSCRIPTEN__)
+#elif defined(__EMSCRIPTEN__) || defined(__SWITCH__)
 #else
 	if (!GetHandle())
 	{
@@ -340,9 +340,7 @@ void DrawThreadPool::PoolThread( tjs_int taskNum ) {
 #elif defined( __MACH__ )
 		thread_affinity_policy_data_t policy = { static_cast<int>(workers.size()) };
 		thread_policy_set( pthread_mach_thread_np( th->GetHandle() ), THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);
-#elif defined( __EMSCRIPTEN__ )
-		// do nothing
-#elif defined( __vita__ )
+#elif defined( __EMSCRIPTEN__ ) || defined( __vita__ ) || defined( __SWITCH__ )
 		// do nothing
 #elif !defined( ANDROID )
 		// for pthread(!android)

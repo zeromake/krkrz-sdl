@@ -42,7 +42,7 @@
 #include "tjsUtils.h"
 #include "tvpgl_ia32_intf.h"
 #include "DetectCPU.h"
-#if defined(__vita__)
+#if defined(__vita__) || defined(__SWITCH__)
 #include <simde/simde/simde-common.h>
 #undef SIMDE_HAVE_FENV_H
 #endif

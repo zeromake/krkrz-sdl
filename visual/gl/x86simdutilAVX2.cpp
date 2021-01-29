@@ -11,7 +11,7 @@
  *				ので、AVX2 も必要。
  *****************************************************************************/
 
-#if defined(__vita__)
+#if defined(__vita__) || defined(__SWITCH__)
 #include <simde/simde/simde-common.h>
 #undef SIMDE_HAVE_FENV_H
 #endif
