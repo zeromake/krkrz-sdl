@@ -29,6 +29,10 @@
   (this is the zlib license)
 */
 
+#if defined(__vita__)
+#include <simde/simde/simde-common.h>
+#undef SIMDE_HAVE_FENV_H
+#endif
 #include <simde/x86/sse.h>
 
 /* yes I know, the top of this file is quite ugly */

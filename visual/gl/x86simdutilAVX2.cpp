@@ -11,6 +11,10 @@
  *				ので、AVX2 も必要。
  *****************************************************************************/
 
+#if defined(__vita__)
+#include <simde/simde/simde-common.h>
+#undef SIMDE_HAVE_FENV_H
+#endif
 #include <simde/x86/avx.h>
 #include <simde/x86/avx2.h>
 

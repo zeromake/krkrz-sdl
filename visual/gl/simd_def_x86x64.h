@@ -3,6 +3,10 @@
 #define __SIMD_DEF_X86_X64_H__
 
 
+#if defined(__vita__)
+#include <simde/simde/simde-common.h>
+#undef SIMDE_HAVE_FENV_H
+#endif
 #include <simde/x86/sse.h>
 #include <simde/x86/sse2.h>
 #include <simde/x86/sse3.h>

@@ -14,6 +14,10 @@
 #ifndef TVP_MATHALGOLITHMS_H
 #define TVP_MATHALGOLITHMS_H
 
+#if defined(__vita__)
+#include <simde/simde/simde-common.h>
+#undef SIMDE_HAVE_FENV_H
+#endif
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <simde/x86/sse.h>

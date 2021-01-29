@@ -5,7 +5,7 @@
 
 #if defined(_MSC_VER)
 #include <intrin.h>
-#elif defined(__MINGW32__)
+#elif defined(__MINGW32__) || defined(__vita__)
 #include <malloc.h>		// _aligned_malloc and _aligned_free
 #else
 #include <stdlib.h>
@@ -37,6 +37,10 @@ struct aligned_allocator : public std::allocator<T>
 		T* ret;
 		posix_memalign(reinterpret_cast<void**>(&ret), (TAlign > sizeof(void *)) ? TAlign : sizeof(void *), sizeof(T)*c);
 		return ret;
+	}
+#elif defined(__vita__)
+	T* allocate( std::size_t c ) {
+		return static_cast<T*>( memalign((TAlign > sizeof(void *)) ? TAlign : sizeof(void *), sizeof(T)*c) );
 	}
 #else
 	T* allocate( std::size_t c ) {

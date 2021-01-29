@@ -42,6 +42,10 @@
 #include "tjsUtils.h"
 #include "tvpgl_ia32_intf.h"
 #include "DetectCPU.h"
+#if defined(__vita__)
+#include <simde/simde/simde-common.h>
+#undef SIMDE_HAVE_FENV_H
+#endif
 #include <simde/x86/sse.h>
 
 extern void InterleaveOverlappingWindow(float * __restrict dest, const float * __restrict const * __restrict src,

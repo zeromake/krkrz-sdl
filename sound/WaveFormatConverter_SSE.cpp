@@ -13,6 +13,10 @@
 
 #include "tjsCommHead.h"
 #include "MathAlgorithms.h"
+#if defined(__vita__)
+#include <simde/simde/simde-common.h>
+#undef SIMDE_HAVE_FENV_H
+#endif
 #include <simde/x86/sse4.1.h>
 //---------------------------------------------------------------------------
 
