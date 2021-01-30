@@ -15,8 +15,12 @@
 #include "tjsString.h"
 
 #if 1
+#ifdef KRKRZ_USE_SDL_THREADS
+#include <SDL.h>
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 #include <mutex>
+#endif
 #endif
 #else
 #ifdef __WIN32__
@@ -33,20 +37,45 @@ namespace TJS
 #if 1
 class tTJSCriticalSection
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	SDL_mutex *Mutex;
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::recursive_mutex Mutex;
 #endif
+#endif
 
 public:
-	tTJSCriticalSection() {}
-	~tTJSCriticalSection() {}
+	tTJSCriticalSection()
+	{
+#ifdef KRKRZ_USE_SDL_THREADS
+		Mutex = SDL_CreateMutex();
+#endif
+	}
+	~tTJSCriticalSection()
+	{
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_DestroyMutex(Mutex);
+#endif
+	}
 
+#ifdef KRKRZ_USE_SDL_THREADS
+	void Enter()
+	{
+		SDL_LockMutex(Mutex);
+	}
+	void Leave()
+	{
+		SDL_UnlockMutex(Mutex);
+	}
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	void Enter() { Mutex.lock(); }
 	void Leave() { Mutex.unlock(); }
 #else
 	void Enter() {}
 	void Leave() {}
+#endif
 #endif
 };
 #else

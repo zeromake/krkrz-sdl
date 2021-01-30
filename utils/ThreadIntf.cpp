@@ -34,20 +34,52 @@
 tTVPThread::tTVPThread()
  : Thread(nullptr), Terminated(false), ThreadStarting(false)
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	Mtx = SDL_CreateMutex();
+	Cond = SDL_CreateCond();
+#endif
 }
 //---------------------------------------------------------------------------
 tTVPThread::~tTVPThread()
 {
+#ifdef KRKRZ_USE_SDL_THREADS
 	if( Thread != nullptr ) {
-#if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
-		if( Thread->joinable() ) Thread->detach();
+		SDL_WaitThread(Thread, NULL);
+		Thread = nullptr;
+	}
+	SDL_DestroyCond(Cond);
+	SDL_DestroyMutex(Mtx);
+#else
+	if( Thread != nullptr ) {
+		if ( false ) {}
+#if defined(__SWITCH__) || defined(__vita__)
+		else if( Thread->joinable() ) Thread->join();
+#elif (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
+		else if( Thread->joinable() ) Thread->detach();
 #endif
 		delete Thread;
 	}
+#endif
 }
 //---------------------------------------------------------------------------
+#ifdef KRKRZ_USE_SDL_THREADS
+int tTVPThread::StartProc(void * arg)
+#else
 void tTVPThread::StartProc()
+#endif
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	// スレッドが開始されたのでフラグON
+	tTVPThread* _this = (tTVPThread*)arg;
+	_this->ThreadId = SDL_ThreadID();
+	SDL_LockMutex(_this->Mtx);
+	_this->ThreadStarting = true;
+	SDL_CondBroadcast(_this->Cond);
+	SDL_UnlockMutex(_this->Mtx);
+	(_this)->Execute();
+
+	return 0;
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	{	// スレッドが開始されたのでフラグON
 		std::lock_guard<std::mutex> lock( Mtx );
@@ -57,10 +89,24 @@ void tTVPThread::StartProc()
 	Execute();
 	// return 0;
 #endif
+#endif
 }
 //---------------------------------------------------------------------------
 void tTVPThread::StartTread()
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	if( Thread == nullptr ) {
+		Thread = SDL_CreateThread(tTVPThread::StartProc, "tTVPThread", this);
+		if (Thread == nullptr) {
+			TVPThrowInternalError;
+		}
+		SDL_LockMutex(Mtx);
+		while (!ThreadStarting) {
+			SDL_CondWait(Cond, Mtx);
+		}
+		SDL_UnlockMutex(Mtx);
+	}
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	if( Thread == nullptr ) {
 		try {
@@ -74,10 +120,21 @@ void tTVPThread::StartTread()
 		}
 	}
 #endif
+#endif
 }
 //---------------------------------------------------------------------------
 tTVPThreadPriority tTVPThread::GetPriority()
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	switch(_Priority)
+	{
+	case SDL_THREAD_PRIORITY_LOW:			return ttpIdle;
+	case SDL_THREAD_PRIORITY_NORMAL:		return ttpNormal;
+	case SDL_THREAD_PRIORITY_HIGH:			return ttpTimeCritical;
+	}
+
+	return ttpNormal;
+#else
 #ifdef _WIN32
 	int n = ::GetThreadPriority( GetHandle());
 	switch(n)
@@ -133,10 +190,26 @@ tTVPThreadPriority tTVPThread::GetPriority()
 	}
 	return ttpNormal;
 #endif
+#endif
 }
 //---------------------------------------------------------------------------
 void tTVPThread::SetPriority(tTVPThreadPriority pri)
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	SDL_ThreadPriority npri = SDL_THREAD_PRIORITY_NORMAL;
+	switch(pri)
+	{
+	case ttpIdle:			npri = SDL_THREAD_PRIORITY_LOW;			break;
+	case ttpLowest:			npri = SDL_THREAD_PRIORITY_LOW;			break;
+	case ttpLower:			npri = SDL_THREAD_PRIORITY_LOW;			break;
+	case ttpNormal:			npri = SDL_THREAD_PRIORITY_NORMAL;		break;
+	case ttpHigher:			npri = SDL_THREAD_PRIORITY_NORMAL;		break;
+	case ttpHighest:		npri = SDL_THREAD_PRIORITY_NORMAL;		break;
+	case ttpTimeCritical:	npri = SDL_THREAD_PRIORITY_HIGH;		break;
+	}
+	SDL_SetThreadPriority(npri);
+	_Priority = npri;
+#else
 #ifdef _WIN32
 	int npri = THREAD_PRIORITY_NORMAL;
 	switch(pri)
@@ -178,6 +251,7 @@ void tTVPThread::SetPriority(tTVPThreadPriority pri)
 	}
 	err = pthread_setschedparam( GetHandle(), policy, &param );
 #endif
+#endif
 }
 //---------------------------------------------------------------------------
 
@@ -186,15 +260,24 @@ tjs_int TVPDrawThreadNum = 1;
 //---------------------------------------------------------------------------
 tjs_int TVPGetProcessorNum( void )
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	return SDL_GetCPUCount();
+#else
 #if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 	return 1;
 #else
 	return std::thread::hardware_concurrency();
 #endif
+#endif
 }
 //---------------------------------------------------------------------------
 tjs_int TVPGetThreadNum( void )
 {
+#ifdef KRKRZ_USE_SDL_THREADS
+	tjs_int threadNum = TVPDrawThreadNum ? TVPDrawThreadNum : TVPGetProcessorNum();
+	threadNum = std::min( threadNum, TVPMaxThreadNum );
+	return threadNum;
+#else
 #if defined(__EMSCRIPTEN__) && !defined(__EMSCRIPTEN_PTHREADS__)
 	return 1;
 #else
@@ -202,15 +285,21 @@ tjs_int TVPGetThreadNum( void )
 	threadNum = std::min( threadNum, TVPMaxThreadNum );
 	return threadNum;
 #endif
+#endif
 }
 //---------------------------------------------------------------------------
 static void TJS_USERENTRY DummyThreadTask( void * ) {}
 //---------------------------------------------------------------------------
 class DrawThreadPool;
 class DrawThread : public tTVPThread {
+#ifdef KRKRZ_USE_SDL_THREADS
+	SDL_mutex *mtx;
+	SDL_cond *cv;
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::mutex mtx;
 	std::condition_variable cv;
+#endif
 #endif
 	TVP_THREAD_TASK_FUNC  lpStartAddress;
 	TVP_THREAD_PARAM lpParameter;
@@ -219,8 +308,28 @@ protected:
 	virtual void Execute();
 
 public:
-	DrawThread( DrawThreadPool* p ) : parent( p ), lpStartAddress( nullptr ), lpParameter( nullptr ) {}
+	DrawThread( DrawThreadPool* p ) : parent( p ), lpStartAddress( nullptr ), lpParameter( nullptr )
+	{
+#ifdef KRKRZ_USE_SDL_THREADS
+		mtx = SDL_CreateMutex();
+		cv = SDL_CreateCond();
+#endif
+	}
+#ifdef KRKRZ_USE_SDL_THREADS
+	virtual ~DrawThread()
+	{
+		SDL_DestroyCond(cv);
+		SDL_DestroyMutex(mtx);
+	}
+#endif
 	void SetTask( TVP_THREAD_TASK_FUNC func, TVP_THREAD_PARAM param ) {
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_LockMutex(mtx);
+		lpStartAddress = func;
+		lpParameter = param;
+		SDL_CondSignal(cv);
+		SDL_UnlockMutex(mtx);
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		std::lock_guard<std::mutex> lock( mtx );
 #endif
@@ -228,6 +337,7 @@ public:
 		lpParameter = param;
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		cv.notify_one();
+#endif
 #endif
 	}
 };
@@ -237,10 +347,16 @@ class DrawThreadPool {
 #ifdef _WIN32
 	std::vector<tjs_int> processor_ids;
 #endif
+#ifdef KRKRZ_USE_SDL_THREADS
+	SDL_mutex *lock;
+	SDL_cond *cond;
+	int running_thread_count;
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::atomic<int> running_thread_count;
 #else
 	int running_thread_count;
+#endif
 #endif
 	tjs_int task_num;
 	tjs_int task_count;
@@ -248,7 +364,13 @@ private:
 	void PoolThread( tjs_int taskNum );
 
 public:
-	DrawThreadPool() : running_thread_count( 0 ), task_num( 0 ), task_count( 0 ) {}
+	DrawThreadPool() : running_thread_count( 0 ), task_num( 0 ), task_count( 0 )
+	{
+#ifdef KRKRZ_USE_SDL_THREADS
+		lock = SDL_CreateMutex();
+		cond = SDL_CreateCond();
+#endif
+	}
 	~DrawThreadPool() {
 		for( auto i = workers.begin(); i != workers.end(); ++i ) {
 			DrawThread *th = *i;
@@ -257,8 +379,22 @@ public:
 			th->WaitFor();
 			delete th;
 		}
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_DestroyCond(cond);
+		SDL_DestroyMutex(lock);
+#endif
 	}
-	inline void DecCount() { running_thread_count--; }
+	inline void DecCount()
+	{
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_LockMutex(lock);
+#endif
+		running_thread_count--;
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_CondBroadcast(cond);
+		SDL_UnlockMutex(lock);
+#endif
+	}
 	void BeginTask( tjs_int taskNum ) {
 		task_num = taskNum;
 		task_count = 0;
@@ -274,14 +410,33 @@ public:
 			func( param );
 			return;
 		}
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_LockMutex(lock);
+#endif
 		running_thread_count++;
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_CondBroadcast(cond);
+		SDL_UnlockMutex(lock);
+#endif
 		DrawThread* thread = workers[task_count];
 		task_count++;
 		thread->SetTask( func, param );
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_Delay(0);
+#else
 		std::this_thread::yield();
+#endif
 #endif
 	}
 	void WaitForTask() {
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_LockMutex(lock);
+		while (running_thread_count != 0)
+		{
+			SDL_CondWait(cond, lock);
+		}
+		SDL_UnlockMutex(lock);
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		int expected = 0;
 		while( false == std::atomic_compare_exchange_weak( &running_thread_count, &expected, 0 ) ) {
@@ -289,10 +444,24 @@ public:
 			std::this_thread::yield();	// スレッド切り替え(再スケジューリング)
 		}
 #endif
+#endif
 	}
 };
 //---------------------------------------------------------------------------
 void DrawThread::Execute() {
+#ifdef KRKRZ_USE_SDL_THREADS
+	while( !GetTerminated() ) {
+		SDL_LockMutex(mtx);
+		while (lpStartAddress == nullptr)
+		{
+			SDL_CondWait(cv, mtx);
+		}
+		SDL_UnlockMutex(mtx);
+		if( lpStartAddress != nullptr ) ( lpStartAddress )( lpParameter );
+		lpStartAddress = nullptr;
+		parent->DecCount();
+	}
+#else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	while( !GetTerminated() ) {
 		{
@@ -303,6 +472,7 @@ void DrawThread::Execute() {
 		lpStartAddress = nullptr;
 		parent->DecCount();
 	}
+#endif
 #endif
 }
 //---------------------------------------------------------------------------
@@ -335,6 +505,7 @@ void DrawThreadPool::PoolThread( tjs_int taskNum ) {
 	while( (tjs_int)workers.size() < extraThreadNum ) {
 		DrawThread* th = new DrawThread( this );
 		th->StartTread();
+#ifndef KRKRZ_USE_SDL_THREADS
 #ifdef _WIN32
 		::SetThreadIdealProcessor( th->GetHandle(), processor_ids[workers.size() % processor_ids.size()] );
 #elif defined( __MACH__ )
@@ -349,13 +520,21 @@ void DrawThreadPool::PoolThread( tjs_int taskNum ) {
 		CPU_SET( workers.size(), &cpuset );
 		int rc = pthread_setaffinity_np( th->GetHandle(), sizeof( cpu_set_t ), &cpuset );
 #endif
+#endif
 		workers.push_back( th );
 	}
 	// スレッド数が多い場合終了させる
 	while( (tjs_int)workers.size() > extraThreadNum ) {
 		DrawThread *th = workers.back();
 		th->Terminate();
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_LockMutex(lock);
+#endif
 		running_thread_count++;
+#ifdef KRKRZ_USE_SDL_THREADS
+		SDL_CondBroadcast(cond);
+		SDL_UnlockMutex(lock);
+#endif
 		th->SetTask( DummyThreadTask, nullptr );
 		th->WaitFor();
 		workers.pop_back();
