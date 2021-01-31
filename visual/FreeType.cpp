@@ -136,7 +136,7 @@ class tGenericFreeTypeFace : public tBaseFreeTypeFace
 protected:
 	FT_Face Face;	//!< FreeType face オブジェクト
 	tTJSBinaryStream* File;	 //!< tTJSBinaryStream オブジェクト
-	bool NoScope = false;
+	bool FileOwned = false;
 	std::vector<tjs_string> FaceNames; //!< Face名を列挙した配列
 	//std::unique_ptr<tjs_uint8[]> FontImage;
 	ttstr FontPath;
@@ -451,7 +451,7 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &fontname, tjs_uint32 opt
 		FontPath = fontname;
 		if (!file)
 		{
-			NoScope = true;
+			FileOwned = true;
 			File = TVPCreateBinaryStreamForRead(FontPath,TJS_W("") );
 			if( File == NULL ) {
 				TVPThrowExceptionMessage( TVPCannotOpenFontFile, FontPath );
@@ -607,7 +607,7 @@ tGenericFreeTypeFace::tGenericFreeTypeFace(const ttstr &filename, std::vector<Fo
 tGenericFreeTypeFace::~tGenericFreeTypeFace()
 {
 	if(Face) FT_Done_Face(Face), Face = NULL;
-	if(NoScope && File) {
+	if(FileOwned && File) {
 		delete File;
 		File = NULL;
 	}
