@@ -48,10 +48,6 @@
 #include "VirtualKey.h"
 #endif
 
-#ifdef KRKRZ_CORETEXT_SUPPORT
-#include "darwin/CoreTextFontRasterizer.h"
-#endif
-
 //---------------------------------------------------------------------------
 // prototypes
 //---------------------------------------------------------------------------
@@ -72,9 +68,6 @@ enum {
 #ifdef _WIN32
 	FONT_RASTER_GDI,
 #endif
-#ifdef KRKRZ_CORETEXT_SUPPORT
-	FONT_RASTER_CORETEXT,
-#endif
 	FONT_RASTER_EOT
 };
 static FontRasterizer* TVPFontRasterizers[FONT_RASTER_EOT];
@@ -86,9 +79,6 @@ void TVPInializeFontRasterizers() {
 		TVPFontRasterizers[FONT_RASTER_FREE_TYPE] = new FreeTypeFontRasterizer();
 #ifdef _WIN32
 		TVPFontRasterizers[FONT_RASTER_GDI] = new GDIFontRasterizer();
-#endif
-#ifdef KRKRZ_CORETEXT_SUPPORT
-		TVPFontRasterizers[FONT_RASTER_CORETEXT] = new CoreTextFontRasterizer();
 #endif
 		TVPFontSystem = new FontSystem();
 		TVPFontRasterizersInit = true;
