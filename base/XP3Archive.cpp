@@ -232,12 +232,6 @@ static bool TVPGetXP3ArchiveOffset(tTJSBinaryStream *st, const ttstr name,
 {
 	st->SetPosition(0);
 	tjs_uint8 mark[11+1];
-	static tjs_uint8 XP3Mark1[] =
-		{ 0x58/*'X'*/, 0x50/*'P'*/, 0x33/*'3'*/, 0x0d/*'\r'*/,
-		  0x0a/*'\n'*/, 0x20/*' '*/, 0x0a/*'\n'*/, 0x1a/*EOF*/,
-		  0xff /* sentinel */ };
-	static tjs_uint8 XP3Mark2[] =
-		{ 0x8b, 0x67, 0x01, 0xff/* sentinel */ };
 
 	// XP3 header mark contains:
 	// 1. line feed and carriage return to detect corruption by unnecessary
@@ -248,21 +242,11 @@ static bool TVPGetXP3ArchiveOffset(tTJSBinaryStream *st, const ttstr name,
 	//    higher 4 bits are file structure version, currently 0.
 	//    lower 4 bits are character coding, currently 1, is BMP 16bit Unicode.
 
-	static tjs_uint8 XP3Mark[11+1];
-		// +1: I was warned by CodeGuard that the code will do
-		// access overrun... because a number of 11 is not aligned by DWORD, 
-		// and the processor may read the value of DWORD at last of this array
-		// from offset 8. Then the last 1 byte would cause a fail.
-	static bool DoInit = true;
-	if(DoInit)
-	{
-		// the XP3 header above is splitted into two part; to avoid
-		// mis-finding of the header in the program's initialized data area.
-		DoInit = false;
-		memcpy(XP3Mark, XP3Mark1, 8);
-		memcpy(XP3Mark + 8, XP3Mark2, 3);
-		// here joins it.
-	}
+	static const tjs_uint8 XP3Mark[] = {
+		0x58/*'X'*/, 0x50/*'P'*/, 0x33/*'3'*/, 0x0d/*'\r'*/,
+		0x0a/*'\n'*/, 0x20/*' '*/, 0x0a/*'\n'*/, 0x1a/*EOF*/,
+		0x8b, 0x67, 0x01, 0xff/* sentinel */
+	};
 
 	mark[0] = 0; // sentinel
 	st->ReadBuffer(mark, 11);
@@ -347,13 +331,13 @@ tTVPXP3Archive::tTVPXP3Archive(const ttstr & name) : tTVPArchive(name)
 
 	tjs_uint8 *indexdata = NULL;
 
-	static tjs_uint8 cn_File[] =
+	static const tjs_uint8 cn_File[] =
 		{ 0x46/*'F'*/, 0x69/*'i'*/, 0x6c/*'l'*/, 0x65/*'e'*/ };
-	static tjs_uint8 cn_info[] =
+	static const tjs_uint8 cn_info[] =
 		{ 0x69/*'i'*/, 0x6e/*'n'*/, 0x66/*'f'*/, 0x6f/*'o'*/ };
-	static tjs_uint8 cn_segm[] =
+	static const tjs_uint8 cn_segm[] =
 		{ 0x73/*'s'*/, 0x65/*'e'*/, 0x67/*'g'*/, 0x6d/*'m'*/ };
-	static tjs_uint8 cn_adlr[] =
+	static const tjs_uint8 cn_adlr[] =
 		{ 0x61/*'a'*/, 0x64/*'d'*/, 0x6c/*'l'*/, 0x72/*'r'*/ };
 
 	TVPAddLog( TVPFormatMessage(TVPInfoTryingToReadXp3VirtualFileSystemInformationFrom, name) );
