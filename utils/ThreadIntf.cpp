@@ -362,7 +362,13 @@ private:
 	void PoolThread( tjs_int taskNum );
 
 public:
-	DrawThreadPool() : running_thread_count( { 0 } ), task_num( 0 ), task_count( 0 ) {}
+	DrawThreadPool() : 
+#ifdef KRKRZ_USE_SDL_THREADS
+	running_thread_count( { 0 } ), 
+#else
+	running_thread_count( 0 ), 
+#endif
+	task_num( 0 ), task_count( 0 ) {}
 	~DrawThreadPool() {
 		for( auto i = workers.begin(); i != workers.end(); ++i ) {
 			DrawThread *th = *i;
