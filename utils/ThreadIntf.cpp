@@ -348,9 +348,7 @@ class DrawThreadPool {
 	std::vector<tjs_int> processor_ids;
 #endif
 #ifdef KRKRZ_USE_SDL_THREADS
-	SDL_mutex *lock;
-	SDL_cond *cond;
-	int running_thread_count;
+	SDL_atomic_t running_thread_count;
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::atomic<int> running_thread_count;
@@ -364,13 +362,7 @@ private:
 	void PoolThread( tjs_int taskNum );
 
 public:
-	DrawThreadPool() : running_thread_count( 0 ), task_num( 0 ), task_count( 0 )
-	{
-#ifdef KRKRZ_USE_SDL_THREADS
-		lock = SDL_CreateMutex();
-		cond = SDL_CreateCond();
-#endif
-	}
+	DrawThreadPool() : running_thread_count( { 0 } ), task_num( 0 ), task_count( 0 ) {}
 	~DrawThreadPool() {
 		for( auto i = workers.begin(); i != workers.end(); ++i ) {
 			DrawThread *th = *i;
@@ -379,20 +371,13 @@ public:
 			th->WaitFor();
 			delete th;
 		}
-#ifdef KRKRZ_USE_SDL_THREADS
-		SDL_DestroyCond(cond);
-		SDL_DestroyMutex(lock);
-#endif
 	}
 	inline void DecCount()
 	{
 #ifdef KRKRZ_USE_SDL_THREADS
-		SDL_LockMutex(lock);
-#endif
+		SDL_AtomicDecRef(&running_thread_count);
+#else
 		running_thread_count--;
-#ifdef KRKRZ_USE_SDL_THREADS
-		SDL_CondBroadcast(cond);
-		SDL_UnlockMutex(lock);
 #endif
 	}
 	void BeginTask( tjs_int taskNum ) {
@@ -411,12 +396,9 @@ public:
 			return;
 		}
 #ifdef KRKRZ_USE_SDL_THREADS
-		SDL_LockMutex(lock);
-#endif
+		SDL_AtomicIncRef(&running_thread_count);
+#else
 		running_thread_count++;
-#ifdef KRKRZ_USE_SDL_THREADS
-		SDL_CondBroadcast(cond);
-		SDL_UnlockMutex(lock);
 #endif
 		DrawThread* thread = workers[task_count];
 		task_count++;
@@ -430,12 +412,10 @@ public:
 	}
 	void WaitForTask() {
 #ifdef KRKRZ_USE_SDL_THREADS
-		SDL_LockMutex(lock);
-		while (running_thread_count != 0)
+		while (SDL_AtomicGet(&running_thread_count) != 0)
 		{
-			SDL_CondWait(cond, lock);
+			SDL_Delay(0);
 		}
-		SDL_UnlockMutex(lock);
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 		int expected = 0;
@@ -528,12 +508,9 @@ void DrawThreadPool::PoolThread( tjs_int taskNum ) {
 		DrawThread *th = workers.back();
 		th->Terminate();
 #ifdef KRKRZ_USE_SDL_THREADS
-		SDL_LockMutex(lock);
-#endif
+		SDL_AtomicIncRef(&running_thread_count);
+#else
 		running_thread_count++;
-#ifdef KRKRZ_USE_SDL_THREADS
-		SDL_CondBroadcast(cond);
-		SDL_UnlockMutex(lock);
 #endif
 		th->SetTask( DummyThreadTask, nullptr );
 		th->WaitFor();
