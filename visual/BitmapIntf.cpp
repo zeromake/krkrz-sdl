@@ -101,11 +101,13 @@ iTJSDispatch2 * tTJSNI_Bitmap::Load(const ttstr &name, tjs_uint32 colorkey) {
 	return metainfo;
 }
 //----------------------------------------------------------------------
+#ifdef KRKRSDL2_ENABLE_ASYNC_IMAGE_LOAD
 void tTJSNI_Bitmap::LoadAsync( const ttstr &name) {
 	if( Loading ) TVPThrowExceptionMessage(TVPCurrentlyAsyncLoadBitmap);
 	Loading = true;
 	Application->LoadImageRequest( Owner, this, name );
 }
+#endif
 //----------------------------------------------------------------------
 void tTJSNI_Bitmap::Save(const ttstr &name, const ttstr &type, iTJSDispatch2* meta ) {
 	if( Loading ) TVPThrowExceptionMessage(TVPCurrentlyAsyncLoadBitmap);
@@ -322,6 +324,7 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/load)
 }
 TJS_END_NATIVE_METHOD_DECL(/*func. name*/load)
 //----------------------------------------------------------------------
+#ifdef KRKRSDL2_ENABLE_ASYNC_IMAGE_LOAD
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/loadAsync)
 {
 	TJS_GET_NATIVE_INSTANCE(/*var. name*/_this, /*var. type*/tTJSNI_Bitmap);
@@ -331,6 +334,7 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/loadAsync)
 	return TJS_S_OK;
 }
 TJS_END_NATIVE_METHOD_DECL(/*func. name*/loadAsync)
+#endif
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/loadHeader)
 {

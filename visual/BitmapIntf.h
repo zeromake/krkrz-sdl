@@ -36,7 +36,9 @@ public:
 	void Independ(bool copy = true);
 
 	iTJSDispatch2* Load(const ttstr &name, tjs_uint32 colorkey);
+#ifdef KRKRSDL2_ENABLE_ASYNC_IMAGE_LOAD
 	void LoadAsync(const ttstr &name);
+#endif
 	void Save(const ttstr &name, const ttstr &type, iTJSDispatch2* meta = NULL);
 
 	void SetSize(tjs_uint width, tjs_uint height, bool keepimage = true);
