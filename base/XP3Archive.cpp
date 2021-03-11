@@ -231,7 +231,7 @@ static bool TVPGetXP3ArchiveOffset(tTJSBinaryStream *st, const ttstr name,
 	tjs_uint64 & offset, bool raise)
 {
 	st->SetPosition(0);
-	tjs_uint8 mark[11+1];
+	tjs_uint8* mark = new tjs_uint8[11+1];
 
 	// XP3 header mark contains:
 	// 1. line feed and carriage return to detect corruption by unnecessary
@@ -263,12 +263,16 @@ static bool TVPGetXP3ArchiveOffset(tTJSBinaryStream *st, const ttstr name,
 		// XP3 mark must be aligned by a paragraph ( 16 bytes )
 		const tjs_uint one_read_size = 256*1024;
 		tjs_uint read;
-		tjs_uint8 buffer[one_read_size]; // read 256kbytes at once
+		tjs_uint8* buffer = new tjs_uint8[one_read_size]; // read 256kbytes at once
 
 		while(0!=(read = st->Read(buffer, one_read_size)))
 		{
+			if (read > one_read_size)
+			{
+				read = one_read_size;
+			}
 			tjs_uint p = 0;
-			while(p<read)
+			while(p + 11 < read)
 			{
 				if(!memcmp(XP3Mark, buffer + p, 11))
 				{
@@ -282,9 +286,11 @@ static bool TVPGetXP3ArchiveOffset(tTJSBinaryStream *st, const ttstr name,
 			if(found) break;
 			offset += one_read_size;
 		}
+		delete[] buffer;
 
 		if(!found)
 		{
+			delete[] mark;
 			if(raise)
 				TVPThrowExceptionMessage(TVPCannotUnbindXP3EXE, name);
 			else
@@ -298,11 +304,13 @@ static bool TVPGetXP3ArchiveOffset(tTJSBinaryStream *st, const ttstr name,
 	}
 	else
 	{
+		delete[] mark;
 		if(raise)
 			TVPThrowExceptionMessage(TVPCannotFindXP3Mark, name);
 		return false;
 	}
 
+	delete[] mark;
 	return true;
 }
 //---------------------------------------------------------------------------
