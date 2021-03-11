@@ -1155,6 +1155,7 @@ static tjs_uint TVPRebuildAutoPathTable()
 							if(!TJS_strchr(name.c_str() + in_arc_name_len, TJS_W('/')))
 							{
 								ttstr sname = TVPExtractStorageName(name);
+								sname.ToLowerCase();
 								// TODO アーカイブの時もプロパティ情報追加
 								TVPAutoPathTable.Add(sname, tTVPFileInfo(path) );
 								count ++;
@@ -1206,18 +1207,24 @@ static tjs_uint TVPRebuildAutoPathTable()
 					ttstr fname = TVPChopStorageExt( *i );
 					auto file = lister.list.find( fname );
 					if( file != lister.list.end() ) {
+						ttstr sname = *file;
+						sname.ToLowerCase();
 						// ファイルがある場合
-						lister.list.erase( *file );
-						TVPAutoPathTable.Add( *file, tTVPFileInfo( path, tTVPFileInfo::EXIST_PROP ) );
+						lister.list.erase( sname );
+						TVPAutoPathTable.Add( sname, tTVPFileInfo( path, tTVPFileInfo::EXIST_PROP ) );
 					} else {
-						TVPAutoPathTable.Add( fname, tTVPFileInfo( path, tTVPFileInfo::EXIST_PROP | tTVPFileInfo::EMPTY_FILE ) );
+						ttstr sname = fname;
+						sname.ToLowerCase();
+						TVPAutoPathTable.Add( sname, tTVPFileInfo( path, tTVPFileInfo::EXIST_PROP | tTVPFileInfo::EMPTY_FILE ) );
 					}
 				}
 			}
 			// プロパティのないファイルを追加する
 			for( auto i = lister.list.begin(); i != lister.list.end(); i++)
 			{
-				TVPAutoPathTable.Add(*i, tTVPFileInfo(path) );
+				ttstr sname = *i;
+				sname.ToLowerCase();
+				TVPAutoPathTable.Add(sname, tTVPFileInfo(path) );
 				count ++;
 			}
 		}
@@ -1277,6 +1284,7 @@ ttstr TVPGetPlacedPath(const ttstr & name)
 	// search through auto path table
 
 	ttstr storagename = TVPExtractStorageName(normalized);
+	storagename.ToLowerCase();
 
 	TVPRebuildAutoPathTable(); // ensure auto path table
 	tTVPFileInfo *result = TVPAutoPathTable.Find(storagename);
