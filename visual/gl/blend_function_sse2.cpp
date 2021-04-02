@@ -1574,7 +1574,7 @@ void TVPGL_SSE2_Init() {
 		TVPTLG5ComposeColors4To4 = TVPTLG5ComposeColors4To4_sse2_c;
 		//TVPTLG6DecodeGolombValuesForFirst	// MMXを積極的に使ったものはなく、SIMD化しづらそうなためSSE2版未実装
 		//TVPTLG6DecodeGolombValues			// MMXを積極的に使ったものはなく、SIMD化しづらそうなためSSE2版未実装
-#if 1
+#if 0
 		// MMX版の方が速いので、64bitでのみ有効に
 		TVPTLG6DecodeLineGeneric = TVPTLG6DecodeLineGeneric_sse2_c;
 		TVPTLG6DecodeLine = TVPTLG6DecodeLine_sse2_c;

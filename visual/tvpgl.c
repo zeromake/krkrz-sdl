@@ -4470,7 +4470,7 @@ TVP_GL_FUNC_DECL(void, TVPInitGammaAdjustTempData_c, (tTVPGLGammaAdjustTempData 
 	int i;
 	for(i=0;i<256;i++)
 	{
-#if 0
+#if 1
 		double rate = (double)i/255.0;
 		int n;
 		n = (int)(pow(rate, rgamma)*ramp+0.5+(double)data->RFloor);
