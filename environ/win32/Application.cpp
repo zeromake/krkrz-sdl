@@ -760,8 +760,7 @@ void tTVPApplication::LoadImageRequest( class iTJSDispatch2 *owner, class tTJSNI
 }
 
 std::vector<std::string>* LoadLinesFromFile( const tjs_string& path ) {
-	FILE *fp = NULL;
-	_wfopen_s( &fp, path.c_str(), TJS_W("r"));
+	FILE *fp = _wfopen( path.c_str(), TJS_W("r"));
     if( fp == NULL ) {
 		return NULL;
     }
