@@ -16,6 +16,7 @@
 
 #include "CharacterData.h"
 #include "FreeTypeFace.h"
+#include "RectItf.h"
 #include <memory>
 
 #ifdef _MSC_VER
@@ -65,6 +66,18 @@ struct FaceSet {
 	FaceSet() : UnicodeToLocalChar(nullptr), LocalCharToUnicode(nullptr) {}
 };
 
+typedef struct _GlyphMetricsCacheEntry {
+	tjs_int index;
+	tTVPRect rt;
+	tTVPRect rtu;
+	tTVPRect rts;
+	tTVPRect rtus;
+	tjs_int advancex;
+	tjs_int advancey;
+	tGlyphMetrics metrics;
+	tGlyphMetrics size;
+	int baseline;
+} GlyphMetricsCacheEntry;
 
 //---------------------------------------------------------------------------
 /**
@@ -88,6 +101,9 @@ class tFreeTypeFace
 	tjs_int Height;		//!< フォントサイズ(高さ) in pixel
 
 	std::vector<std::unique_ptr<FaceSet> >	Faces;
+
+	GlyphMetricsCacheEntry GlyphMetricsCache[0xffff];
+	tjs_int LastHeight;
 
 	static inline tjs_int FT_PosToInt( tjs_int x ) { return (((x) + (1 << 5)) >> 6); }
 
@@ -159,6 +175,7 @@ public:
 private:
 	tjs_int GetGlyphMetricsFromCharcode(tjs_char code, tGlyphMetrics & metrics);
 	tjs_int LoadGlyphSlotFromCharcode(tjs_char code);
+	void EnsureGlyphMetricsCache(tjs_char code);
 };
 //---------------------------------------------------------------------------
 
