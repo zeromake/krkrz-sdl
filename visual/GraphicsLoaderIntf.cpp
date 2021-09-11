@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include "GraphicsLoaderIntf.h"
+#include "GraphicsLoaderImpl.h"
 #include "LayerBitmapIntf.h"
 #include "LayerIntf.h"
 #include "StorageIntf.h"
@@ -1634,9 +1635,14 @@ static bool TVPInternalLoadGraphic(tTVPBaseBitmap *dest, const ttstr &_name,
 		keyidx = -1;
 	}
 
-	(handler->Load)(handler->FormatData, (void*)&data, TVPLoadGraphic_SizeCallback,
+	if (!TVPLoadEmscriptenPreloadedData(handler->FormatData, (void*)&data, TVPLoadGraphic_SizeCallback,
 		TVPLoadGraphic_ScanLineCallback, TVPLoadGraphic_MetaInfoPushCallback,
-		holder.Get(), keyidx, mode);
+		name, keyidx, mode))
+	{
+		(handler->Load)(handler->FormatData, (void*)&data, TVPLoadGraphic_SizeCallback,
+			TVPLoadGraphic_ScanLineCallback, TVPLoadGraphic_MetaInfoPushCallback,
+			holder.Get(), keyidx, mode);
+	}
 
 	*MetaInfo = data.MetaInfo;
 
