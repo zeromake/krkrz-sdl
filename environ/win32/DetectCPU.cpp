@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 #include "tjsCommHead.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include "tvpgl_ia32_intf.h"
 #include "DebugIntf.h"
 #include "SysInitIntf.h"

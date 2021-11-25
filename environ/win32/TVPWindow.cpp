@@ -9,7 +9,7 @@
 #include "SystemControl.h"
 #include "Exception.h"
 #include "Application.h"
-#include "Resource.h"
+#include "resource.h"
 #include "CompatibleNativeFuncs.h"
 #include "WindowsUtil.h"
 #include "MsgIntf.h"
@@ -17,7 +17,7 @@
 #include "TickCount.h"
 #include "SysInitIntf.h"
 
-#include <TCHAR.h>
+#include <tchar.h>
 #include <tpcshrd.h> // for MICROSOFT_TABLETPENSERVICE_PROPERTY
 #ifndef MICROSOFT_TABLETPENSERVICE_PROPERTY
 #define MICROSOFT_TABLETPENSERVICE_PROPERTY _T("MicrosoftTabletPenServiceProperty")

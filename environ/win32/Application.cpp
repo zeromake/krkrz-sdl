@@ -11,8 +11,8 @@
 #define DIRECTINPUT_VERSION 0x0500
 #include <dinput.h>
 
-#include <DbgHelp.h>
-#include <Strsafe.h>
+#include <dbghelp.h>
+#include <strsafe.h>
 
 #include "tjsError.h"
 #include "tjsDebug.h"
@@ -29,7 +29,7 @@
 
 #include "Exception.h"
 #include "WindowFormUnit.h"
-#include "Resource.h"
+#include "resource.h"
 #include "SystemControl.h"
 #include "MouseCursor.h"
 #include "SystemImpl.h"
