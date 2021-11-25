@@ -624,7 +624,7 @@ foreach $each (@all_list)
 {
 	print OFH "\t";
 	@pair = split(/\t/, $each);
-	print OFH $pair[0]. ",";
+	print OFH "(void *)".$pair[0]. ",";
 	print OFH "\n";
 	$i ++;
 }
