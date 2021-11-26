@@ -118,7 +118,7 @@ tjs_uint8 TVP_GUID_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT[16] =
 //---------------------------------------------------------------------------
 extern void PCMConvertLoopInt16ToFloat32(void * __restrict dest, const void * __restrict src, size_t numsamples);
 extern void PCMConvertLoopFloat32ToInt16(void * __restrict dest, const void * __restrict src, size_t numsamples);
-#if defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 extern void PCMConvertLoopInt16ToFloat32_sse(void * __restrict dest, const void * __restrict src, size_t numsamples);
 extern void PCMConvertLoopFloat32ToInt16_sse(void * __restrict dest, const void * __restrict src, size_t numsamples);
 #endif
@@ -384,7 +384,7 @@ static void TVPConvertIntegerPCMToFloat(float *output, const void *input,
 
 		if(validbits == 16)
 		{
-#if 0 && defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 			// most popular
 			bool use_sse =
 					(TVPCPUType & TVP_CPU_HAS_MMX) &&
