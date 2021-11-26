@@ -11,7 +11,7 @@
 
 #include "tjsCommHead.h"
 
-#include "Resource.h"
+#include "resource.h"
 
 #include "MsgIntf.h"
 #include "VersionFormUnit.h"
