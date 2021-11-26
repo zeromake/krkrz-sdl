@@ -138,7 +138,7 @@ static void TVPConvertFloatPCMTo16bits(tjs_int16 *output, const float *input,
 	if(!downmix)
 	{
 		tjs_int total = channels * count;
-#if 0 && defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 		bool use_sse =
 				(TVPCPUType & TVP_CPU_HAS_MMX) &&
 				(TVPCPUType & TVP_CPU_HAS_SSE) &&
