@@ -48,6 +48,7 @@ static bool TVPCPUChecked = false;
 //---------------------------------------------------------------------------
 static void TVPGetCPUTypeForOne()
 {
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 #if 1
 	TVPCheckCPU(); // in detect_cpu.nas
 #else
@@ -57,6 +58,7 @@ static void TVPGetCPUTypeForOne()
 		// exception had been ocured
 		throw Exception( TVPCpuCheckFailure );
 	}
+#endif
 #endif
 
 	// check OSFXSR WinXP以降ならサポートしているので、もうこのチェックは無意味かな
