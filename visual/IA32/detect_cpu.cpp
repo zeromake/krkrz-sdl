@@ -194,6 +194,7 @@ tjs_uint32 TVPCheckCPU()
 	memset( TVPCPUVendor, 0, sizeof(TVPCPUVendor) );
 	memset( TVPCPUName, 0, sizeof(TVPCPUName) );
 
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 	int maxCpuId = 0;
 	int vendor = GetCpuVendor( maxCpuId );
 
@@ -274,6 +275,9 @@ tjs_uint32 TVPCheckCPU()
 
 	TVPCPUFeatures = flags | vendor;
 	return flags;
+#else
+	return 0;
+#endif
 }
 
 
