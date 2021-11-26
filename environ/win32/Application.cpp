@@ -250,6 +250,7 @@ tTVPApplication::~tTVPApplication() {
 	}
 	windows_list_.clear();
 }
+#if 0
 struct SEHException {
 	unsigned int Code;
 	_EXCEPTION_POINTERS* ExceptionPointers;
@@ -327,10 +328,13 @@ const tjs_char* SECodeToMessage( unsigned int code ) {
 	}
 	return TJS_W("Unknown");
 }
+#endif
 
 bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
+#if 0
 #if (defined(__GNUC__) && defined(__SEH__)) || (!defined(__GNUC__))
 	_set_se_translator(se_translator_function);
+#endif
 #endif
 
 	ArgC = argc;
@@ -416,6 +420,7 @@ bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
 		ShowException( ttstr(e).c_str() );
 	} catch( const tjs_char* e ) {
 		ShowException( e );
+#if 0
 	} catch( const SEHException& e ) {
 		PEXCEPTION_RECORD rec = e.ExceptionPointers->ExceptionRecord;
 		tjs_string text(SECodeToMessage(e.Code));
@@ -424,6 +429,7 @@ bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
 
 		TVPDumpHWException();
 		ShowException( text.c_str() );
+#endif
 	} catch(...) {
 		ShowException( (const tjs_char*)TVPUnknownError );
 	}
