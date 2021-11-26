@@ -105,7 +105,7 @@ void tTVPSusieArchivePlugin::Unlock()
 bool tTVPSusieArchivePlugin::CheckSupported(tTVPLocalFileStream * stream,
 	std::string localname)
 {
-	int res = IsSupported(const_cast<LPSTR>(localname.c_str()), (DWORD)stream->GetHandle());
+	int res = IsSupported(const_cast<LPSTR>(localname.c_str()), (DWORD_PTR)stream->GetHandle());
 
 	return 0!=res;
 }
