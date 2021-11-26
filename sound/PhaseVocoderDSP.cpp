@@ -50,7 +50,7 @@ extern void InterleaveOverlappingWindow(float * __restrict dest, const float * _
 	float * __restrict win, int numch, size_t srcofs, size_t len);
 extern void DeinterleaveApplyingWindow(float * __restrict dest[], const float * __restrict src,
 					float * __restrict win, int numch, size_t destofs, size_t len);
-#if defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 extern void InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __restrict const * __restrict src,
 					float * __restrict win, int numch, size_t srcofs, size_t len);
 extern void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __restrict src,
@@ -380,7 +380,7 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		InputBuffer.GetReadPointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
-#if 0 && defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 		if( use_sse ) {
 			DeinterleaveApplyingWindow_sse(AnalWork, p1, InputWindow, Channels, 0, p1len);
 			if(p2)
@@ -405,7 +405,7 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		//------------------------------------------------
 
 		// 演算の根幹部分を実行する
-#if 0 && defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 		if(use_sse) ProcessCore_sse(ch);
 		else ProcessCore(ch);
 #else
@@ -421,7 +421,7 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		OutputBuffer.GetWritePointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
-#if 0 && defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 		if( use_sse ) {
 			InterleaveOverlappingWindow_sse(p1, SynthWork, OutputWindow, Channels, 0, p1len);
 			if(p2)
@@ -692,7 +692,7 @@ void tRisaPhaseVocoderDSP::ProcessCore(int ch)
 */
 
 //---------------------------------------------------------------------------
-#if 0 && defined(_M_IX86)||defined(_M_X64)
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 //---------------------------------------------------------------------------
 void tRisaPhaseVocoderDSP::ProcessCore_sse(int ch)
 {
