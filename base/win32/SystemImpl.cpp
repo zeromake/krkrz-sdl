@@ -673,7 +673,11 @@ void TVPHeapDump()
 	TVPAddLog( buff );
 
 	const HANDLE default_heap = ::GetProcessHeap();
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 	const HANDLE crt_heap = (HANDLE)_get_heap_handle();
+#else
+	const HANDLE crt_heap = ::GetProcessHeap();
+#endif
 	for( unsigned int i = 0; i < c; i++ ) {
 		ULONG heap_info = 0;
 		SIZE_T ret_size = 0;
@@ -750,10 +754,12 @@ struct tTVPGlobalHeapCompactCallback : public tTVPCompactEventCallbackIntf
 			if( hHeap ) {
 				::HeapCompact( hHeap, 0 );
 			}
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 			HANDLE hCrtHeap = (HANDLE)_get_heap_handle();
 			if( hCrtHeap && hCrtHeap != hHeap ) {
 				::HeapCompact( hCrtHeap, 0 );
 			}
+#endif
 		}
 	}
 } static TVPGlobalHeapCompactCallback;

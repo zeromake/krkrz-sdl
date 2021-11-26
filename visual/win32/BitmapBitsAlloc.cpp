@@ -165,10 +165,12 @@ void* tTVPBitmapBitsAlloc::Alloc( tjs_uint size, tjs_uint width, tjs_uint height
 		if( hHeap ) {
 			::HeapCompact( hHeap, 0 );
 		}
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 		HANDLE hCrtHeap = (HANDLE)_get_heap_handle();
 		if( hCrtHeap && hCrtHeap != hHeap ) {
 			::HeapCompact( hCrtHeap, 0 );
 		}
+#endif
 #endif
 		ptr = ptrorg = (tjs_uint8*)Allocator->allocate(allocbytes);
 		if(!ptr) {
