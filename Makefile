@@ -145,7 +145,7 @@ vcproj/tvpwin32.utf8.rc: vcproj/string_table_chs.utf8.rc vcproj/string_table_en.
 
 $(ARCHIVE): $(BINARY_STRIPPED)
 	rm -f $(ARCHIVE)
-	$(7z) a $@ $^
+	$(7Z) a $@ $^
 
 $(BINARY_STRIPPED): $(BINARY)
 	@printf '\t%s %s\n' STRIP $@
