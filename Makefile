@@ -1,24 +1,59 @@
 
-CC := i686-w64-mingw32-gcc
-CXX := i686-w64-mingw32-g++
-AR := i686-w64-mingw32-ar
+TARGET_ARCH ?= intel32
+USE_STABS_DEBUG ?= 0
+USE_POSITION_INDEPENDENT_CODE ?= 0
+USE_ARCHIVE_HAS_GIT_TAG ?= 0
+ifeq (x$(TARGET_ARCH),xarm32)
+TOOL_TRIPLET_PREFIX ?= armv7-w64-mingw32-
+endif
+ifeq (x$(TARGET_ARCH),xarm64)
+TOOL_TRIPLET_PREFIX ?= aarch64-w64-mingw32-
+endif
+ifeq (x$(TARGET_ARCH),xintel64)
+TOOL_TRIPLET_PREFIX ?= x86_64-w64-mingw32-
+endif
+TOOL_TRIPLET_PREFIX ?= i686-w64-mingw32-
+CC := $(TOOL_TRIPLET_PREFIX)gcc
+CXX := $(TOOL_TRIPLET_PREFIX)g++
+AR := $(TOOL_TRIPLET_PREFIX)ar
 ASM := nasm
-WINDRES := i686-w64-mingw32-windres
-STRIP := i686-w64-mingw32-strip
+WINDRES := $(TOOL_TRIPLET_PREFIX)windres
+STRIP := $(TOOL_TRIPLET_PREFIX)strip
+7Z := 7z
+ifeq (x$(TARGET_ARCH),xintel32)
+OBJECT_EXTENSION ?= .o
+endif
+OBJECT_EXTENSION ?= .$(TARGET_ARCH).o
+DEP_EXTENSION ?= .dep.make
 # CFLAGS_OPT := -O0
 CFLAGS_OPT := -Ofast
-GIT_TAG := $(shell git describe --abbrev=0 --tags)
+export GIT_TAG := $(shell git describe --abbrev=0 --tags)
 INCFLAGS += -I. -Ibase -Ibase/win32 -Ienviron -Ienviron/win32 -Iextension -Iexternal -Iexternal/angle/include -Iexternal/baseclasses -Iexternal/freetype/include -Iexternal/freetype/src -Iexternal/freetype/devel -Iexternal/glm -Iexternal/jxrlib/image/sys -Iexternal/jxrlib/jxrgluelib -Iexternal/libjpeg-turbo -Iexternal/libjpeg-turbo/vcproj -Iexternal/libjpeg-turbo/win -Iexternal/libogg/include -Iexternal/lpng -Iexternal/onig -Iexternal/onig/src -Iexternal/libogg/include -Iexternal/opus/celt -Iexternal/opus/include -Iexternal/opus/win32 -Iexternal/opus/silk -Iexternal/opus/silk/fixed -Iexternal/opus/silk/float -Iexternal/opusfile/include -Iexternal/opusfile/src -Iexternal/zlib -Imovie/win32 -Imsg -Imsg/win32 -Iplatform/win32 -Isound -Isound/win32 -Itjs2 -Iutils -Iutils/win32 -Ivcproj -Ivisual -Ivisual/IA32 -Ivisual/gl -Ivisual/opengl -Ivisual/win32
 # INCFLAGS += -Iexternal/libjpeg-turbo/simd
 ASMFLAGS += $(INCFLAGS) -fwin32 -DWIN32
 # CFLAGS += -gstabs -D_DEBUG -DDEBUG -DENABLE_DEBUGGER 
-CFLAGS += -fPIC -flto
+CFLAGS += -flto
+ifneq (x$(USE_POSITION_INDEPENDENT_CODE),x0)
+CFLAGS += -fPIC
+endif
+ifeq (x$(TARGET_ARCH),xintel32)
 CFLAGS += -march=pentium4 -mfpmath=sse
-CFLAGS += -gstabs -DNDEBUG -D_NDEBUG
+endif
+ifeq (x$(TARGET_ARCH),xintel32)
+ifneq (x$(USE_STABS_DEBUG),x0)
+CFLAGS += -gstabs
+else
+CFLAGS += -gdwarf-2
+endif
+else
+CFLAGS += -gdwarf-2
+endif
+CFLAGS += -DNDEBUG -D_NDEBUG
 CFLAGS += -fno-delete-null-pointer-checks -fno-strict-aliasing
 CFLAGS += $(INCFLAGS) -DGIT_TAG=L\"$(GIT_TAG)\" -DWIN32 -D_WINDOWS -DNO_STRICT -DHAVE_CONFIG_H -DFT2_BUILD_LIBRARY -DUSE_ALLOCA -DOPUS_BUILD -DHAVE_LRINTF -DHAVE_LRINT -DFLOAT_APPROX -DMINGW_HAS_SECURE_API -DUNICODE -D_UNICODE -DPNG_ARM_NEON_OPT=0
 # CFLAGS += -DWITH_SIMD
 CFLAGS += -DTVP_LOG_TO_COMMANDLINE_CONSOLE -DTJS_TEXT_OUT_CRLF -DTJS_JP_LOCALIZED -DTJS_DEBUG_DUMP_STRING -DTVP_OPUS_DECODER_IMPLEMENT
+CFLAGS += -MMD -MF $(patsubst %$(OBJECT_EXTENSION),%$(DEP_EXTENSION),$@)
 CXXFLAGS += $(CFLAGS) -fpermissive
 LDFLAGS += -static -static-libstdc++ -static-libgcc -municode -fPIC -flto
 LDLIBS += -lwinmm -lws2_32 -lcomctl32 -lgdi32 -lwinhttp -lpsapi -luser32 -lcomdlg32 -lole32 -lshell32 -ladvapi32 -loleaut32 -limm32 -lversion -lshlwapi -ldbghelp -luuid -lmpr
@@ -26,15 +61,15 @@ LDLIBS += -lwinmm -lws2_32 -lcomctl32 -lgdi32 -lwinhttp -lpsapi -luser32 -lcomdl
 CFLAGS += -Wall -Wno-unused-value -Wno-unused-variable -Wno-format
 CXXFLAGS += -Wno-reorder
 
-%.o: %.c
+%$(OBJECT_EXTENSION): %.c
 	@printf '\t%s %s\n' CC $<
 	$(CC) -c $(CFLAGS_OPT) $(CFLAGS) -o $@ $<
 
-%.o: %.cpp
+%$(OBJECT_EXTENSION): %.cpp
 	@printf '\t%s %s\n' CXX $<
 	$(CXX) -c $(CFLAGS_OPT) $(CXXFLAGS) -o $@ $<
 
-%.o: %.asm
+%$(OBJECT_EXTENSION): %.asm
 	@printf '\t%s %s\n' ASM $<
 	$(ASM) $(ASMFLAGS) $< -o$@ 
 
@@ -42,7 +77,7 @@ CXXFLAGS += -Wno-reorder
 	@printf '\t%s %s\n' ICONV $<
 	iconv -f UTF-16 -t UTF8 $< | sed 's/\.rc/.utf8.rc/g' > $@
 
-%.o: %.utf8.rc
+%$(OBJECT_EXTENSION): %.utf8.rc
 	@printf '\t%s %s\n' WINDRES $<
 	$(WINDRES) -c65001 $< $@
 
@@ -75,29 +110,42 @@ LIBOPUSFILE_SOURCES += external/opusfile/src/http.c external/opusfile/src/info.c
 # BASECLASSES_SOURCES += external/baseclasses/amextra.cpp external/baseclasses/amfilter.cpp external/baseclasses/amvideo.cpp external/baseclasses/arithutil.cpp external/baseclasses/combase.cpp external/baseclasses/cprop.cpp external/baseclasses/ctlutil.cpp external/baseclasses/ddmm.cpp external/baseclasses/dllentry.cpp external/baseclasses/dllsetup.cpp external/baseclasses/mtype.cpp external/baseclasses/outputq.cpp external/baseclasses/perflog.cpp external/baseclasses/pstream.cpp external/baseclasses/pullpin.cpp external/baseclasses/refclock.cpp external/baseclasses/renbase.cpp external/baseclasses/schedule.cpp external/baseclasses/seekpt.cpp external/baseclasses/source.cpp external/baseclasses/strmctl.cpp external/baseclasses/sysclock.cpp external/baseclasses/transfrm.cpp external/baseclasses/transip.cpp external/baseclasses/videoctl.cpp external/baseclasses/vtrans.cpp external/baseclasses/winctrl.cpp external/baseclasses/winutil.cpp external/baseclasses/wxdebug.cpp external/baseclasses/wxlist.cpp external/baseclasses/wxutil.cpp
 SOURCES := $(BASE_SOURCES) $(ENVIRON_SOURCES) $(EXTENSION_SOURCES) $(MOVIE_SOURCES) $(MSG_SOURCES) $(SOUND_SOURCES) $(SOUND_SSE2_SOURCES) $(TJS2_SOURCES) $(UTILS_SOURCES) $(VISUAL_SOURCES) $(VISUAL_OPENGL_SOURCES) $(VISUAL_WIN32_SOURCES) $(VISUAL_X86_SIMD_SOURCES) $(LIBZ_SOURCES) $(LIBPNG_SOURCES) $(LIBONIG_SOURCES) $(LIBJPEG_SOURCES) $(LIBJPEG_SIMD_SOURCES) $(LIBFREETYPE_SOURCES) $(BASECLASSES_SOURCES) $(LIBOGG_SOURCES) $(LIBOPUS_SOURCES) $(LIBOPUSFILE_SOURCES)
 
-visual/LoadPNG.o: CFLAGS_OPT = -O1
+visual/LoadPNG$(OBJECT_EXTENSION): CFLAGS_OPT = -O1
 
-OBJECTS := $(SOURCES:.c=.o)
-OBJECTS := $(OBJECTS:.cpp=.o)
-OBJECTS := $(OBJECTS:.asm=.o)
-OBJECTS := $(OBJECTS:.utf8.rc=.o)
+OBJECTS := $(SOURCES:.c=$(OBJECT_EXTENSION))
+OBJECTS := $(OBJECTS:.cpp=$(OBJECT_EXTENSION))
+OBJECTS := $(OBJECTS:.asm=$(OBJECT_EXTENSION))
+OBJECTS := $(OBJECTS:.utf8.rc=$(OBJECT_EXTENSION))
+DEPENDENCIES := $(OBJECTS:%$(OBJECT_EXTENSION)=%$(DEP_EXTENSION))
 
-BINARY ?= tvpwin32_unstripped.exe
-BINARY_STRIPPED ?= tvpwin32.exe
-ARCHIVE ?= tvpwin32.$(GIT_TAG).7z
+PROJECT_BASENAME ?= tvpwin32
+ifeq (x$(TARGET_ARCH),xintel32)
+BINARY ?= $(PROJECT_BASENAME)_unstripped.exe
+endif
+BINARY ?= $(PROJECT_BASENAME)_$(TARGET_ARCH)_unstripped.exe
+ifeq (x$(TARGET_ARCH),xintel32)
+BINARY_STRIPPED ?= $(PROJECT_BASENAME).exe
+endif
+BINARY_STRIPPED ?= $(PROJECT_BASENAME)_$(TARGET_ARCH).exe
+ifneq (x$(USE_ARCHIVE_HAS_GIT_TAG),x0)
+ARCHIVE ?= $(PROJECT_BASENAME).$(TARGET_ARCH).$(GIT_TAG).7z
+endif
+ARCHIVE ?= $(PROJECT_BASENAME).$(TARGET_ARCH).7z
+
+.PHONY:: all archive clean
 
 all: $(BINARY_STRIPPED)
 
 archive: $(ARCHIVE)
 
-clean:
+clean::
 	rm -f $(OBJECTS) $(BINARY) $(BINARY_STRIPPED) $(ARCHIVE)
 
 vcproj/tvpwin32.utf8.rc: vcproj/string_table_chs.utf8.rc vcproj/string_table_en.utf8.rc vcproj/string_table_jp.utf8.rc
 
 $(ARCHIVE): $(BINARY_STRIPPED)
 	rm -f $(ARCHIVE)
-	7z a $@ $^
+	$(7z) a $@ $^
 
 $(BINARY_STRIPPED): $(BINARY)
 	@printf '\t%s %s\n' STRIP $@
@@ -106,3 +154,5 @@ $(BINARY_STRIPPED): $(BINARY)
 $(BINARY): $(OBJECTS) 
 	@printf '\t%s %s\n' LNK $@
 	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+-include $(DEPENDENCIES)

@@ -19,3 +19,6 @@
 *.exe
 .vs/
 *.utf8.rc
+*.dep.make
+*.7z
+
