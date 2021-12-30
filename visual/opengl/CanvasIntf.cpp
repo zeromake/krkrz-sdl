@@ -282,8 +282,12 @@ void tTJSNI_Canvas::BeginDrawing()
 	glClearColor( c.r/255.0f, c.g/255.0f, c.b/255.0f, c.a/255.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 
+#if 0
 	EGLint sw = GLScreen->GetSurfaceWidth();
 	EGLint sh = GLScreen->GetSurfaceHeight();
+#endif
+	EGLint sw = 0, sh = 0;
+	GLScreen->GetDrawableSize(sw, sh);
 	glViewport( 0, 0, sw, sh );
 	PrevViewportWidth = sw;
 	PrevViewportHeight = sh;
