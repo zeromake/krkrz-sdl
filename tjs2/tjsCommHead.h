@@ -16,6 +16,7 @@
 #ifndef tjsCommHeadH
 #define tjsCommHeadH
 
+#if 0
 #ifdef __WIN32__
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
@@ -43,6 +44,7 @@
 */
 
 #endif
+#endif
 
 
 #include <string.h>
@@ -52,14 +54,20 @@
 #include <wchar.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
 #include <memory>
 
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 
 #include "tjsConfig.h"
 #include "tjs.h"
+#endif
 
 //---------------------------------------------------------------------------
 #endif
