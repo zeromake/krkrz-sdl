@@ -81,9 +81,8 @@ void FreeTypeFontRasterizer::ApplyFont( const tTVPFont& font ) {
 	opt |= (font.Flags & TVP_TF_FONTFILE) ? TVP_FACE_OPTIONS_FILE : 0;
 	bool recreate = false;
 	if( Face ) {
-		if( Face->GetFontName() != faces[0] || Face->GetOption(TVP_TF_ITALIC) != !!(font.Flags & TVP_TF_ITALIC) || Face->GetOption(TVP_TF_BOLD) != !!(font.Flags & TVP_TF_BOLD)) {
+		if( Face->GetFontName() != faces[0] ) {
 			delete Face;
-			Face = NULL;
 			Face = new tFreeTypeFace( faces, opt );
 			recreate = true;
 		}
@@ -123,11 +122,6 @@ void FreeTypeFontRasterizer::GetTextExtent(tjs_char ch, tjs_int &w, tjs_int &h) 
 		if( Face->GetGlyphSizeFromCharcode( ch, metrics) ) {
 			w = metrics.CellIncX;
 			h = metrics.CellIncY;
-		}
-		else
-		{
-			w = Face->GetHeight();
-			h = w;
 		}
 	}
 }
@@ -180,7 +174,6 @@ tTVPCharacterData* FreeTypeFontRasterizer::GetBitmap( const tTVPFontAndCharacter
 	data->Blured = font.Blured;
 	data->BlurWidth = font.BlurWidth;
 	data->BlurLevel = font.BlurLevel;
-	data->OriginX += aofsx;
 
 	// apply blur
 	if(font.Blured) data->Blur(); // nasty ...
