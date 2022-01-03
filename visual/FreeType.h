@@ -109,6 +109,8 @@ class tFreeTypeFace
 	GlyphMetricsCacheForHeightHash GlyphMetricsCacheForHeight;
 
 	GlyphMetricsCacheEntry *GlyphMetricsCache = NULL;
+	tjs_char FirstChar = 0;
+	tjs_char DefaultChar = 0;
 
 	static inline tjs_int FT_PosToInt( tjs_int x ) { return (((x) + (1 << 5)) >> 6); }
 
@@ -160,11 +162,10 @@ public:
 		return (Options&opt) == opt;
 	}
 	tjs_char GetDefaultChar() const {
-		return Faces[0]->Face->GetDefaultChar();
+		return DefaultChar;
 	}
 	tjs_char GetFirstChar() {
-		FT_UInt gindex;
-		return static_cast<tjs_char>( FT_Get_First_Char( Faces[0]->FTFace, &gindex ) );
+		return FirstChar;
 	}
 
 	tjs_int GetAscent() const {

@@ -808,6 +808,12 @@ tFreeTypeFace::tFreeTypeFace(const std::vector<tjs_string> &fontname, tjs_uint32
 			}
 		}
 	}
+
+	DefaultChar = Faces[0]->Face->GetDefaultChar();
+	{
+		FT_UInt gindex;
+		FirstChar = static_cast<tjs_char>( FT_Get_First_Char( Faces[0]->FTFace, &gindex ) );
+	}
 }
 //---------------------------------------------------------------------------
 
