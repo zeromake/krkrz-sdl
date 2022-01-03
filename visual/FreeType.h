@@ -17,6 +17,7 @@
 #include "CharacterData.h"
 #include "FreeTypeFace.h"
 #include "RectItf.h"
+#include "tjsHashSearch.h"
 #include <memory>
 
 #ifdef _MSC_VER
@@ -68,6 +69,7 @@ struct FaceSet {
 
 typedef struct _GlyphMetricsCacheEntry {
 	tjs_int index;
+	tjs_int glyph_index;
 	tTVPRect rt;
 	tTVPRect rtu;
 	tTVPRect rts;
@@ -78,6 +80,8 @@ typedef struct _GlyphMetricsCacheEntry {
 	tGlyphMetrics size;
 	int baseline;
 } GlyphMetricsCacheEntry;
+
+typedef tTJSHashTable<tjs_int, GlyphMetricsCacheEntry *> GlyphMetricsCacheForHeightHash;
 
 //---------------------------------------------------------------------------
 /**
@@ -102,8 +106,9 @@ class tFreeTypeFace
 
 	std::vector<std::unique_ptr<FaceSet> >	Faces;
 
-	GlyphMetricsCacheEntry GlyphMetricsCache[0xffff];
-	tjs_int LastHeight;
+	GlyphMetricsCacheForHeightHash GlyphMetricsCacheForHeight;
+
+	GlyphMetricsCacheEntry *GlyphMetricsCache = NULL;
 
 	static inline tjs_int FT_PosToInt( tjs_int x ) { return (((x) + (1 << 5)) >> 6); }
 

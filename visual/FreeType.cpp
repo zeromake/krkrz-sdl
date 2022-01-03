@@ -732,7 +732,6 @@ tFreeTypeFace::tFreeTypeFace(const std::vector<tjs_string> &fontname, tjs_uint32
 	// フィールドをクリア
 	Options = options;
 	Height = 10;
-	LastHeight = ~Height;
 
 	tjs_size count = fontname.size();
 	for( tjs_int i = 0; i < (tjs_int)count; i++ ) {
@@ -819,6 +818,13 @@ tFreeTypeFace::tFreeTypeFace(const std::vector<tjs_string> &fontname, tjs_uint32
  */
 tFreeTypeFace::~tFreeTypeFace()
 {
+	GlyphMetricsCacheEntry * entry;
+	GlyphMetricsCacheForHeightHash::tIterator i;
+	for(i = GlyphMetricsCacheForHeight.GetFirst(); !i.IsNull(); i++)
+	{
+		entry = i.GetValue();
+		delete[] entry;
+	}
 }
 //---------------------------------------------------------------------------
 
@@ -1042,6 +1048,7 @@ bool tFreeTypeFace::GetGlyphRectFromCharcode( tTVPRect& rt, tjs_char code, tjs_i
 {
 	advancex = advancey = 0;
 	EnsureGlyphMetricsCache(code);
+	if (GlyphMetricsCache == NULL) return false;
 	if (GlyphMetricsCache[code].index < 0) return false;
 	if ( Options & (TVP_TF_UNDERLINE | TVP_TF_STRIKEOUT) ) 
 	{
@@ -1075,6 +1082,7 @@ tjs_int tFreeTypeFace::GetGlyphMetricsFromCharcode(tjs_char code,
 	tGlyphMetrics & metrics)
 {
 	EnsureGlyphMetricsCache(code);
+	if (GlyphMetricsCache == NULL) return -1;
 	if (GlyphMetricsCache[code].index < 0) return -1;
 	metrics.CellIncX = GlyphMetricsCache[code].metrics.CellIncX;
 	metrics.CellIncY = GlyphMetricsCache[code].metrics.CellIncY;
@@ -1092,6 +1100,7 @@ tjs_int tFreeTypeFace::GetGlyphMetricsFromCharcode(tjs_char code,
 bool tFreeTypeFace::GetGlyphSizeFromCharcode(tjs_char code, tGlyphMetrics & metrics)
 {
 	EnsureGlyphMetricsCache(code);
+	if (GlyphMetricsCache == NULL) return false;
 	if (GlyphMetricsCache[code].index < 0) return false;
 	metrics.CellIncX = GlyphMetricsCache[code].size.CellIncX;
 	metrics.CellIncY = GlyphMetricsCache[code].size.CellIncY;
@@ -1107,10 +1116,46 @@ bool tFreeTypeFace::GetGlyphSizeFromCharcode(tjs_char code, tGlyphMetrics & metr
  */
 tjs_int tFreeTypeFace::LoadGlyphSlotFromCharcode(tjs_char code)
 {
+	for (;;)
+	{
+		if (GlyphMetricsCache[code].index >= 0)
+		{
+			std::unique_ptr<FaceSet>& faceset = Faces[GlyphMetricsCache[code].index];
+			// グリフスロットに文字を読み込む
+			FT_Int32 load_glyph_flag = 0;
+			if(!(Options & TVP_FACE_OPTIONS_NO_ANTIALIASING))
+				load_glyph_flag |= FT_LOAD_NO_BITMAP;
+			else
+				load_glyph_flag |= FT_LOAD_TARGET_MONO;
+					// note: ビットマップフォントを読み込みたくない場合は FT_LOAD_NO_BITMAP を指定
+
+			if(Options & TVP_FACE_OPTIONS_NO_HINTING)
+				load_glyph_flag |= FT_LOAD_NO_HINTING|FT_LOAD_NO_AUTOHINT;
+			if(Options & TVP_FACE_OPTIONS_FORCE_AUTO_HINTING)
+				load_glyph_flag |= FT_LOAD_FORCE_AUTOHINT;
+
+			FT_Error err;
+			err = FT_Load_Glyph(faceset->FTFace, GlyphMetricsCache[code].glyph_index, load_glyph_flag);
+
+			if(err) break;
+
+			// フォントの変形を行う
+			if( (Options & TVP_TF_BOLD) && !(faceset->FTFace->style_flags & FT_STYLE_FLAG_BOLD) ) FT_GlyphSlot_Embolden( faceset->FTFace->glyph );
+			if( (Options & TVP_TF_ITALIC) && !(faceset->FTFace->style_flags & FT_STYLE_FLAG_ITALIC) ) FT_GlyphSlot_Oblique( faceset->FTFace->glyph );
+
+			return GlyphMetricsCache[code].index;
+		}
+		else if (GlyphMetricsCache[code].index != -1024)
+		{
+			return GlyphMetricsCache[code].index;
+		}
+		break;
+	}
 	// TODO: スレッド保護
 
 	tjs_size count = Faces.size();
-	for( tjs_size i = 0; i < count; i++ ) {
+	for( tjs_size i = 0; i < count; i++ )
+	{
 		std::unique_ptr<FaceSet>& faceset = Faces[i];
 		// 文字コードを得る
 		FT_ULong localcode;
@@ -1146,87 +1191,94 @@ tjs_int tFreeTypeFace::LoadGlyphSlotFromCharcode(tjs_char code)
 		if( (Options & TVP_TF_BOLD) && !(faceset->FTFace->style_flags & FT_STYLE_FLAG_BOLD) ) FT_GlyphSlot_Embolden( faceset->FTFace->glyph );
 		if( (Options & TVP_TF_ITALIC) && !(faceset->FTFace->style_flags & FT_STYLE_FLAG_ITALIC) ) FT_GlyphSlot_Oblique( faceset->FTFace->glyph );
 
+		GlyphMetricsCache[code].glyph_index = glyph_index;
+		GlyphMetricsCache[code].index = (tjs_int)i;
 		return (tjs_int)i;
 	}
 
+	GlyphMetricsCache[code].index = -1;
 	return -1;
 }
 //---------------------------------------------------------------------------
 
 void tFreeTypeFace::EnsureGlyphMetricsCache(tjs_char code)
 {
-	if (Height != LastHeight)
+	GlyphMetricsCacheEntry **CurrentGlyphMetricsCache = GlyphMetricsCacheForHeight.Find(Height);
+	if (CurrentGlyphMetricsCache == NULL)
 	{
+		GlyphMetricsCache = new GlyphMetricsCacheEntry[0xffff];
+		GlyphMetricsCacheForHeight.Add(Height, GlyphMetricsCache);
 		for (tjs_int i = 0; i < 0xffff; i += 1)
 		{
 			GlyphMetricsCache[i].index = -1024;
 		}
-		LastHeight = Height;
 	}
+	else
+	{
+		GlyphMetricsCache = *CurrentGlyphMetricsCache;
+	}
+
 	if (GlyphMetricsCache[code].index == -1024)
 	{
+		tjs_int index = LoadGlyphSlotFromCharcode(code);
+		if( index < 0 ) return;
+		FT_Face face = Faces[index]->FTFace;
+
+		// メトリック構造体を作成
+		GlyphMetricsCache[code].size.CellIncX = FT_PosToInt( face->glyph->metrics.horiAdvance );
+		GlyphMetricsCache[code].size.CellIncY = FT_PosToInt( face->glyph->metrics.vertAdvance );
+		// メトリック構造体を作成
+		// CellIncX や CellIncY は ピクセル値が 64 倍された値なので注意
+		// これはもともと FreeType の仕様だけれども、Risaでも内部的には
+		// この精度で CellIncX や CellIncY を扱う
+		// 64倍されているものを解除する
+		GlyphMetricsCache[code].metrics.CellIncX =  FT_PosToInt(face->glyph->advance.x);
+		GlyphMetricsCache[code].metrics.CellIncY =  FT_PosToInt(face->glyph->advance.y);
+
+		// tGlyphBitmap を作成して返す
+		//int baseline = (int)(face->height + face->descender) * face->size->metrics.y_ppem / face->units_per_EM;
+		int baseline = (int)( face->ascender ) * face->size->metrics.y_ppem / face->units_per_EM;
+		GlyphMetricsCache[code].baseline = baseline;
+		/*
+		FT_Render_Glyph でレンダリングしないと以下の各値は取得できない
+		tjs_int t = baseline - face->glyph->bitmap_top;
+		tjs_int l = face->glyph->bitmap_left;
+		tjs_int w = face->glyph->bitmap.width;
+		tjs_int h = face->glyph->bitmap.rows;
+		*/
+		tjs_int t = baseline - FT_PosToInt( face->glyph->metrics.horiBearingY );
+		tjs_int l = FT_PosToInt( face->glyph->metrics.horiBearingX );
+		tjs_int w = FT_PosToInt( face->glyph->metrics.width );
+		tjs_int h = FT_PosToInt( face->glyph->metrics.height );
+		GlyphMetricsCache[code].advancex = FT_PosToInt( face->glyph->advance.x );
+		GlyphMetricsCache[code].advancey = FT_PosToInt( face->glyph->advance.y );
+		GlyphMetricsCache[code].rt = tTVPRect(l,t,l+w,t+h);
+		GlyphMetricsCache[code].rtu = GlyphMetricsCache[code].rt;
 		{
-			tjs_int index = LoadGlyphSlotFromCharcode(code);
-			GlyphMetricsCache[code].index = index;
-			if( index < 0 ) return;
-			FT_Face face = Faces[index]->FTFace;
-
-			// メトリック構造体を作成
-			GlyphMetricsCache[code].size.CellIncX = FT_PosToInt( face->glyph->metrics.horiAdvance );
-			GlyphMetricsCache[code].size.CellIncY = FT_PosToInt( face->glyph->metrics.vertAdvance );
-			// メトリック構造体を作成
-			// CellIncX や CellIncY は ピクセル値が 64 倍された値なので注意
-			// これはもともと FreeType の仕様だけれども、Risaでも内部的には
-			// この精度で CellIncX や CellIncY を扱う
-			// 64倍されているものを解除する
-			GlyphMetricsCache[code].metrics.CellIncX =  FT_PosToInt(face->glyph->advance.x);
-			GlyphMetricsCache[code].metrics.CellIncY =  FT_PosToInt(face->glyph->advance.y);
-
-			// tGlyphBitmap を作成して返す
-			//int baseline = (int)(face->height + face->descender) * face->size->metrics.y_ppem / face->units_per_EM;
-			int baseline = (int)( face->ascender ) * face->size->metrics.y_ppem / face->units_per_EM;
-			GlyphMetricsCache[code].baseline = baseline;
-			/*
-			FT_Render_Glyph でレンダリングしないと以下の各値は取得できない
-			tjs_int t = baseline - face->glyph->bitmap_top;
-			tjs_int l = face->glyph->bitmap_left;
-			tjs_int w = face->glyph->bitmap.width;
-			tjs_int h = face->glyph->bitmap.rows;
-			*/
-			tjs_int t = baseline - FT_PosToInt( face->glyph->metrics.horiBearingY );
-			tjs_int l = FT_PosToInt( face->glyph->metrics.horiBearingX );
-			tjs_int w = FT_PosToInt( face->glyph->metrics.width );
-			tjs_int h = FT_PosToInt( face->glyph->metrics.height );
-			GlyphMetricsCache[code].advancex = FT_PosToInt( face->glyph->advance.x );
-			GlyphMetricsCache[code].advancey = FT_PosToInt( face->glyph->advance.y );
-			GlyphMetricsCache[code].rt = tTVPRect(l,t,l+w,t+h);
-			GlyphMetricsCache[code].rtu = GlyphMetricsCache[code].rt;
-			{
-				tjs_int pos = -1, thickness = -1;
-				GetUnderline( pos, thickness, index );
-				if( pos >= 0 && thickness > 0 ) {
-					if( GlyphMetricsCache[code].rtu.left > 0 ) GlyphMetricsCache[code].rtu.left = 0;
-					if( GlyphMetricsCache[code].rtu.right < GlyphMetricsCache[code].advancex ) GlyphMetricsCache[code].rtu.right = GlyphMetricsCache[code].advancex;
-					if( pos < GlyphMetricsCache[code].rtu.top ) GlyphMetricsCache[code].rtu.top = pos;
-					if( (pos+thickness) >= GlyphMetricsCache[code].rtu.bottom ) GlyphMetricsCache[code].rtu.bottom = pos+thickness+1;
-				}
+			tjs_int pos = -1, thickness = -1;
+			GetUnderline( pos, thickness, index );
+			if( pos >= 0 && thickness > 0 ) {
+				if( GlyphMetricsCache[code].rtu.left > 0 ) GlyphMetricsCache[code].rtu.left = 0;
+				if( GlyphMetricsCache[code].rtu.right < GlyphMetricsCache[code].advancex ) GlyphMetricsCache[code].rtu.right = GlyphMetricsCache[code].advancex;
+				if( pos < GlyphMetricsCache[code].rtu.top ) GlyphMetricsCache[code].rtu.top = pos;
+				if( (pos+thickness) >= GlyphMetricsCache[code].rtu.bottom ) GlyphMetricsCache[code].rtu.bottom = pos+thickness+1;
 			}
-			GlyphMetricsCache[code].rts = GlyphMetricsCache[code].rt;
-			GlyphMetricsCache[code].rtus = GlyphMetricsCache[code].rtu;
-			{
-				tjs_int pos = -1, thickness = -1;
-				GetStrikeOut( pos, thickness, index );
-				if( pos >= 0 && thickness > 0 ) {
-					if( GlyphMetricsCache[code].rts.left > 0 ) GlyphMetricsCache[code].rts.left = 0;
-					if( GlyphMetricsCache[code].rts.right < GlyphMetricsCache[code].advancex ) GlyphMetricsCache[code].rts.right = GlyphMetricsCache[code].advancex;
-					if( pos < GlyphMetricsCache[code].rts.top ) GlyphMetricsCache[code].rts.top = pos;
-					if( (pos+thickness) >= GlyphMetricsCache[code].rts.bottom ) GlyphMetricsCache[code].rts.bottom = pos+thickness+1;
+		}
+		GlyphMetricsCache[code].rts = GlyphMetricsCache[code].rt;
+		GlyphMetricsCache[code].rtus = GlyphMetricsCache[code].rtu;
+		{
+			tjs_int pos = -1, thickness = -1;
+			GetStrikeOut( pos, thickness, index );
+			if( pos >= 0 && thickness > 0 ) {
+				if( GlyphMetricsCache[code].rts.left > 0 ) GlyphMetricsCache[code].rts.left = 0;
+				if( GlyphMetricsCache[code].rts.right < GlyphMetricsCache[code].advancex ) GlyphMetricsCache[code].rts.right = GlyphMetricsCache[code].advancex;
+				if( pos < GlyphMetricsCache[code].rts.top ) GlyphMetricsCache[code].rts.top = pos;
+				if( (pos+thickness) >= GlyphMetricsCache[code].rts.bottom ) GlyphMetricsCache[code].rts.bottom = pos+thickness+1;
 
-					if( GlyphMetricsCache[code].rtus.left > 0 ) GlyphMetricsCache[code].rtus.left = 0;
-					if( GlyphMetricsCache[code].rtus.right < GlyphMetricsCache[code].advancex ) GlyphMetricsCache[code].rtus.right = GlyphMetricsCache[code].advancex;
-					if( pos < GlyphMetricsCache[code].rtus.top ) GlyphMetricsCache[code].rtus.top = pos;
-					if( (pos+thickness) >= GlyphMetricsCache[code].rtus.bottom ) GlyphMetricsCache[code].rtus.bottom = pos+thickness+1;
-				}
+				if( GlyphMetricsCache[code].rtus.left > 0 ) GlyphMetricsCache[code].rtus.left = 0;
+				if( GlyphMetricsCache[code].rtus.right < GlyphMetricsCache[code].advancex ) GlyphMetricsCache[code].rtus.right = GlyphMetricsCache[code].advancex;
+				if( pos < GlyphMetricsCache[code].rtus.top ) GlyphMetricsCache[code].rtus.top = pos;
+				if( (pos+thickness) >= GlyphMetricsCache[code].rtus.bottom ) GlyphMetricsCache[code].rtus.bottom = pos+thickness+1;
 			}
 		}
 	}
