@@ -14,7 +14,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <memory>
 #include "tjsArray.h"
 #include "tjsDictionary.h"
 #include "tjsUtils.h"

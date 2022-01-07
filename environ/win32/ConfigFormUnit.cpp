@@ -4,7 +4,7 @@
 
 #include "tjsCommHead.h"
 
-#include "Resource.h"
+#include "resource.h"
 
 #include "MsgIntf.h"
 #include "ConfigFormUnit.h"

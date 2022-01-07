@@ -11,8 +11,8 @@
 #define DIRECTINPUT_VERSION 0x0500
 #include <dinput.h>
 
-#include <DbgHelp.h>
-#include <Strsafe.h>
+#include <dbghelp.h>
+#include <strsafe.h>
 
 #include "tjsError.h"
 #include "tjsDebug.h"
@@ -29,7 +29,7 @@
 
 #include "Exception.h"
 #include "WindowFormUnit.h"
-#include "Resource.h"
+#include "resource.h"
 #include "SystemControl.h"
 #include "MouseCursor.h"
 #include "SystemImpl.h"
@@ -250,6 +250,7 @@ tTVPApplication::~tTVPApplication() {
 	}
 	windows_list_.clear();
 }
+#if 0
 struct SEHException {
 	unsigned int Code;
 	_EXCEPTION_POINTERS* ExceptionPointers;
@@ -327,9 +328,14 @@ const tjs_char* SECodeToMessage( unsigned int code ) {
 	}
 	return TJS_W("Unknown");
 }
+#endif
 
 bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
-	// _set_se_translator(se_translator_function);
+#if 0
+#if (defined(__GNUC__) && defined(__SEH__)) || (!defined(__GNUC__))
+	_set_se_translator(se_translator_function);
+#endif
+#endif
 
 	ArgC = argc;
 	ArgV = argv;
@@ -414,6 +420,7 @@ bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
 		ShowException( ttstr(e).c_str() );
 	} catch( const tjs_char* e ) {
 		ShowException( e );
+#if 0
 	} catch( const SEHException& e ) {
 		PEXCEPTION_RECORD rec = e.ExceptionPointers->ExceptionRecord;
 		tjs_string text(SECodeToMessage(e.Code));
@@ -422,6 +429,7 @@ bool tTVPApplication::StartApplication( int argc, tjs_char* argv[] ) {
 
 		TVPDumpHWException();
 		ShowException( text.c_str() );
+#endif
 	} catch(...) {
 		ShowException( (const tjs_char*)TVPUnknownError );
 	}
@@ -486,7 +494,7 @@ void tTVPApplication::CloseConsole() {
 
 void tTVPApplication::PrintConsole( const tjs_char* mes, unsigned long len, bool iserror ) {
 	HANDLE hStdOutput = ::GetStdHandle(iserror ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
-	if (hStdOutput > 0) {
+	if ((LONG_PTR)hStdOutput > 0) {
 		DWORD mode;
 		if (GetConsoleMode(hStdOutput, &mode)) {
 			// 実コンソール
@@ -760,8 +768,7 @@ void tTVPApplication::LoadImageRequest( class iTJSDispatch2 *owner, class tTJSNI
 }
 
 std::vector<std::string>* LoadLinesFromFile( const tjs_string& path ) {
-	FILE *fp = NULL;
-	_wfopen_s( &fp, path.c_str(), TJS_W("r"));
+	FILE *fp = _wfopen( path.c_str(), TJS_W("r"));
     if( fp == NULL ) {
 		return NULL;
     }

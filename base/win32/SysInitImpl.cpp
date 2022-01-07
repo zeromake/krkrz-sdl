@@ -787,7 +787,7 @@ void TVPDumpHWException()
 	for(tjs_int s = 0; s<d->StackAtESPLen; s++)
 	{
 		TJS_snprintf(buf, BUF_SIZE, TJS_W("0x%p (ESP+%3d) : 0x%p : "),
-			(DWORD)d->ESP + s*sizeof(tjs_uint32),
+			(DWORD_PTR)d->ESP + s*sizeof(tjs_uint32),
 			s*sizeof(tjs_uint32), d->StackAtESP[s]);
 		line = buf;
 

@@ -11,8 +11,11 @@
 
 
 #include "tjsCommHead.h"
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 #include "tvpgl_ia32_intf.h"
+#endif
 
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 #ifdef _MSC_VER
 #include <windows.h>
 #include <intrin.h>
@@ -41,6 +44,7 @@ static inline int __cpuidex(int CPUInfo[4],int InfoType,int ECXValue) {
 }
 #include <x86intrin.h>
 #endif
+#endif
 
 extern "C" {
 tjs_uint32 TVPCPUFeatures;
@@ -52,6 +56,7 @@ tjs_uint32 TVPCPUPhysicalCore;
 extern tjs_uint32 TVPCPUType;
 }
 
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 static void GetCpuid( int op, int& eax, int& ebx, int& ecx, int& edx) {
 	int info[4] = {0,0,0,0};
 	__cpuid( info, op );
@@ -178,6 +183,7 @@ static void GetCPUName() {
 		name[11] = edx;
 	}
 }
+#endif
 //---------------------------------------------------------------------------
 // TVPCheckCPU
 //---------------------------------------------------------------------------
@@ -188,6 +194,7 @@ tjs_uint32 TVPCheckCPU()
 	memset( TVPCPUVendor, 0, sizeof(TVPCPUVendor) );
 	memset( TVPCPUName, 0, sizeof(TVPCPUName) );
 
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 	int maxCpuId = 0;
 	int vendor = GetCpuVendor( maxCpuId );
 
@@ -268,19 +275,26 @@ tjs_uint32 TVPCheckCPU()
 
 	TVPCPUFeatures = flags | vendor;
 	return flags;
+#else
+	return 0;
+#endif
 }
 
 
 tjs_uint64 TVPGetTSC() {
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 	if( TVPCPUType & TVP_CPU_HAS_TSC ) {
 		return __rdtsc();
 	}
+#endif
 	return 0;
 }
 
 tjs_uint64 TVPGetTSCP( tjs_uint32 *aux ) {
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 	if( TVPCPUType & TVP_CPU_HAS_TSCP ) {
 		return __rdtscp(aux);
 	}
+#endif
 	return 0;
 }

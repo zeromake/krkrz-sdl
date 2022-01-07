@@ -33,6 +33,7 @@ tTVPCPUClockAccuracy TVPCPUClockAccuracy = ccaNotSet;
 	this thread also measures CPU clock.
 */
 
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 //---------------------------------------------------------------------------
 // TTVPEmergencyExitThread
 //---------------------------------------------------------------------------
@@ -212,5 +213,6 @@ void tTVPEmergencyExitThread::Execute(void)
 static std::auto_ptr<tTVPEmergencyExitThread>
 	TVPEmergencyExitThread(new tTVPEmergencyExitThread);
 //---------------------------------------------------------------------------
+#endif
 
 

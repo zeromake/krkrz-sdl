@@ -83,7 +83,7 @@ typedef double tjs_real;
 #define TJS_I64_VAL(x) ((tjs_int64)(x##i64))
 #define TJS_UI64_VAL(x) ((tjs_uint64)(x##i64))
 
-#ifdef _M_X64
+#ifdef _WIN64
 #define TJS_64BIT_OS	/* 64bit windows */
 #endif
 
@@ -152,6 +152,10 @@ typedef uintptr_t tjs_uintptr_t;
 
 #define TJS_I64_VAL(x) ((tjs_int64)(x##LL))
 #define TJS_UI64_VAL(x) ((tjs_uint64)(x##LL))
+
+#ifdef _WIN64
+#define TJS_64BIT_OS	/* 64bit windows */
+#endif
 
 #ifdef WORDS_BIGENDIAN
 	#define TJS_HOST_IS_BIG_ENDIAN 1

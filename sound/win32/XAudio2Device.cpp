@@ -13,7 +13,7 @@
 // 暫定的に対処 TODO 後でDirectX SDK入れること。
 #undef _WIN32_WINNT
 #define _WIN32_WINNT _WIN32_WINNT_WIN8
-#include <Xaudio2.h>
+#include <XAudio2.h>
 
 //#pragma comment(lib,"XAudio2.lib")
 bool TVPHasXAudio2DLL() {
