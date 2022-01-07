@@ -156,7 +156,9 @@ void tTVPDrawCycleTimer::Execute() {
 //---------------------------------------------------------------------------
 void tTVPDrawCycleTimer::Proc( NativeEvent& ev ) {
 	if( ev.Message == TVP_EV_DRAW_TIMING_THREAD && !GetTerminated() ) {
+#ifdef KRKRZ_ENABLE_CANVAS
 		OwnerWindow->StartDrawingInternal();
+#endif
 	} else {
 		EventQueue.HandlerDefault( ev );
 	}

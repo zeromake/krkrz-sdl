@@ -8,7 +8,7 @@
 
 #include "GLShaderUtil.h"
 #include "DebugIntf.h"
-#if 0
+#ifdef _WIN32
 #include "OpenGLScreen.h"
 #else
 #include "OpenGLScreenSDL2.h"

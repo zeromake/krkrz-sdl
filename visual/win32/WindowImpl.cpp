@@ -1094,7 +1094,9 @@ tTJSNI_Window::Construct(tjs_int numparams, tTJSVariant **param,
 	} else {
 		Form = new TTVPWindowForm(Application, this);
 	}
+#ifdef KRKRZ_ENABLE_CANVAS
 	CreateCanvas( tjs_obj );
+#endif
 	return TJS_S_OK;
 }
 //---------------------------------------------------------------------------
@@ -1952,6 +1954,7 @@ bool tTJSNI_Window::WaitForVBlank( tjs_int* in_vblank, tjs_int* delayed )
 //---------------------------------------------------------------------------
 void tTJSNI_Window::UpdateVSyncThread()
 {
+#ifdef KRKRZ_ENABLE_CANVAS
 	if( CanvasInstance == nullptr ) {
 		if( WaitVSync ) {
 			if( VSyncTimingThread == NULL ) {
@@ -1966,6 +1969,7 @@ void tTJSNI_Window::UpdateVSyncThread()
 	} else {
 		CanvasInstance->SetWaitVSync( WaitVSync );
 	}
+#endif
 }
 //---------------------------------------------------------------------------
 void TJS_INTF_METHOD tTJSNI_Window::StartBitmapCompletion(iTVPLayerManager * manager)

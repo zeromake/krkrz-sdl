@@ -61,12 +61,19 @@
 #endif
 
 /* We need type definitions from the XMM header file.  */
+#ifdef _WIN32
+#include <xmmintrin.h>
+#ifdef	_MSC_VER
+#include <emmintrin.h>	// if gcc is 3.4, this file need to include.
+#endif
+#else
 #if defined(__vita__) || defined(__SWITCH__)
 #include <simde/simde/simde-common.h>
 #undef SIMDE_HAVE_FENV_H
 #endif
 #include <simde/x86/sse.h>
 #include <simde/x86/sse2.h>
+#endif
 
 #ifdef __GNUC__
 #define _SALIGN16(x) static x __attribute__((aligned(16)))

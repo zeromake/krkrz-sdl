@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <locale>
 
-#if 0
+#if defined(_WIN32)
 struct equal_char_ignorecase {
 	inline bool operator()(char x, char y) const {
 		std::locale loc;

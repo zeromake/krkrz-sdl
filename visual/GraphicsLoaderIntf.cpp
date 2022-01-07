@@ -1635,6 +1635,7 @@ static bool TVPInternalLoadGraphic(tTVPBaseBitmap *dest, const ttstr &_name,
 		keyidx = -1;
 	}
 
+#ifndef _WIN32
 	if (!TVPLoadEmscriptenPreloadedData(handler->FormatData, (void*)&data, TVPLoadGraphic_SizeCallback,
 		TVPLoadGraphic_ScanLineCallback, TVPLoadGraphic_MetaInfoPushCallback,
 		name, keyidx, mode))
@@ -1643,6 +1644,7 @@ static bool TVPInternalLoadGraphic(tTVPBaseBitmap *dest, const ttstr &_name,
 			TVPLoadGraphic_ScanLineCallback, TVPLoadGraphic_MetaInfoPushCallback,
 			holder.Get(), keyidx, mode);
 	}
+#endif
 
 	*MetaInfo = data.MetaInfo;
 

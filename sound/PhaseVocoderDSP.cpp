@@ -42,20 +42,24 @@
 #include "tjsUtils.h"
 #include "tvpgl_ia32_intf.h"
 #include "DetectCPU.h"
+#ifndef _WIN32
 #if defined(__vita__) || defined(__SWITCH__)
 #include <simde/simde/simde-common.h>
 #undef SIMDE_HAVE_FENV_H
 #endif
 #include <simde/x86/sse.h>
+#endif
 
 extern void InterleaveOverlappingWindow(float * __restrict dest, const float * __restrict const * __restrict src,
 	float * __restrict win, int numch, size_t srcofs, size_t len);
 extern void DeinterleaveApplyingWindow(float * __restrict dest[], const float * __restrict src,
 					float * __restrict win, int numch, size_t destofs, size_t len);
+#ifndef _WIN32
 extern void InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __restrict const * __restrict src,
 					float * __restrict win, int numch, size_t srcofs, size_t len);
 extern void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __restrict src,
 					float * __restrict win, int numch, size_t destofs, size_t len);
+#endif
 
 
 //---------------------------------------------------------------------------
@@ -316,10 +320,12 @@ bool tRisaPhaseVocoderDSP::GetOutputBuffer(
 //---------------------------------------------------------------------------
 tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 {
+#ifndef _WIN32
 	bool use_sse =
 			(TVPCPUType & TVP_CPU_HAS_MMX) &&
 			(TVPCPUType & TVP_CPU_HAS_SSE) &&
 			(TVPCPUType & TVP_CPU_HAS_CMOV);
+#endif
 
 
 	// パラメータの再計算の必要がある場合は再計算をする
@@ -380,6 +386,7 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		InputBuffer.GetReadPointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
+#ifndef _WIN32
 		if( use_sse )
 		{
 			DeinterleaveApplyingWindow_sse(AnalWork, p1, InputWindow, Channels, 0, p1len);
@@ -387,6 +394,7 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 				DeinterleaveApplyingWindow_sse(AnalWork, p2, InputWindow + p1len, Channels, p1len, p2len);
 		}
 		else
+#endif
 		{
 			DeinterleaveApplyingWindow(AnalWork, p1, InputWindow, Channels, 0, p1len);
 			if(p2)
@@ -402,11 +410,13 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		//------------------------------------------------
 
 		// 演算の根幹部分を実行する
+#ifndef _WIN32
 		if(use_sse)
 		{
 			ProcessCore_sse(ch);
 		}
 		else
+#endif
 		{
 			ProcessCore(ch);
 		}
@@ -420,6 +430,7 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		OutputBuffer.GetWritePointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
+#ifndef _WIN32
 		if( use_sse )
 		{
 			InterleaveOverlappingWindow_sse(p1, SynthWork, OutputWindow, Channels, 0, p1len);
@@ -427,6 +438,7 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 				InterleaveOverlappingWindow_sse(p2, SynthWork, OutputWindow + p1len, Channels, p1len, p2len);
 		}
 		else
+#endif
 		{
 			InterleaveOverlappingWindow(p1, SynthWork, OutputWindow, Channels, 0, p1len);
 			if(p2)
@@ -681,6 +693,7 @@ void tRisaPhaseVocoderDSP::ProcessCore(int ch)
 //---------------------------------------------------------------------------
 
 
+#ifndef _WIN32
 /*
 	このソースコードでは詳しいアルゴリズムの説明は行わない。
 	基本的な流れはプレーンなC言語版と変わりないので、
@@ -915,4 +928,5 @@ void tRisaPhaseVocoderDSP::ProcessCore_sse(int ch)
 	synthwork[1] = 0.0; // synthwork[1] = nyquist freq. power (どっちみち使えないので0に)
 	rdft_sse(FrameSize, -1, synthwork, FFTWorkIp, FFTWorkW); // Inverse Real DFT
 }
+#endif
 //---------------------------------------------------------------------------

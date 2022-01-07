@@ -16,7 +16,6 @@
 #ifndef tjsCommHeadH
 #define tjsCommHeadH
 
-#if 0
 #ifdef __WIN32__
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
@@ -43,7 +42,6 @@
 #define new DEBUG_NEW
 */
 
-#endif
 #endif
 
 

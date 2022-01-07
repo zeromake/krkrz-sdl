@@ -17,6 +17,9 @@
 #if 1
 #ifdef KRKRZ_USE_SDL_THREADS
 #include <SDL.h>
+#elif defined(_WIN32)
+#include <windows.h>
+#include <mutex>
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 #include <mutex>

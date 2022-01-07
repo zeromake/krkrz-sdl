@@ -15,14 +15,15 @@
 #include "SysInitIntf.h"
 #include "ThreadIntf.h"
 
-#if 0
+#ifdef _WIN32
 #ifdef _WIN32
 #include <mmsystem.h>
 #else
 #include <time.h>
 #endif
-#endif
+#else
 #include <SDL.h>
+#endif
 
 #if 0
 // システムに依存しない実装ではあるが、乱数の偏り等懸念される
@@ -43,7 +44,7 @@ public:
 //---------------------------------------------------------------------------
 #endif
 
-#if 0
+#ifdef _WIN32
 //---------------------------------------------------------------------------
 // 64bit may enough to hold usual time count.
 // ( 32bit is clearly insufficient )
@@ -60,7 +61,7 @@ static tTJSCriticalSection TVPTickWatchCS;
 //---------------------------------------------------------------------------
 tjs_uint32 TVPGetRoughTickCount32()
 {
-#if 0
+#ifdef _WIN32
 #ifdef _WIN32
 	return timeGetTime();	// win32 mmsystem.h
 #else
@@ -69,14 +70,15 @@ tjs_uint32 TVPGetRoughTickCount32()
 	//clock_gettime( CLOCK_BOOTTIME, &now );
 	return static_cast<tjs_uint32>( now.tv_sec * 1000LL + now.tv_nsec / 1000000LL );
 #endif
-#endif
+#else
 	return SDL_GetTicks();
+#endif
 //	return TVPTickCounter.Count();
 }
 
 
 //---------------------------------------------------------------------------
-#if 0
+#ifdef _WIN32
 static tjs_uint TVPCheckTickOverflow()
 {
 	tjs_uint curtick;
@@ -171,14 +173,15 @@ static tTVPAtExit TVPWatchThreadUninitAtExit(TVP_ATEXIT_PRI_SHUTDOWN,
 //---------------------------------------------------------------------------
 tjs_uint64 TVPGetTickCount()
 {
-#if 0
+#ifdef _WIN32
 	TVPWatchThreadInit();
 
 	tjs_uint curtick = TVPCheckTickOverflow();
 
 	return curtick + TVPTickCountBias;
-#endif
+#else
 	return TVPGetRoughTickCount32();
+#endif
 }
 //---------------------------------------------------------------------------
 
@@ -189,7 +192,7 @@ tjs_uint64 TVPGetTickCount()
 //---------------------------------------------------------------------------
 void TVPStartTickCount()
 {
-#if 0
+#ifdef _WIN32
 	TVPWatchThreadInit();
 #endif
 }

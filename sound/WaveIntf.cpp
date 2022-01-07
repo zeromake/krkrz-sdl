@@ -136,16 +136,20 @@ static void TVPConvertFloatPCMTo16bits(tjs_int16 *output, const float *input,
 	if(!downmix)
 	{
 		tjs_int total = channels * count;
+#ifndef _WIN32
 		bool use_sse =
 				(TVPCPUType & TVP_CPU_HAS_MMX) &&
 				(TVPCPUType & TVP_CPU_HAS_SSE) &&
 				(TVPCPUType & TVP_CPU_HAS_CMOV);
+#endif
 
+#ifndef _WIN32
 		if(use_sse)
 		{
 			PCMConvertLoopFloat32ToInt16_sse(output, input, total);
 		}
 		else
+#endif
 		{
 			PCMConvertLoopFloat32ToInt16(output, input, total);
 		}
@@ -383,16 +387,20 @@ static void TVPConvertIntegerPCMToFloat(float *output, const void *input,
 		if(validbits == 16)
 		{
 			// most popular
+#ifndef _WIN32
 			bool use_sse =
 					(TVPCPUType & TVP_CPU_HAS_MMX) &&
 					(TVPCPUType & TVP_CPU_HAS_SSE) &&
 					(TVPCPUType & TVP_CPU_HAS_CMOV);
+#endif
 
+#ifndef _WIN32
 			if(use_sse)
 			{
 				PCMConvertLoopInt16ToFloat32_sse(output, p, total);
 			}
 			else
+#endif
 			{
 				PCMConvertLoopInt16ToFloat32(output, p, total);
 			}

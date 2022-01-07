@@ -14,15 +14,27 @@
 #ifndef TVP_MATHALGOLITHMS_H
 #define TVP_MATHALGOLITHMS_H
 
+#if !defined(_WIN32)
 #if defined(__vita__) || defined(__SWITCH__)
 #include <simde/simde/simde-common.h>
 #undef SIMDE_HAVE_FENV_H
 #endif
+#endif
 #define _USE_MATH_DEFINES
 #include <math.h>
+#if defined(_WIN32)
+#if 0
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
+#include <x86intrin.h>
+#include "xmmlib.h"
+#endif
+#endif
+#endif
+#if !defined(_WIN32)
 #include <simde/x86/sse.h>
 #include <simde/x86/sse2.h>
 #include "xmmlib.h"
+#endif
 
 
 //---------------------------------------------------------------------------
@@ -179,6 +191,7 @@ void  InterleaveOverlappingWindow(float * __restrict dest,
 
 //---------------------------------------------------------------------------
 
+#ifndef _WIN32
 //---------------------------------------------------------------------------
 // 定数など
 //---------------------------------------------------------------------------
@@ -577,6 +590,7 @@ void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __r
 void  InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __restrict const * __restrict src,
 					float * __restrict win, int numch, size_t srcofs, size_t len);
 //---------------------------------------------------------------------------
+#endif
 
 
 #endif

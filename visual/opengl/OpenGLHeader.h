@@ -5,10 +5,9 @@
 #ifdef __EMSCRIPTEN__
 #include <EGL/egl.h>
 #include <GLES3/gl31.h>
-#else
+#elif !defined(_WIN32)
 #include "OpenGLHeaderSDL2.h"
-#endif
-#if 0
+#else
 #ifdef WIN32
 #include "OpenGLHeaderWin32.h"
 #elif defined( ANDROID )
@@ -23,7 +22,7 @@
 extern void TVPInitializeOpenGLPlatform();
 
 
-#if 0
+#if defined(_WIN32)
 TJS_EXP_FUNC_DEF(void*, TVPeglGetProcAddress, (const char * procname));
 #endif
 

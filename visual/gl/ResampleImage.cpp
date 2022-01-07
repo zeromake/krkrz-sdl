@@ -706,8 +706,11 @@ void TVPResampleImage( const tTVPRect &cliprect, tTVPBaseBitmap *dest, const tTV
 		}
 	}
 
+#ifndef _WIN32
 	tjs_uint32 CpuFeature = TVPGetCPUType();
+#endif
 	try {
+#ifndef _WIN32
 		if (0) {}
 		else if( (CpuFeature & TVP_CPU_HAS_AVX2) )
 		{
@@ -719,6 +722,7 @@ void TVPResampleImage( const tTVPRect &cliprect, tTVPBaseBitmap *dest, const tTV
 			TVPResampleImageSSE2( clip, func, dest, destrect, src, srcrect, type, typeopt );
 		}
 		else
+#endif
 		{
 			 // Cバージョンは固定小数点版なし。遅くなる。
 			switch( type ) {
