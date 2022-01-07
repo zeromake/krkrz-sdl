@@ -59,9 +59,6 @@
 
 #ifdef __cplusplus
 #include <memory>
-
-#ifdef __cplusplus
-#include <memory>
 #include <vector>
 #include <string>
 #include <stdexcept>
