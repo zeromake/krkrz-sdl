@@ -107,7 +107,7 @@ public:
 	SDL_threadID GetThreadId() const { if (ThreadId) return ThreadId; else return SDL_ThreadID(); }
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
-	std::thread::native_handle_type GetHandle() { if(Thread) return Thread->native_handle(); else return NULL; }
+	std::thread::native_handle_type GetHandle() { if(Thread) return Thread->native_handle(); else return (std::thread::native_handle_type)NULL; }
 	std::thread::id GetThreadId() { if(Thread) return Thread->get_id(); else return std::thread::id(); }
 #endif
 #endif
