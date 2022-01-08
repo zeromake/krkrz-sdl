@@ -2,7 +2,7 @@
 #ifndef OpenGLHeaderH
 #define OpenGLHeaderH
 
-#ifdef KRKRZ_ENABLE_CANVAS
+#if defined(KRKRZ_ENABLE_CANVAS) || defined(_WIN32)
 #ifdef __EMSCRIPTEN__
 #include <EGL/egl.h>
 #include <GLES3/gl31.h>
