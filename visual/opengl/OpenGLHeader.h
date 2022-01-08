@@ -2,6 +2,7 @@
 #ifndef OpenGLHeaderH
 #define OpenGLHeaderH
 
+#ifdef KRKRZ_ENABLE_CANVAS
 #ifdef __EMSCRIPTEN__
 #include <EGL/egl.h>
 #include <GLES3/gl31.h>
@@ -20,10 +21,9 @@
 
 
 extern void TVPInitializeOpenGLPlatform();
-
-
-#if defined(_WIN32)
-TJS_EXP_FUNC_DEF(void*, TVPeglGetProcAddress, (const char * procname));
 #endif
+
+
+TJS_EXP_FUNC_DEF(void*, TVPeglGetProcAddress, (const char * procname));
 
 #endif
