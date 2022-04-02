@@ -414,6 +414,9 @@ public:
 	//! @param		delayed		1フレーム遅延が発生したかどうかを返す( !0 : 発生、0: 発生せず )
 	//! @return		Wait可不可 true : 可能、false : 不可
 	virtual bool TJS_INTF_METHOD WaitForVBlank( tjs_int* in_vblank, tjs_int* delayed ) = 0;
+
+	// Virtual destructor in base class avoids undefined behavior
+	virtual ~iTVPDrawDevice() noexcept(false) {};
 };
 //---------------------------------------------------------------------------
 /*]*/

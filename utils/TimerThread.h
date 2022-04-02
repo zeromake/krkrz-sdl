@@ -29,7 +29,7 @@ private:
 
 public:
 	tTVPTimerBase();
-	virtual ~tTVPTimerBase(){}
+	virtual ~tTVPTimerBase() noexcept(false) {};
 
 	// 有効/無効
 	void InternalSetEnabled(bool b) { Enabled = b; }

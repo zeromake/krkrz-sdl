@@ -178,7 +178,7 @@ public:
 
 	virtual const tTVPWaveFormat & GetFormat() const  = 0;
 
-	virtual ~ tTVPSampleAndLabelSource() { }
+	virtual ~tTVPSampleAndLabelSource() noexcept(false) {}
 };
 //---------------------------------------------------------------------------
 

@@ -330,6 +330,8 @@ public:
 		) = 0;
 
 
+	// Virtual destructor in base class avoids undefined behavior
+	virtual ~iTJSDispatch2() noexcept(false) {};
 };
 //---------------------------------------------------------------------------
 class iTJSNativeInstance
@@ -342,6 +344,9 @@ public:
 		// called before destruction
 	virtual void TJS_INTF_METHOD Destruct() = 0;
 		// must destruct itself
+
+	// Virtual destructor in base class avoids undefined behavior
+	virtual ~iTJSNativeInstance() noexcept(false) {};
 };
 /*]*/
 //---------------------------------------------------------------------------

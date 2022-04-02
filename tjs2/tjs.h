@@ -185,6 +185,9 @@ class iTJSTextReadStream
 public:
 	virtual tjs_uint TJS_INTF_METHOD Read(tTJSString & targ, tjs_uint size) = 0;
 	virtual void TJS_INTF_METHOD Destruct() = 0; // must delete itself
+
+	// Virtual destructor in base class avoids undefined behavior
+	virtual ~iTJSTextReadStream() noexcept(false) {};
 };
 //---------------------------------------------------------------------------
 class iTJSTextWriteStream
@@ -192,6 +195,9 @@ class iTJSTextWriteStream
 public:
 	virtual void TJS_INTF_METHOD Write(const tTJSString & targ) = 0;
 	virtual void TJS_INTF_METHOD Destruct() = 0; // must delete itself
+
+	// Virtual destructor in base class avoids undefined behavior
+	virtual ~iTJSTextWriteStream() noexcept(false) {};
 };
 //---------------------------------------------------------------------------
 extern iTJSTextReadStream * (*TJSCreateTextStreamForRead)(const tTJSString &name,
@@ -255,6 +261,9 @@ public:
 	virtual tjs_uint64 TJS_INTF_METHOD GetPosition() = 0;
 
 	virtual void TJS_INTF_METHOD SetPosition(tjs_uint64 pos) = 0;
+
+	// Virtual destructor in base class avoids undefined behavior
+	virtual ~iTJSBinaryStream() noexcept(false) {};
 };
 /*]*/
 
