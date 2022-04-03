@@ -327,6 +327,14 @@ public:
 			{
 				tjs_char *buf = targ.AllocBuffer(size);
 				TJS_strncpy(buf, BufferPtr, size);
+#if TJS_HOST_IS_BIG_ENDIAN
+				// re-order input
+				for(tjs_uint i = 0; i<size; i++)
+				{
+					tjs_char ch = buf[i];
+					buf[i] = ((ch >> 8) & 0xff) + ((ch & 0xff) << 8);
+				}
+#endif
 				buf[size] = 0;
 				BufferPtr += size;
 				BufferLen -= size;
