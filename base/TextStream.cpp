@@ -575,7 +575,7 @@ public:
 				}
 			}
 
-			WriteRawData(str.c_str(), len * sizeof(tjs_char));
+			WriteRawData(buf, len * sizeof(tjs_char));
 #else
 			if(CryptMode == 1)
 			{
