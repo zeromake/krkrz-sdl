@@ -157,6 +157,96 @@ typedef uintptr_t tjs_uintptr_t;
 #define TJS_64BIT_OS	/* 64bit windows */
 #endif
 
+#ifdef _WIN32
+#if defined(_M_IX86) || defined(_M_AMD64) || defined(_M_MRX000) || defined(_M_ALPHA) || defined(_M_PPC)
+#ifdef WORDS_BIGENDIAN
+#undef WORDS_BIGENDIAN
+#endif
+#endif
+#endif
+
+#if defined(LINUX) || defined(__linux__) || defined(ANDROID)
+#include <endian.h>
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifdef WORDS_BIGENDIAN
+#undef WORDS_BIGENDIAN
+#endif
+#elif __BYTE_ORDER == __BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
+#define WORDS_BIGENDIAN
+#endif
+#endif
+#endif
+
+#ifdef NETBSD
+#include <machine/endian.h>
+#if BYTE_ORDER == LITTLE_ENDIAN
+#ifdef WORDS_BIGENDIAN
+#undef WORDS_BIGENDIAN
+#endif
+#elif BYTE_ORDER == BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
+#define WORDS_BIGENDIAN
+#endif
+#endif
+#endif
+
+#ifdef FREEBSD
+#include <sys/param.h>
+#include <machine/endian.h>
+#if __FreeBSD_version < 500000
+#if BYTE_ORDER == LITTLE_ENDIAN
+#ifdef WORDS_BIGENDIAN
+#undef WORDS_BIGENDIAN
+#endif
+#elif BYTE_ORDER == BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
+#define WORDS_BIGENDIAN
+#endif
+#endif
+#endif
+#endif
+
+#ifdef AIX
+#include <sys/machine.h>
+#if BYTE_ORDER == LITTLE_ENDIAN
+#ifdef WORDS_BIGENDIAN
+#undef WORDS_BIGENDIAN
+#endif
+#elif BYTE_ORDER == BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
+#define WORDS_BIGENDIAN
+#endif
+#endif
+#endif
+
+#ifdef SOLARIS
+#include <sys/isa_defs.h>
+#ifdef _LITTLE_ENDIAN
+#ifdef WORDS_BIGENDIAN
+#undef WORDS_BIGENDIAN
+#endif
+#endif
+#ifdef _BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
+#define WORDS_BIGENDIAN
+#endif
+#endif
+#endif
+
+#if defined(__APPLE__) || defined(MACOSX) || defined(IOS)
+#include <machine/endian.h>
+#if BYTE_ORDER == LITTLE_ENDIAN
+#ifndef _LITTLE_ENDIAN
+#define _LITTLE_ENDIAN
+#endif
+#elif BYTE_ORDER == BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
+#define WORDS_BIGENDIAN
+#endif
+#endif
+#endif
+
 #ifdef WORDS_BIGENDIAN
 	#define TJS_HOST_IS_BIG_ENDIAN 1
 	#define TJS_HOST_IS_LITTLE_ENDIAN 0
