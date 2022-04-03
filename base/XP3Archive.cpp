@@ -451,8 +451,20 @@ tTVPXP3Archive::tTVPXP3Archive(const ttstr & name) : tTVPArchive(name)
 				item.ArcSize = ReadI64FromMem(indexdata + ch_info_start + 12);
 
 				tjs_int len = ReadI16FromMem(indexdata + ch_info_start + 20);
+#if TJS_HOST_IS_BIG_ENDIAN
+				tjs_uint16 *buf = (tjs_uint16 *)(indexdata + ch_info_start + 22);
+				// re-order input
+				for(tjs_uint i = 0; i<len; i++)
+				{
+					tjs_char ch = buf[i];
+					buf[i] = ((ch >> 8) & 0xff) + ((ch & 0xff) << 8);
+				}
+				ttstr name = TVPStringFromBMPUnicode(
+						(const tjs_uint16 *)(buf), len);
+#else
 				ttstr name = TVPStringFromBMPUnicode(
 						(const tjs_uint16 *)(indexdata + ch_info_start + 22), len);
+#endif
 				item.Name = name;
 				NormalizeInArchiveStorageName(item.Name);
 
