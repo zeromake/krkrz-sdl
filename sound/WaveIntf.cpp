@@ -519,6 +519,7 @@ bool tTVPWD_RIFFWave::Render(void *buf, tjs_uint bufsamplelen, tjs_uint& rendere
 	tjs_uint readsize = writesamples * SampleSize;
 	tjs_uint read = Stream->Read(buf, readsize);
 
+#if 0
 #if TJS_HOST_IS_BIG_ENDIAN
 	// endian-ness conversion
 	if(Format.BytesPerSample == 2)
@@ -557,6 +558,7 @@ bool tTVPWD_RIFFWave::Render(void *buf, tjs_uint bufsamplelen, tjs_uint& rendere
 			p ++;
 		}
 	}
+#endif
 #endif
 
 
