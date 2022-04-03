@@ -140,7 +140,7 @@ public:
 							// uncompression failed.
 #if TJS_HOST_IS_BIG_ENDIAN
 						// re-order input
-						for(tjs_uint i = 0; i<destlen; i++)
+						for(tjs_uint i = 0; i<BufferLen; i++)
 						{
 							tjs_char ch = Buffer[i];
 							Buffer[i] = ((ch >> 8) & 0xff) + ((ch & 0xff) << 8);
