@@ -575,8 +575,30 @@ static void BinToNumberBE( std::vector<TRet>& result, const tjs_uint8 *data, con
 	}
 }
 
+template<typename TRet, typename TTmp, int NBYTE>
+static void BinToNumberBEReal( std::vector<TRet>& result, const tjs_uint8 *data, const tjs_uint8 *tail, tjs_uint len ) {
+	if( len < 0 ) len = (tjs_uint)(((tail - data)+NBYTE-1)/NBYTE);
+	if( (data+len*NBYTE) < tail ) tail = data+len*NBYTE;
+	TTmp val = 0;
+	tjs_uint bytes = 0;
+	for( ; data < tail; data++ ) {
+		val |= (TTmp)(*data) << (bytes*8);
+		if( bytes == 0 ) { // big endian
+			bytes = NBYTE-1;
+			result.push_back( *(TRet*)&val );
+			val = 0;
+		} else {
+			bytes++;
+		}
+	}
+	if( bytes ) {
+		result.push_back( *(TRet*)&val );
+	}
+}
+
 #if TJS_HOST_IS_BIG_ENDIAN
 #	define BinToNumber BinToNumberBE
+#	define BinToReal BinToNumberBEReal
 #else
 #	define BinToNumber BinToNumberLE
 #	define BinToReal BinToNumberLEReal
