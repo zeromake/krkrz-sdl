@@ -49,8 +49,49 @@ tTVPPrerenderedFont::tTVPPrerenderedFont(const ttstr &storage) :
 
 		// read index offset
 		IndexCount = *(const tjs_uint32*)(Image + 24);
-		ChIndex = (const tjs_char*)(Image + *(const tjs_uint32*)(Image + 28));
-		Index = (const tTVPPrerenderedCharacterItem*)(Image + *(const tjs_uint32*)(Image + 32));
+#if TJS_HOST_IS_BIG_ENDIAN
+		IndexCount = __builtin_bswap32(IndexCount);
+#endif
+		tjs_uint32 ChIndexOffset = *(const tjs_uint32*)(Image + 28);
+#if TJS_HOST_IS_BIG_ENDIAN
+		ChIndexOffset = __builtin_bswap32(ChIndexOffset);
+#endif
+		tjs_char* ChIndexTmp = (tjs_char*)(Image + ChIndexOffset);
+#if TJS_HOST_IS_BIG_ENDIAN
+		tjs_uint32 ChIndexMax = 0;
+		// re-order input
+		for(tjs_uint i = 0; i<IndexCount; i++)
+		{
+			tjs_char ch = ChIndexTmp[i];
+			ChIndexTmp[i] = ((ch >> 8) & 0xff) + ((ch & 0xff) << 8);
+			if (ChIndexTmp[i] > ChIndexMax)
+			{
+				ChIndexMax = ChIndexTmp[i];
+			}
+		}
+#endif
+		ChIndex = ChIndexTmp;
+		tjs_uint32 ImageOffset = *(const tjs_uint32*)(Image + 32);
+#if TJS_HOST_IS_BIG_ENDIAN
+		ImageOffset = __builtin_bswap32(ImageOffset);
+#endif
+		tTVPPrerenderedCharacterItem* IndexTmp = (tTVPPrerenderedCharacterItem*)(Image + ImageOffset);
+#if TJS_HOST_IS_BIG_ENDIAN
+		for (tjs_int i = 0; i < ChIndexMax; i += 1)
+		{
+			tTVPPrerenderedCharacterItem* IndexItem = IndexTmp + i;
+			IndexItem->Offset = __builtin_bswap32(IndexItem->Offset);
+			IndexItem->Width = __builtin_bswap16(IndexItem->Width);
+			IndexItem->Height = __builtin_bswap16(IndexItem->Height);
+			IndexItem->OriginX = __builtin_bswap16(IndexItem->OriginX);
+			IndexItem->OriginY = __builtin_bswap16(IndexItem->OriginY);
+			IndexItem->IncX = __builtin_bswap16(IndexItem->IncX);
+			IndexItem->IncY = __builtin_bswap16(IndexItem->IncY);
+			IndexItem->Inc = __builtin_bswap16(IndexItem->Inc);
+			IndexItem->Reserved = __builtin_bswap16(IndexItem->Reserved);
+		}
+#endif
+		Index = IndexTmp;
 	} catch(...) {
 		if( stream ) delete stream;
 		if( Image ) delete[] Image;
