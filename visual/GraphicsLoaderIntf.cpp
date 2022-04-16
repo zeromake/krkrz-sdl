@@ -1046,13 +1046,6 @@ static void * TVPLoadGraphic_ScanLineCallback(void *callbackdata, tjs_int y)
 			tjs_uint32 * sl =
 				(tjs_uint32*)data->Dest->GetScanLineForWrite(data->ScanLineNum);
 
-#if TJS_HOST_IS_BIG_ENDIAN
-			for (tjs_uint i = 0; i < data->OrgW; i += 1)
-			{
-				sl[i] = __builtin_bswap32(sl[i]);
-			}
-#endif
-
 			if((data->ColorKey & 0xff000000) == 0x00000000)
 			{
 				// make alpha from color key
@@ -1651,6 +1644,21 @@ static bool TVPInternalLoadGraphic(tTVPBaseBitmap *dest, const ttstr &_name,
 		(handler->Load)(handler->FormatData, (void*)&data, TVPLoadGraphic_SizeCallback,
 			TVPLoadGraphic_ScanLineCallback, TVPLoadGraphic_MetaInfoPushCallback,
 			holder.Get(), keyidx, mode);
+	}
+#endif
+
+	// Byte swap for big endian
+#if TJS_HOST_IS_BIG_ENDIAN
+	if(mode == glmNormal)
+	{
+		for(tjs_int y = 0; y < data.BufH; y++)
+		{
+			tjs_uint32 *current = (tjs_uint32*)TVPLoadGraphic_ScanLineCallback((void*)&data, y);
+			for (tjs_uint i = 0; i < data.BufW; i += 1)
+			{
+				current[i] = __builtin_bswap32(current[i]);
+			}
+		}
 	}
 #endif
 
