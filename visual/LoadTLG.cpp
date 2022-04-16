@@ -177,6 +177,14 @@ void TVPLoadTLG5(void* formatdata, void *callbackdata,
 						break;
 					}
 				}
+
+#if TJS_HOST_IS_BIG_ENDIAN
+				for (tjs_uint i = 0; i < width; i += 1)
+				{
+					((tjs_uint32*)current_org)[i] = __builtin_bswap32(((tjs_uint32*)current_org)[i]);
+				}
+#endif
+
 				scanlinecallback(callbackdata, -1);
 
 				prevline = current_org;
