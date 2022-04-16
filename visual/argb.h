@@ -21,17 +21,19 @@
 template <typename base_type>
 struct tTVPARGB
 {
-#if TJS_HOST_IS_LITTLE_ENDIAN
+#if 1
 	base_type b;
 	base_type g;
 	base_type r;
 	base_type a;
 #endif
+#if 0
 #if TJS_HOST_IS_BIG_ENDIAN
 	base_type a;
 	base_type r;
 	base_type g;
 	base_type b;
+#endif
 #endif
 
 	typedef base_type base_int_type;
@@ -104,6 +106,7 @@ inline void tTVPARGB<tjs_uint8>::Zero()
 	*(tjs_uint32 *)this = 0;
 }
 
+#if TJS_HOST_IS_LITTLE_ENDIAN
 template <>
 inline void tTVPARGB<tjs_uint8>::operator = (tjs_uint32 v)
 {
@@ -115,6 +118,7 @@ inline tTVPARGB<tjs_uint8>::operator tjs_uint32() const
 {
 	return *(const tjs_uint32 *)this;
 }
+#endif
 
 template <>
 inline void tTVPARGB<tjs_uint8>::average(tjs_int n)
