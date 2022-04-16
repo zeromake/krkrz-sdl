@@ -58,16 +58,11 @@ tTVPPrerenderedFont::tTVPPrerenderedFont(const ttstr &storage) :
 #endif
 		tjs_char* ChIndexTmp = (tjs_char*)(Image + ChIndexOffset);
 #if TJS_HOST_IS_BIG_ENDIAN
-		tjs_uint32 ChIndexMax = 0;
 		// re-order input
 		for(tjs_uint i = 0; i<IndexCount; i++)
 		{
 			tjs_char ch = ChIndexTmp[i];
 			ChIndexTmp[i] = ((ch >> 8) & 0xff) + ((ch & 0xff) << 8);
-			if (ChIndexTmp[i] > ChIndexMax)
-			{
-				ChIndexMax = ChIndexTmp[i];
-			}
 		}
 #endif
 		ChIndex = ChIndexTmp;
@@ -77,9 +72,9 @@ tTVPPrerenderedFont::tTVPPrerenderedFont(const ttstr &storage) :
 #endif
 		tTVPPrerenderedCharacterItem* IndexTmp = (tTVPPrerenderedCharacterItem*)(Image + ImageOffset);
 #if TJS_HOST_IS_BIG_ENDIAN
-		for (tjs_int i = 0; i < ChIndexMax; i += 1)
+		for (tjs_int i = ImageOffset; i < FileLength; i += sizeof(tTVPPrerenderedCharacterItem))
 		{
-			tTVPPrerenderedCharacterItem* IndexItem = IndexTmp + i;
+			tTVPPrerenderedCharacterItem* IndexItem = (tTVPPrerenderedCharacterItem*)(Image + i);
 			IndexItem->Offset = __builtin_bswap32(IndexItem->Offset);
 			IndexItem->Width = __builtin_bswap16(IndexItem->Width);
 			IndexItem->Height = __builtin_bswap16(IndexItem->Height);
