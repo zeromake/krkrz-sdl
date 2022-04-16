@@ -251,14 +251,6 @@ void TVPLoadJPEG(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 				void *scanline = scanlinecallback(callbackdata, y);
 				if(!scanline) break;
 				memcpy( scanline, (const void*)&buffer[y*width*sizeof(tjs_uint32)], width*sizeof(tjs_uint32) );
-
-#if TJS_HOST_IS_BIG_ENDIAN
-				for (tjs_uint i = 0; i < width; i += 1)
-				{
-					((tjs_uint32*)scanline)[i] = __builtin_bswap32(((tjs_uint32*)scanline)[i]);
-				}
-#endif
-
 				scanlinecallback(callbackdata, -1);
 			}
 		}
@@ -343,13 +335,6 @@ void TVPLoadJPEG(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 			delete[] buffer;
 			for( unsigned int i = 0; i < cinfo.output_height; i++ ) {
 				scanlinecallback(callbackdata, i);
-#if TJS_HOST_IS_BIG_ENDIAN
-				void *scanline = scanlinecallback(callbackdata, i);
-				for (tjs_uint i = 0; i < cinfo.output_width; i += 1)
-				{
-					((tjs_uint32*)scanline)[i] = __builtin_bswap32(((tjs_uint32*)scanline)[i]);
-				}
-#endif
 				scanlinecallback(callbackdata, -1);
 			}
 		} else
@@ -396,12 +381,6 @@ void TVPLoadJPEG(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback s
 								(tjs_uint32*)scanline,
 								(tjs_uint8*)buffer[bufline], cinfo.output_width);
 						}
-#if TJS_HOST_IS_BIG_ENDIAN
-						for (tjs_uint i = 0; i < cinfo.output_width; i += 1)
-						{
-							((tjs_uint32*)scanline)[i] = __builtin_bswap32(((tjs_uint32*)scanline)[i]);
-						}
-#endif
 					}
 
 					scanlinecallback(callbackdata, -1);

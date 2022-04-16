@@ -379,14 +379,6 @@ void TVPLoadPNG(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback si
 					void *scanline = scanlinecallback(callbackdata, i);
 					if(!scanline) break;
 					png_read_row(png_ptr, (png_bytep)scanline, NULL);
-
-#if TJS_HOST_IS_BIG_ENDIAN
-					for (tjs_uint i = 0; i < width; i += 1)
-					{
-						((tjs_uint32*)scanline)[i] = __builtin_bswap32(((tjs_uint32*)scanline)[i]);
-					}
-#endif
-
 					scanlinecallback(callbackdata, -1);
 				}
 			} else {
@@ -449,13 +441,6 @@ void TVPLoadPNG(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback si
 				if(!do_convert_rgb_gray)
 				{
 					memcpy(scanline, row_pointers[i], rowbytes);
-
-#if TJS_HOST_IS_BIG_ENDIAN
-					for (tjs_uint i = 0; i < width; i += 1)
-					{
-						((tjs_uint32*)scanline)[i] = __builtin_bswap32(((tjs_uint32*)scanline)[i]);
-					}
-#endif
 				}
 				else
 				{
