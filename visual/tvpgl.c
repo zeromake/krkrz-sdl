@@ -5811,11 +5811,10 @@ TVP_GL_FUNC_DECL(void, TVPTLG5ComposeColors3To4_c, (tjs_uint8 *outp, const tjs_u
 		c[1] = buf[1][x];
 		c[2] = buf[2][x];
 		c[0] += c[1]; c[2] += c[1];
-		*(tjs_uint32 *)outp =
-								((((pc[0] += c[0]) + upper[0]) & 0xff)      ) +
-								((((pc[1] += c[1]) + upper[1]) & 0xff) <<  8) +
-								((((pc[2] += c[2]) + upper[2]) & 0xff) << 16) +
-								0xff000000;
+		outp[0] = (((pc[0] += c[0]) + upper[0]) & 0xff);
+		outp[1] = (((pc[1] += c[1]) + upper[1]) & 0xff);
+		outp[2] = (((pc[2] += c[2]) + upper[2]) & 0xff);
+		outp[3] = 0xff;
 		outp += 4;
 		upper += 4;
 	}
@@ -5835,11 +5834,10 @@ TVP_GL_FUNC_DECL(void, TVPTLG5ComposeColors4To4_c, (tjs_uint8 *outp, const tjs_u
 		c[2] = buf[2][x];
 		c[3] = buf[3][x];
 		c[0] += c[1]; c[2] += c[1];
-		*(tjs_uint32 *)outp =
-								((((pc[0] += c[0]) + upper[0]) & 0xff)      ) +
-								((((pc[1] += c[1]) + upper[1]) & 0xff) <<  8) +
-								((((pc[2] += c[2]) + upper[2]) & 0xff) << 16) +
-								((((pc[3] += c[3]) + upper[3]) & 0xff) << 24);
+		outp[0] = (((pc[0] += c[0]) + upper[0]) & 0xff);
+		outp[1] = (((pc[1] += c[1]) + upper[1]) & 0xff);
+		outp[2] = (((pc[2] += c[2]) + upper[2]) & 0xff);
+		outp[3] = (((pc[3] += c[3]) + upper[3]) & 0xff);
 		outp += 4;
 		upper += 4;
 	}
