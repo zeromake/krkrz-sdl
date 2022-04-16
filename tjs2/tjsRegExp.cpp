@@ -278,7 +278,13 @@ TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/_compile)
 		}
 		OnigErrorInfo einfo;
 		int r = onig_new( &(_this->RegEx), (UChar*)exprstart, (UChar*)(expr.c_str()+expr.length()),
-			flags&((ONIG_OPTION_MAXBIT<<1)-1), ONIG_ENCODING_UTF16_LE, ONIG_SYNTAX_PERL, &einfo );
+			flags&((ONIG_OPTION_MAXBIT<<1)-1),
+#if TJS_HOST_IS_BIG_ENDIAN
+			ONIG_ENCODING_UTF16_BE,
+#else
+			ONIG_ENCODING_UTF16_LE,
+#endif
+			ONIG_SYNTAX_PERL, &einfo );
 		if( r ) {
 			char s[ONIG_MAX_ERROR_MESSAGE_LEN];
 			onig_error_code_to_str( (UChar* )s, r, &einfo );
@@ -630,7 +636,13 @@ void tTJSNC_RegExp::Compile(tjs_int numparams, tTJSVariant **param, tTJSNI_RegEx
 	}
 	OnigErrorInfo einfo;
 	int r = onig_new( &(_this->RegEx), (UChar*)expr.c_str(), (UChar*)(expr.c_str()+expr.length()),
-		flags&((ONIG_OPTION_MAXBIT<<1)-1), ONIG_ENCODING_UTF16_LE, ONIG_SYNTAX_PERL, &einfo );
+		flags&((ONIG_OPTION_MAXBIT<<1)-1),
+#if TJS_HOST_IS_BIG_ENDIAN
+		ONIG_ENCODING_UTF16_BE,
+#else
+		ONIG_ENCODING_UTF16_LE,
+#endif
+		ONIG_SYNTAX_PERL, &einfo );
 	if( r ) {
 		char s[ONIG_MAX_ERROR_MESSAGE_LEN];
 		onig_error_code_to_str( (UChar* )s, r, &einfo );
