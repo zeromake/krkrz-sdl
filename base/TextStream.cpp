@@ -583,7 +583,7 @@ public:
 				}
 			}
 
-			WriteRawData(buf, len * sizeof(tjs_char));
+			WriteRawData(buf, len * sizeof(tjs_uint16));
 #else
 			if(CryptMode == 1)
 			{
