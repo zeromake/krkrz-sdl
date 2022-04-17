@@ -98,7 +98,7 @@ public:
 				// unicode
 				DirectLoad = true;
 			}
-			if(mark[0] == 0xfe && mark[1] == 0xff)
+			else if(mark[0] == 0xfe && mark[1] == 0xff)
 			{
 				// big endian UTF-16
 				BufferLen = (tjs_uint)(Stream->GetSize()-2) / 2;
