@@ -294,7 +294,11 @@ void tTVPLogStreamHolder::Open(const tjs_char *mode)
 			if(Stream.Tell() == 0)
 			{
 				// write BOM
+#if TJS_HOST_IS_BIG_ENDIAN
+				Stream.Write( TJS_N("\xfe\xff"), 2 ); // indicate unicode text
+#else
 				Stream.Write( TJS_N("\xff\xfe"), 2 ); // indicate unicode text
+#endif
 			}
 
 #ifdef TJS_TEXT_OUT_CRLF
