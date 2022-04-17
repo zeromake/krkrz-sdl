@@ -98,6 +98,23 @@ public:
 				// unicode
 				DirectLoad = true;
 			}
+			if(mark[0] == 0xfe && mark[1] == 0xff)
+			{
+				// big endian UTF-16
+				BufferLen = (tjs_uint)(Stream->GetSize()-2) / 2;
+				Buffer = new tjs_char[BufferLen + 1];
+				Stream->ReadBuffer(Buffer, BufferLen * 2);
+#if TJS_HOST_IS_LITTLE_ENDIAN
+				// re-order input
+				for(tjs_uint i = 0; i<BufferLen; i++)
+				{
+					tjs_char ch = Buffer[i];
+					Buffer[i] = ((ch >> 8) & 0xff) + ((ch & 0xff) << 8);
+				}
+#endif
+				Buffer[BufferLen] = 0;
+				BufferPtr = Buffer;
+			}
 			else if(mark[0] == 0xfe && mark[1] == 0xfe)
 			{
 				// ciphered text or compressed
