@@ -14,26 +14,19 @@
 #ifndef TVP_MATHALGOLITHMS_H
 #define TVP_MATHALGOLITHMS_H
 
-#if !defined(_WIN32)
-#if defined(__vita__) || defined(__SWITCH__)
-#include <simde/simde/simde-common.h>
-#undef SIMDE_HAVE_FENV_H
-#endif
-#endif
 #define _USE_MATH_DEFINES
 #include <math.h>
-#if defined(_WIN32)
+#ifdef TVP_COMPILING_KRKRSDL2
+// Used: SSE SSE2
+#include "SIMDeRenames.h"
+#include "xmmlib.h"
+#else
 #if 0
 #if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
 #include <x86intrin.h>
 #include "xmmlib.h"
 #endif
 #endif
-#endif
-#if !defined(_WIN32)
-#include <simde/x86/sse.h>
-#include <simde/x86/sse2.h>
-#include "xmmlib.h"
 #endif
 
 
@@ -191,7 +184,7 @@ void  InterleaveOverlappingWindow(float * __restrict dest,
 
 //---------------------------------------------------------------------------
 
-#ifndef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
 //---------------------------------------------------------------------------
 // 定数など
 //---------------------------------------------------------------------------
@@ -221,26 +214,26 @@ extern _ALIGN16(const tjs_uint32) TVP_V_I32_1[4];
  * @note	精度はあまり良くない。10bitぐらい。 @r
  *			原典: http://www.dspguru.com/comp.dsp/tricks/alg/fxdatan2.htm
  */
-static inline simde__m128 VFast_arctan2_F4_SSE(simde__m128 y, simde__m128 x)
+static inline __m128 VFast_arctan2_F4_SSE(__m128 y, __m128 x)
 {
-	simde__m128 abs_y = simde_mm_add_ps(simde_mm_and_ps(y, PM128(PABSMASK)), PM128(TVP_VFASTATAN2_E));
+	__m128 abs_y = _mm_add_ps(_mm_and_ps(y, PM128(PABSMASK)), PM128(TVP_VFASTATAN2_E));
 //   float abs_y = fabs(y)+1e-10;     // kludge to prevent 0/0 condition
 
-	simde__m128 x_sign = simde_mm_and_ps(x, PM128(PCS_RRRR));// 0x80000000 if x < 0
-	simde__m128 x_mask = simde_mm_cmple_ps(x, PM128(PFV_0)); // 0xffffffff if x <= 0
-	simde__m128 abs_y2 = simde_mm_xor_ps(abs_y , x_sign);
-	simde__m128 abs_y1 = simde_mm_xor_ps(abs_y2, PM128(PCS_RRRR));
-	simde__m128 r      = simde_mm_div_ps(simde_mm_add_ps(x, abs_y1), simde_mm_add_ps(x, abs_y2));
-	r             = simde_mm_xor_ps(r, x_sign);
-	simde__m128 coeff_1_or_2 = simde_mm_xor_ps(
-							simde_mm_and_ps(x_mask, PM128(TVP_VFASTATAN2_C1_XOR_C2)),
+	__m128 x_sign = _mm_and_ps(x, PM128(PCS_RRRR));// 0x80000000 if x < 0
+	__m128 x_mask = _mm_cmple_ps(x, PM128(PFV_0)); // 0xffffffff if x <= 0
+	__m128 abs_y2 = _mm_xor_ps(abs_y , x_sign);
+	__m128 abs_y1 = _mm_xor_ps(abs_y2, PM128(PCS_RRRR));
+	__m128 r      = _mm_div_ps(_mm_add_ps(x, abs_y1), _mm_add_ps(x, abs_y2));
+	r             = _mm_xor_ps(r, x_sign);
+	__m128 coeff_1_or_2 = _mm_xor_ps(
+							_mm_and_ps(x_mask, PM128(TVP_VFASTATAN2_C1_XOR_C2)),
 							PM128(TVP_VFASTATAN2_C1)); // x<=0?coeff_2:coeff_1
 /*
-	simde__m128 coeff_1_or_2 = simde_mm_or_ps(
-		simde_mm_and_ps   (x_mask, PM128(TVP_VFASTATAN2_C1)),
-		simde_mm_andnot_ps(x_mask, PM128(TVP_VFASTATAN2_C2))); // x>=0?coeff_1:coeff_2
+	__m128 coeff_1_or_2 = _mm_or_ps(
+		_mm_and_ps   (x_mask, PM128(TVP_VFASTATAN2_C1)),
+		_mm_andnot_ps(x_mask, PM128(TVP_VFASTATAN2_C2))); // x>=0?coeff_1:coeff_2
 */
-	simde__m128 angle  = simde_mm_sub_ps(coeff_1_or_2, simde_mm_mul_ps(PM128(TVP_VFASTATAN2_C1), r));
+	__m128 angle  = _mm_sub_ps(coeff_1_or_2, _mm_mul_ps(PM128(TVP_VFASTATAN2_C1), r));
 /*
    if (x>=0)
    {
@@ -253,8 +246,8 @@ static inline simde__m128 VFast_arctan2_F4_SSE(simde__m128 y, simde__m128 x)
       angle = coeff_2 - coeff_1 * r;
    }
 */
-	simde__m128 y_sign = simde_mm_and_ps(y, PM128(PCS_RRRR));
-	return simde_mm_xor_ps(angle, y_sign);
+	__m128 y_sign = _mm_and_ps(y, PM128(PCS_RRRR));
+	return _mm_xor_ps(angle, y_sign);
 /*
    if (y < 0)
      return(-angle);     // negate if in quad III or IV
@@ -276,7 +269,7 @@ static inline simde__m128 VFast_arctan2_F4_SSE(simde__m128 y, simde__m128 x)
  */
 static inline void SetRoundingModeToNearest_SSE()
 {
-	SIMDE_MM_SET_ROUNDING_MODE(SIMDE_MM_ROUND_NEAREST);
+	_MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
 }
 //---------------------------------------------------------------------------
 
@@ -287,31 +280,31 @@ static inline void SetRoundingModeToNearest_SSE()
  * @note	原典: http://arxiv.org/PS_cache/cs/pdf/0406/0406049.pdf  @r
  *			呼び出しに先立って Risa_SetRoundingModeToNearest_SSE を呼ぶこと。
  */
-static inline void VFast_sincos_F4_SSE2(simde__m128 v, simde__m128 &sin, simde__m128 &cos)
+static inline void VFast_sincos_F4_SSE2(__m128 v, __m128 &sin, __m128 &cos)
 {
-	simde__m128 s1, s2, c1, c2, fixmag1;
+	__m128 s1, s2, c1, c2, fixmag1;
 
-	simde__m128 x1 = simde_mm_mul_ps(v, PM128(TVP_V_R_2PI));
+	__m128 x1 = _mm_mul_ps(v, PM128(TVP_V_R_2PI));
 //	float x1=madd(v, (float)(1.0/(2.0*3.1415926536)), (float)(0.0));
 
 	/* q1=x/2pi reduced onto (-0.5,0.5), q2=q1**2 */
-	simde__m128i r0 = simde_mm_cvtps_epi32(x1);
-	simde__m128 q1, q2;
-	q1 = simde_mm_cvtepi32_ps(r0);
-	q1 = simde_mm_sub_ps(x1, q1);
+	__m128i r0 = _mm_cvtps_epi32(x1);
+	__m128 q1, q2;
+	q1 = _mm_cvtepi32_ps(r0);
+	q1 = _mm_sub_ps(x1, q1);
 
-	q2 = simde_mm_mul_ps(q1, q1);
+	q2 = _mm_mul_ps(q1, q1);
 
 //	float q1=nmsub(round(x1), (float)(1.0), x1); // q1 = x1 - round(x1)
 //	float q2=madd(q1, q1, (float)(0.0));
 
-	s1 = simde_mm_add_ps(simde_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_SS4)), PM128(TVP_VFASTSINCOS_SS3));
+	s1 = _mm_add_ps(_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_SS4)), PM128(TVP_VFASTSINCOS_SS3));
 		// s1 = (q2 * ss4 + ss3)
-	s1 = simde_mm_add_ps(simde_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS2));
+	s1 = _mm_add_ps(_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS2));
 		// s1 = (q2 * (q2 * ss4 + ss3) + ss2)
-	s1 = simde_mm_add_ps(simde_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS1));
+	s1 = _mm_add_ps(_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS1));
 		// s1 = (q2 * (q2 * (q2 * ss4 + ss3) + ss2) + ss1)
-	s1 = simde_mm_mul_ps(s1, q1);
+	s1 = _mm_mul_ps(s1, q1);
 
 //	s1 = q1 * (q2 * (q2 * (q2 * ss4 + ss3) + ss2) + ss1);
 //	s1= madd(q1,
@@ -324,11 +317,11 @@ static inline void VFast_sincos_F4_SSE2(simde__m128 v, simde__m128 &sin, simde__
 //						(float)(0.0));
 
 
-	c1 = simde_mm_add_ps(simde_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_CC3)), PM128(TVP_VFASTSINCOS_CC2));
+	c1 = _mm_add_ps(_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_CC3)), PM128(TVP_VFASTSINCOS_CC2));
 		// c1 = (q2 * cc3 + cc2)
-	c1 = simde_mm_add_ps(simde_mm_mul_ps(c1, q2), PM128(TVP_VFASTSINCOS_CC1));
+	c1 = _mm_add_ps(_mm_mul_ps(c1, q2), PM128(TVP_VFASTSINCOS_CC1));
 		// c1 =  (q2 * (q2 * cc3 + cc2) + cc1 )
-	c1 = simde_mm_add_ps(simde_mm_mul_ps(c1, q2), PM128(PFV_1));
+	c1 = _mm_add_ps(_mm_mul_ps(c1, q2), PM128(PFV_1));
 //	c1= (q2 *  (q2 * (q2 * cc3 + cc2) + cc1 ) + 1.0);
 //	c1= madd(q2,
 //			madd(q2,
@@ -338,9 +331,9 @@ static inline void VFast_sincos_F4_SSE2(simde__m128 v, simde__m128 &sin, simde__
 //		(float)(1.0));
 
 	/* now, do one out of two angle-doublings to get sin & cos theta/2 */
-	c2 = simde_mm_sub_ps( simde_mm_mul_ps(c1, c1), simde_mm_mul_ps(s1, s1));
+	c2 = _mm_sub_ps( _mm_mul_ps(c1, c1), _mm_mul_ps(s1, s1));
 //	c2=nmsub(s1, s1, madd(c1, c1, (float)(0.0))); // c2 = (c1*c1) - (s1*s1)
-	s2 = simde_mm_mul_ps(simde_mm_mul_ps(s1, c1), PM128(PFV_2));
+	s2 = _mm_mul_ps(_mm_mul_ps(s1, c1), PM128(PFV_2));
 //	s2=madd((float)(2.0), madd(s1, c1, (float)(0.0)), (float)(0.0)); // s2=2*s1*c1
 
 	/* now, cheat on the correction for magnitude drift...
@@ -354,46 +347,46 @@ static inline void VFast_sincos_F4_SSE2(simde__m128 v, simde__m128 &sin, simde__
 	Then, multiply final result by (1-e) to correct */
 
 	/* this works with properly normalized sine-cosine functions, but un-normalized is more */
-	simde__m128 c2_c2 = simde_mm_mul_ps(c2, c2);
-	simde__m128 s2_s2 = simde_mm_mul_ps(s2, s2);
-	fixmag1 = simde_mm_sub_ps(simde_mm_sub_ps(PM128(PFV_2), c2_c2), s2_s2);
+	__m128 c2_c2 = _mm_mul_ps(c2, c2);
+	__m128 s2_s2 = _mm_mul_ps(s2, s2);
+	fixmag1 = _mm_sub_ps(_mm_sub_ps(PM128(PFV_2), c2_c2), s2_s2);
 //	fixmag1=nmsub(s2,s2, nmsub(c2, c2, (float)(2.0))); // fixmag1 = ( 2.0 - c2*c2 ) - s2*s2
 
-	c1 = simde_mm_sub_ps(c2_c2, s2_s2);
+	c1 = _mm_sub_ps(c2_c2, s2_s2);
 //	c1=nmsub(s2, s2, madd(c2, c2, (float)(0.0))); // c1 = c2*c2 - s2*s2
-	s1 = simde_mm_mul_ps(simde_mm_mul_ps(s2, c2), PM128(PFV_2));
+	s1 = _mm_mul_ps(_mm_mul_ps(s2, c2), PM128(PFV_2));
 //	s1=madd((float)(2.0), madd(s2, c2, (float)(0.0)), (float)(0.0));
-	cos = simde_mm_mul_ps(c1, fixmag1);
+	cos = _mm_mul_ps(c1, fixmag1);
 //	cos=madd(c1, fixmag1, (float)(0.0));
-	sin = simde_mm_mul_ps(s1, fixmag1);
+	sin = _mm_mul_ps(s1, fixmag1);
 //	sin=madd(s1, fixmag1, (float)(0.0));
 }
-static inline void VFast_sincos_F4_SSE(simde__m128 v, simde__m128 &sin, simde__m128 &cos)
+static inline void VFast_sincos_F4_SSE(__m128 v, __m128 &sin, __m128 &cos)
 {
-	simde__m128 s1, s2, c1, c2, fixmag1;
+	__m128 s1, s2, c1, c2, fixmag1;
 
-	simde__m128 x1 = simde_mm_mul_ps(v, PM128(TVP_V_R_2PI));
+	__m128 x1 = _mm_mul_ps(v, PM128(TVP_V_R_2PI));
 //	float x1=madd(v, (float)(1.0/(2.0*3.1415926536)), (float)(0.0));
 
 	/* q1=x/2pi reduced onto (-0.5,0.5), q2=q1**2 */
-	simde__m64 r0 = simde_mm_cvt_ps2pi(x1);
-	simde__m64 r1 = simde_mm_cvt_ps2pi(simde_mm_movehl_ps(x1, x1));
-	simde__m128 q1, q2;
-	q1 = simde_mm_movelh_ps(simde_mm_cvtpi32_ps(q1, r0), simde_mm_cvtpi32_ps(q1, r1));
-	q1 = simde_mm_sub_ps(x1, q1);
+	__m64 r0 = _mm_cvt_ps2pi(x1);
+	__m64 r1 = _mm_cvt_ps2pi(_mm_movehl_ps(x1, x1));
+	__m128 q1, q2;
+	q1 = _mm_movelh_ps(_mm_cvtpi32_ps(q1, r0), _mm_cvtpi32_ps(q1, r1));
+	q1 = _mm_sub_ps(x1, q1);
 
-	q2 = simde_mm_mul_ps(q1, q1);
+	q2 = _mm_mul_ps(q1, q1);
 
 //	float q1=nmsub(round(x1), (float)(1.0), x1); // q1 = x1 - round(x1)
 //	float q2=madd(q1, q1, (float)(0.0));
 
-	s1 = simde_mm_add_ps(simde_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_SS4)), PM128(TVP_VFASTSINCOS_SS3));
+	s1 = _mm_add_ps(_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_SS4)), PM128(TVP_VFASTSINCOS_SS3));
 		// s1 = (q2 * ss4 + ss3)
-	s1 = simde_mm_add_ps(simde_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS2));
+	s1 = _mm_add_ps(_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS2));
 		// s1 = (q2 * (q2 * ss4 + ss3) + ss2)
-	s1 = simde_mm_add_ps(simde_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS1));
+	s1 = _mm_add_ps(_mm_mul_ps(s1, q2), PM128(TVP_VFASTSINCOS_SS1));
 		// s1 = (q2 * (q2 * (q2 * ss4 + ss3) + ss2) + ss1)
-	s1 = simde_mm_mul_ps(s1, q1);
+	s1 = _mm_mul_ps(s1, q1);
 
 //	s1 = q1 * (q2 * (q2 * (q2 * ss4 + ss3) + ss2) + ss1);
 //	s1= madd(q1,
@@ -406,11 +399,11 @@ static inline void VFast_sincos_F4_SSE(simde__m128 v, simde__m128 &sin, simde__m
 //						(float)(0.0));
 
 
-	c1 = simde_mm_add_ps(simde_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_CC3)), PM128(TVP_VFASTSINCOS_CC2));
+	c1 = _mm_add_ps(_mm_mul_ps(q2, PM128(TVP_VFASTSINCOS_CC3)), PM128(TVP_VFASTSINCOS_CC2));
 		// c1 = (q2 * cc3 + cc2)
-	c1 = simde_mm_add_ps(simde_mm_mul_ps(c1, q2), PM128(TVP_VFASTSINCOS_CC1));
+	c1 = _mm_add_ps(_mm_mul_ps(c1, q2), PM128(TVP_VFASTSINCOS_CC1));
 		// c1 =  (q2 * (q2 * cc3 + cc2) + cc1 )
-	c1 = simde_mm_add_ps(simde_mm_mul_ps(c1, q2), PM128(PFV_1));
+	c1 = _mm_add_ps(_mm_mul_ps(c1, q2), PM128(PFV_1));
 //	c1= (q2 *  (q2 * (q2 * cc3 + cc2) + cc1 ) + 1.0);
 //	c1= madd(q2,
 //			madd(q2,
@@ -420,9 +413,9 @@ static inline void VFast_sincos_F4_SSE(simde__m128 v, simde__m128 &sin, simde__m
 //		(float)(1.0));
 
 	/* now, do one out of two angle-doublings to get sin & cos theta/2 */
-	c2 = simde_mm_sub_ps( simde_mm_mul_ps(c1, c1), simde_mm_mul_ps(s1, s1));
+	c2 = _mm_sub_ps( _mm_mul_ps(c1, c1), _mm_mul_ps(s1, s1));
 //	c2=nmsub(s1, s1, madd(c1, c1, (float)(0.0))); // c2 = (c1*c1) - (s1*s1)
-	s2 = simde_mm_mul_ps(simde_mm_mul_ps(s1, c1), PM128(PFV_2));
+	s2 = _mm_mul_ps(_mm_mul_ps(s1, c1), PM128(PFV_2));
 //	s2=madd((float)(2.0), madd(s1, c1, (float)(0.0)), (float)(0.0)); // s2=2*s1*c1
 
 	/* now, cheat on the correction for magnitude drift...
@@ -436,21 +429,21 @@ static inline void VFast_sincos_F4_SSE(simde__m128 v, simde__m128 &sin, simde__m
 	Then, multiply final result by (1-e) to correct */
 
 	/* this works with properly normalized sine-cosine functions, but un-normalized is more */
-	simde__m128 c2_c2 = simde_mm_mul_ps(c2, c2);
-	simde__m128 s2_s2 = simde_mm_mul_ps(s2, s2);
-	fixmag1 = simde_mm_sub_ps(simde_mm_sub_ps(PM128(PFV_2), c2_c2), s2_s2);
+	__m128 c2_c2 = _mm_mul_ps(c2, c2);
+	__m128 s2_s2 = _mm_mul_ps(s2, s2);
+	fixmag1 = _mm_sub_ps(_mm_sub_ps(PM128(PFV_2), c2_c2), s2_s2);
 //	fixmag1=nmsub(s2,s2, nmsub(c2, c2, (float)(2.0))); // fixmag1 = ( 2.0 - c2*c2 ) - s2*s2
 
-	c1 = simde_mm_sub_ps(c2_c2, s2_s2);
+	c1 = _mm_sub_ps(c2_c2, s2_s2);
 //	c1=nmsub(s2, s2, madd(c2, c2, (float)(0.0))); // c1 = c2*c2 - s2*s2
-	s1 = simde_mm_mul_ps(simde_mm_mul_ps(s2, c2), PM128(PFV_2));
+	s1 = _mm_mul_ps(_mm_mul_ps(s2, c2), PM128(PFV_2));
 //	s1=madd((float)(2.0), madd(s2, c2, (float)(0.0)), (float)(0.0));
-	cos = simde_mm_mul_ps(c1, fixmag1);
+	cos = _mm_mul_ps(c1, fixmag1);
 //	cos=madd(c1, fixmag1, (float)(0.0));
-	sin = simde_mm_mul_ps(s1, fixmag1);
+	sin = _mm_mul_ps(s1, fixmag1);
 //	sin=madd(s1, fixmag1, (float)(0.0));
 
-	simde_mm_empty();
+	_mm_empty();
 }
 #if 0
 #define VFast_sincos_F4_SSE VFast_sincos_F4_SSE2
@@ -462,90 +455,90 @@ static inline void VFast_sincos_F4_SSE(simde__m128 v, simde__m128 &sin, simde__m
 /**
  * Phase Wrapping(radianを-PI～PIにラップする) (4x float, SSE版)
  */
-static inline simde__m128 Wrap_Pi_F4_SSE2(simde__m128 v)
+static inline __m128 Wrap_Pi_F4_SSE2(__m128 v)
 {
 	// v を M_PI で割る
-	simde__m128 v_quant = simde_mm_mul_ps(v, PM128(TVP_V_R_PI)); // v_quant = v/M_PI
+	__m128 v_quant = _mm_mul_ps(v, PM128(TVP_V_R_PI)); // v_quant = v/M_PI
 
 	// v_quantを小数点以下を切り捨てて整数に変換
-	simde__m128i q = simde_mm_cvttps_epi32(v_quant);
+	__m128i q = _mm_cvttps_epi32(v_quant);
 	// 正の場合はv_quant&1を足し、負の場合は引く
 	// a = v_quant,    v_quant = a + ( (0 - (a&1)) & ((a>>31)|1) )
 	q =
-		simde_mm_add_epi32(
+		_mm_add_epi32(
 			q,
-			simde_mm_and_si128(
-				simde_mm_sub_epi32(
-					simde_mm_setzero_si128(),
-					simde_mm_and_si128(q, PM128I(TVP_V_I32_1))
+			_mm_and_si128(
+				_mm_sub_epi32(
+					_mm_setzero_si128(),
+					_mm_and_si128(q, PM128I(TVP_V_I32_1))
 				),
-				simde_mm_or_si128(
-					simde_mm_srai_epi32(q, 31),
+				_mm_or_si128(
+					_mm_srai_epi32(q, 31),
 					PM128I(TVP_V_I32_1)
 				)
 			)
 		);
 	// それらを実数に戻し、M_PI をかける
-	v_quant = simde_mm_cvtepi32_ps(q);
-	v_quant = simde_mm_mul_ps(v_quant, PM128(TVP_V_PI));
+	v_quant = _mm_cvtepi32_ps(q);
+	v_quant = _mm_mul_ps(v_quant, PM128(TVP_V_PI));
 
 	// それを v から引く
-	v = simde_mm_sub_ps(v, v_quant);
+	v = _mm_sub_ps(v, v_quant);
 
 	// 戻る
 	return v;
 }
-static inline simde__m128 Wrap_Pi_F4_SSE(simde__m128 v)
+static inline __m128 Wrap_Pi_F4_SSE(__m128 v)
 {
 	// v を M_PI で割る
-	simde__m128 v_quant = simde_mm_mul_ps(v, PM128(TVP_V_R_PI)); // v_quant = v/M_PI
+	__m128 v_quant = _mm_mul_ps(v, PM128(TVP_V_R_PI)); // v_quant = v/M_PI
 
 	// v_quantを小数点以下を切り捨てて整数に変換
-	simde__m64 q0 = simde_mm_cvtt_ps2pi(v_quant); 
-	simde__m64 q1 = simde_mm_cvtt_ps2pi(simde_mm_movehl_ps(v_quant, v_quant));
+	__m64 q0 = _mm_cvtt_ps2pi(v_quant); 
+	__m64 q1 = _mm_cvtt_ps2pi(_mm_movehl_ps(v_quant, v_quant));
 
 	// 正の場合はv_quant&1を足し、負の場合は引く
 	// a = v_quant,    v_quant = a + ( (0 - (a&1)) & ((a>>31)|1) )
 
 	q0 =
-		simde_mm_add_pi32(
+		_mm_add_pi32(
 			q0,
-			simde_mm_and_si64(
-				simde_mm_sub_pi32(
-					simde_mm_setzero_si64(),
-					simde_mm_and_si64(q0, PM64(TVP_V_I32_1))
+			_mm_and_si64(
+				_mm_sub_pi32(
+					_mm_setzero_si64(),
+					_mm_and_si64(q0, PM64(TVP_V_I32_1))
 				),
-				simde_mm_or_si64(
-					simde_mm_srai_pi32(q0, 31),
+				_mm_or_si64(
+					_mm_srai_pi32(q0, 31),
 					PM64(TVP_V_I32_1)
 				)
 			)
 		);
 
 	q1 =
-		simde_mm_add_pi32(
+		_mm_add_pi32(
 			q1,
-			simde_mm_and_si64(
-				simde_mm_sub_pi32(
-					simde_mm_setzero_si64(),
-					simde_mm_and_si64(q1, PM64(TVP_V_I32_1))
+			_mm_and_si64(
+				_mm_sub_pi32(
+					_mm_setzero_si64(),
+					_mm_and_si64(q1, PM64(TVP_V_I32_1))
 				),
-				simde_mm_or_si64(
-					simde_mm_srai_pi32(q1, 31),
+				_mm_or_si64(
+					_mm_srai_pi32(q1, 31),
 					PM64(TVP_V_I32_1)
 				)
 			)
 		);
 
 	// それらを実数に戻し、M_PI をかける
-	v_quant = simde_mm_movelh_ps(simde_mm_cvtpi32_ps(v, q0), simde_mm_cvtpi32_ps(v, q1));
-	v_quant = simde_mm_mul_ps(v_quant, PM128(TVP_V_PI));
+	v_quant = _mm_movelh_ps(_mm_cvtpi32_ps(v, q0), _mm_cvtpi32_ps(v, q1));
+	v_quant = _mm_mul_ps(v_quant, PM128(TVP_V_PI));
 
 	// それを v から引く
-	v = simde_mm_sub_ps(v, v_quant);
+	v = _mm_sub_ps(v, v_quant);
 
 	// MMX使い終わり
-	simde_mm_empty();
+	_mm_empty();
 
 	// 戻る
 	return v;

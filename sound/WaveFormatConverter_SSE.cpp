@@ -13,11 +13,10 @@
 
 #include "tjsCommHead.h"
 #include "MathAlgorithms.h"
-#if defined(__vita__) || defined(__SWITCH__)
-#include <simde/simde/simde-common.h>
-#undef SIMDE_HAVE_FENV_H
+#ifdef TVP_COMPILING_KRKRSDL2
+// Used: SSE4.1
+#include "SIMDeRenames.h"
 #endif
-#include <simde/x86/sse4.1.h>
 //---------------------------------------------------------------------------
 
 _ALIGN16(const float) TJS_V_VEC_REDUCE[4] =
@@ -26,23 +25,23 @@ _ALIGN16(const float) TJS_V_VEC_MAGNIFY[4] =
 	{ 32767.0f, 32767.0f, 32767.0f, 32767.0f };
 
 static inline void Int16ToFloat32_sse2( float * d, const tjs_int16 * s ) {
-	simde__m128i src = simde_mm_loadu_si128((simde__m128i const*)s);
-	simde__m128i ext_val = simde_mm_cmpgt_epi16(simde_mm_setzero_si128(), src);
-	simde__m128 mlo = simde_mm_cvtepi32_ps(simde_mm_unpacklo_epi16(src, ext_val) );
-	simde__m128 mhi = simde_mm_cvtepi32_ps(simde_mm_unpackhi_epi16(src, ext_val) );
-	simde_mm_store_ps(d+0, simde_mm_mul_ps(mlo,PM128(TJS_V_VEC_REDUCE)) );
-	simde_mm_store_ps(d+4, simde_mm_mul_ps(mhi,PM128(TJS_V_VEC_REDUCE)) );
+	__m128i src = _mm_loadu_si128((__m128i const*)s);
+	__m128i ext_val = _mm_cmpgt_epi16(_mm_setzero_si128(), src);
+	__m128 mlo = _mm_cvtepi32_ps(_mm_unpacklo_epi16(src, ext_val) );
+	__m128 mhi = _mm_cvtepi32_ps(_mm_unpackhi_epi16(src, ext_val) );
+	_mm_store_ps(d+0, _mm_mul_ps(mlo,PM128(TJS_V_VEC_REDUCE)) );
+	_mm_store_ps(d+4, _mm_mul_ps(mhi,PM128(TJS_V_VEC_REDUCE)) );
 }
 static inline void Int16ToFloat32_sse41( float * d, const tjs_int16 * s ) {
-	simde__m128 mlo = simde_mm_cvtepi32_ps(simde_mm_cvtepi16_epi32( simde_mm_loadl_epi64( (simde__m128i const*)(s+0) ) ) );
-	simde__m128 mhi = simde_mm_cvtepi32_ps(simde_mm_cvtepi16_epi32( simde_mm_loadl_epi64( (simde__m128i const*)(s+4) ) ));
-	simde_mm_store_ps(d+0, simde_mm_mul_ps(mlo,PM128(TJS_V_VEC_REDUCE)) );
-	simde_mm_store_ps(d+4, simde_mm_mul_ps(mhi,PM128(TJS_V_VEC_REDUCE)) );
+	__m128 mlo = _mm_cvtepi32_ps(_mm_cvtepi16_epi32( _mm_loadl_epi64( (__m128i const*)(s+0) ) ) );
+	__m128 mhi = _mm_cvtepi32_ps(_mm_cvtepi16_epi32( _mm_loadl_epi64( (__m128i const*)(s+4) ) ));
+	_mm_store_ps(d+0, _mm_mul_ps(mlo,PM128(TJS_V_VEC_REDUCE)) );
+	_mm_store_ps(d+4, _mm_mul_ps(mhi,PM128(TJS_V_VEC_REDUCE)) );
 }
 static inline void Float32ToInt16_sse2( tjs_uint16 * d, const float * s ) {
-	simde__m128i mlo = simde_mm_cvtps_epi32( simde_mm_mul_ps( *(simde__m128*)(s + 0), PM128(TJS_V_VEC_MAGNIFY) ) );
-	simde__m128i mhi = simde_mm_cvtps_epi32( simde_mm_mul_ps( *(simde__m128*)(s + 4), PM128(TJS_V_VEC_MAGNIFY) ) );
-	simde_mm_store_si128( (simde__m128i *)d, simde_mm_packs_epi32(mlo, mlo) );
+	__m128i mlo = _mm_cvtps_epi32( _mm_mul_ps( *(__m128*)(s + 0), PM128(TJS_V_VEC_MAGNIFY) ) );
+	__m128i mhi = _mm_cvtps_epi32( _mm_mul_ps( *(__m128*)(s + 4), PM128(TJS_V_VEC_MAGNIFY) ) );
+	_mm_store_si128( (__m128i *)d, _mm_packs_epi32(mlo, mlo) );
 }
 #if 1
 // 64bit の時は MMX を使わず、SSE2/SSE で処理
@@ -51,22 +50,22 @@ static inline void Float32ToInt16_sse2( tjs_uint16 * d, const float * s ) {
 #else
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4799)	// ignore simde_mm_empty request.
+#pragma warning(disable : 4799)	// ignore _mm_empty request.
 #endif
-static inline simde__m128 _mm64_cvtpi16_ps(simde__m64 a) {
-  simde__m128 tmp;
-  simde__m64  ext_val = simde_mm_cmpgt_pi16(simde_mm_setzero_si64(), a);
-  tmp = simde_mm_cvtpi32_ps(simde_mm_setzero_ps(), simde_mm_unpackhi_pi16(a, ext_val));
-  return(simde_mm_cvtpi32_ps(simde_mm_movelh_ps(tmp, tmp), 
-                        simde_mm_unpacklo_pi16(a, ext_val)));
+static inline __m128 _mm64_cvtpi16_ps(__m64 a) {
+  __m128 tmp;
+  __m64  ext_val = _mm_cmpgt_pi16(_mm_setzero_si64(), a);
+  tmp = _mm_cvtpi32_ps(_mm_setzero_ps(), _mm_unpackhi_pi16(a, ext_val));
+  return(_mm_cvtpi32_ps(_mm_movelh_ps(tmp, tmp), 
+                        _mm_unpacklo_pi16(a, ext_val)));
 }
 static inline void Int16ToFloat32_sse( float * d, const tjs_int16 * s ) {
-	*(simde__m128*)(d + 0) = simde_mm_mul_ps(_mm64_cvtpi16_ps(*(simde__m64*)(s+0)), PM128(TJS_V_VEC_REDUCE));
-	*(simde__m128*)(d + 4) = simde_mm_mul_ps(_mm64_cvtpi16_ps(*(simde__m64*)(s+4)), PM128(TJS_V_VEC_REDUCE));
+	*(__m128*)(d + 0) = _mm_mul_ps(_mm64_cvtpi16_ps(*(__m64*)(s+0)), PM128(TJS_V_VEC_REDUCE));
+	*(__m128*)(d + 4) = _mm_mul_ps(_mm64_cvtpi16_ps(*(__m64*)(s+4)), PM128(TJS_V_VEC_REDUCE));
 }
 static inline void Float32ToInt16_sse( tjs_uint16 * d, const float * s ) {
-	*(simde__m64*)(d + 0) = simde_mm_cvtps_pi16( simde_mm_mul_ps(*(simde__m128*)(s + 0), PM128(TJS_V_VEC_MAGNIFY)) );
-	*(simde__m64*)(d + 4) = simde_mm_cvtps_pi16( simde_mm_mul_ps(*(simde__m128*)(s + 4), PM128(TJS_V_VEC_MAGNIFY)) );
+	*(__m64*)(d + 0) = _mm_cvtps_pi16( _mm_mul_ps(*(__m128*)(s + 0), PM128(TJS_V_VEC_MAGNIFY)) );
+	*(__m64*)(d + 4) = _mm_cvtps_pi16( _mm_mul_ps(*(__m128*)(s + 4), PM128(TJS_V_VEC_MAGNIFY)) );
 }
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -98,7 +97,7 @@ void PCMConvertLoopInt16ToFloat32_sse(void * __restrict dest, const void * __res
 		}
 #if 0
 #ifndef _M_X64
-		simde_mm_empty();
+		_mm_empty();
 #endif
 #endif
 	}
@@ -142,7 +141,7 @@ void PCMConvertLoopFloat32ToInt16_sse(void * __restrict dest, const void * __res
 		}
 #if 0
 #ifndef _M_X64
-		simde_mm_empty();
+		_mm_empty();
 #endif
 #endif
 	}

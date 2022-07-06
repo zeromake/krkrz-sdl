@@ -706,11 +706,11 @@ void TVPResampleImage( const tTVPRect &cliprect, tTVPBaseBitmap *dest, const tTV
 		}
 	}
 
-#ifndef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
 	tjs_uint32 CpuFeature = TVPGetCPUType();
 #endif
 	try {
-#ifndef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
 		if (0) {}
 		else if( (CpuFeature & TVP_CPU_HAS_AVX2) )
 		{

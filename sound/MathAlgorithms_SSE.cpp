@@ -86,8 +86,8 @@ void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __r
 			case cond: \
 				for(n = 0; n < len - 7; n += 8) \
 				{ \
-					destf(dest0+n  , simde_mm_mul_ps(srcf(src+n  ), winf(win+n  ))); \
-					destf(dest0+n+4, simde_mm_mul_ps(srcf(src+n+4), winf(win+n+4))); \
+					destf(dest0+n  , _mm_mul_ps(srcf(src+n  ), winf(win+n  ))); \
+					destf(dest0+n+4, _mm_mul_ps(srcf(src+n+4), winf(win+n+4))); \
 				} \
 				break
 
@@ -95,14 +95,14 @@ void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __r
 			if(len >= 8)
 				switch(condition)
 				{
-					R(0, simde_mm_store_ps , simde_mm_load_ps , simde_mm_load_ps );
-					R(1, simde_mm_store_ps , simde_mm_load_ps , simde_mm_loadu_ps);
-					R(2, simde_mm_store_ps , simde_mm_loadu_ps, simde_mm_load_ps );
-					R(3, simde_mm_store_ps , simde_mm_loadu_ps, simde_mm_loadu_ps);
-					R(4, simde_mm_storeu_ps, simde_mm_load_ps , simde_mm_load_ps );
-					R(5, simde_mm_storeu_ps, simde_mm_load_ps , simde_mm_loadu_ps);
-					R(6, simde_mm_storeu_ps, simde_mm_loadu_ps, simde_mm_load_ps );
-					R(7, simde_mm_storeu_ps, simde_mm_loadu_ps, simde_mm_loadu_ps);
+					R(0, _mm_store_ps , _mm_load_ps , _mm_load_ps );
+					R(1, _mm_store_ps , _mm_load_ps , _mm_loadu_ps);
+					R(2, _mm_store_ps , _mm_loadu_ps, _mm_load_ps );
+					R(3, _mm_store_ps , _mm_loadu_ps, _mm_loadu_ps);
+					R(4, _mm_storeu_ps, _mm_load_ps , _mm_load_ps );
+					R(5, _mm_storeu_ps, _mm_load_ps , _mm_loadu_ps);
+					R(6, _mm_storeu_ps, _mm_loadu_ps, _mm_load_ps );
+					R(7, _mm_storeu_ps, _mm_loadu_ps, _mm_loadu_ps);
 				}
 
 #undef R
@@ -129,15 +129,15 @@ void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __r
 			case cond: \
 				for(n = 0; n < len - 3; n += 4)                                                \
 				{                                                                              \
-					simde__m128 win3210 = winf(win + n);                                            \
-					simde__m128 win1100 = simde_mm_shuffle_ps(win3210, win3210, SIMDE_MM_SHUFFLE(1,1,0,0));   \
-					simde__m128 win3322 = simde_mm_shuffle_ps(win3210, win3210, SIMDE_MM_SHUFFLE(3,3,2,2));   \
-					simde__m128 src3210 = srcf(src + n*2    );                                      \
-					simde__m128 src7654 = srcf(src + n*2 + 4);                                      \
-					simde__m128 m0 = simde_mm_mul_ps(src3210, win1100);                                  \
-					simde__m128 m1 = simde_mm_mul_ps(src7654, win3322);                                  \
-					simde__m128 dest0_3210 = simde_mm_shuffle_ps(m0, m1, SIMDE_MM_SHUFFLE(2,0,2,0));          \
-					simde__m128 dest1_3210 = simde_mm_shuffle_ps(m0, m1, SIMDE_MM_SHUFFLE(3,1,3,1));          \
+					__m128 win3210 = winf(win + n);                                            \
+					__m128 win1100 = _mm_shuffle_ps(win3210, win3210, _MM_SHUFFLE(1,1,0,0));   \
+					__m128 win3322 = _mm_shuffle_ps(win3210, win3210, _MM_SHUFFLE(3,3,2,2));   \
+					__m128 src3210 = srcf(src + n*2    );                                      \
+					__m128 src7654 = srcf(src + n*2 + 4);                                      \
+					__m128 m0 = _mm_mul_ps(src3210, win1100);                                  \
+					__m128 m1 = _mm_mul_ps(src7654, win3322);                                  \
+					__m128 dest0_3210 = _mm_shuffle_ps(m0, m1, _MM_SHUFFLE(2,0,2,0));          \
+					__m128 dest1_3210 = _mm_shuffle_ps(m0, m1, _MM_SHUFFLE(3,1,3,1));          \
 					destf(dest0 + n, dest0_3210);                                              \
 					destf(dest1 + n, dest1_3210);                                              \
 				} \
@@ -146,14 +146,14 @@ void DeinterleaveApplyingWindow_sse(float * __restrict dest[], const float * __r
 			if(len >= 4)
 				switch(condition)
 				{
-					R(0, simde_mm_store_ps , simde_mm_load_ps , simde_mm_load_ps );
-					R(1, simde_mm_store_ps , simde_mm_load_ps , simde_mm_loadu_ps);
-					R(2, simde_mm_store_ps , simde_mm_loadu_ps, simde_mm_load_ps );
-					R(3, simde_mm_store_ps , simde_mm_loadu_ps, simde_mm_loadu_ps);
-					R(4, simde_mm_storeu_ps, simde_mm_load_ps , simde_mm_load_ps );
-					R(5, simde_mm_storeu_ps, simde_mm_load_ps , simde_mm_loadu_ps);
-					R(6, simde_mm_storeu_ps, simde_mm_loadu_ps, simde_mm_load_ps );
-					R(7, simde_mm_storeu_ps, simde_mm_loadu_ps, simde_mm_loadu_ps);
+					R(0, _mm_store_ps , _mm_load_ps , _mm_load_ps );
+					R(1, _mm_store_ps , _mm_load_ps , _mm_loadu_ps);
+					R(2, _mm_store_ps , _mm_loadu_ps, _mm_load_ps );
+					R(3, _mm_store_ps , _mm_loadu_ps, _mm_loadu_ps);
+					R(4, _mm_storeu_ps, _mm_load_ps , _mm_load_ps );
+					R(5, _mm_storeu_ps, _mm_load_ps , _mm_loadu_ps);
+					R(6, _mm_storeu_ps, _mm_loadu_ps, _mm_load_ps );
+					R(7, _mm_storeu_ps, _mm_loadu_ps, _mm_loadu_ps);
 				}
 
 #undef R
@@ -200,22 +200,22 @@ void  InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __r
 			case cond: \
 				for(n = 0; n < len - 7; n += 8) \
 				{ \
-					destf(dest+n  , simde_mm_add_ps(simde_mm_mul_ps(srcf(src0+n  ), winf(win+n  )), destlf(dest+n  ))); \
-					destf(dest+n+4, simde_mm_add_ps(simde_mm_mul_ps(srcf(src0+n+4), winf(win+n+4)), destlf(dest+n+4))); \
+					destf(dest+n  , _mm_add_ps(_mm_mul_ps(srcf(src0+n  ), winf(win+n  )), destlf(dest+n  ))); \
+					destf(dest+n+4, _mm_add_ps(_mm_mul_ps(srcf(src0+n+4), winf(win+n+4)), destlf(dest+n+4))); \
 				} \
 				break
 
 			if(len >= 8)
 				switch(condition)
 				{
-					R(0, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_load_ps , simde_mm_load_ps );
-					R(1, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_load_ps , simde_mm_loadu_ps);
-					R(2, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_loadu_ps, simde_mm_load_ps );
-					R(3, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_loadu_ps, simde_mm_loadu_ps);
-					R(4, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_load_ps , simde_mm_load_ps );
-					R(5, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_load_ps , simde_mm_loadu_ps);
-					R(6, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_loadu_ps, simde_mm_load_ps );
-					R(7, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_loadu_ps, simde_mm_loadu_ps);
+					R(0, _mm_store_ps , _mm_load_ps ,_mm_load_ps , _mm_load_ps );
+					R(1, _mm_store_ps , _mm_load_ps ,_mm_load_ps , _mm_loadu_ps);
+					R(2, _mm_store_ps , _mm_load_ps ,_mm_loadu_ps, _mm_load_ps );
+					R(3, _mm_store_ps , _mm_load_ps ,_mm_loadu_ps, _mm_loadu_ps);
+					R(4, _mm_storeu_ps, _mm_loadu_ps,_mm_load_ps , _mm_load_ps );
+					R(5, _mm_storeu_ps, _mm_loadu_ps,_mm_load_ps , _mm_loadu_ps);
+					R(6, _mm_storeu_ps, _mm_loadu_ps,_mm_loadu_ps, _mm_load_ps );
+					R(7, _mm_storeu_ps, _mm_loadu_ps,_mm_loadu_ps, _mm_loadu_ps);
 				}
 #undef R
 			for(     ; n < len; n++)
@@ -240,31 +240,31 @@ void  InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __r
 			case cond: \
 				for(n = 0; n < len - 3; n += 4) \
 				{ \
-					simde__m128 src0_3210  = srcf(src0 + n);        \
-					simde__m128 src1_3210  = srcf(src1 + n);        \
-					simde__m128 win3210    = winf(win  + n);        \
-					simde__m128 dest6420_a = simde_mm_mul_ps(src0_3210, win3210);   \
-					simde__m128 dest7531_a = simde_mm_mul_ps(src1_3210, win3210);   \
-					simde__m128 dest3120_a = simde_mm_movelh_ps(dest6420_a, dest7531_a);  \
-					simde__m128 dest6475_a = simde_mm_movehl_ps(dest6420_a, dest7531_a);  \
-					simde__m128 dest3210_a = simde_mm_shuffle_ps(dest3120_a, dest3120_a, SIMDE_MM_SHUFFLE(3,1,2,0)); \
-					simde__m128 dest7654_a = simde_mm_shuffle_ps(dest6475_a, dest6475_a, SIMDE_MM_SHUFFLE(1,3,0,2)); \
-					destf(dest+n*2  , simde_mm_add_ps(destlf(dest+n*2  ), dest3210_a)); \
-					destf(dest+n*2+4, simde_mm_add_ps(destlf(dest+n*2+4), dest7654_a)); \
+					__m128 src0_3210  = srcf(src0 + n);        \
+					__m128 src1_3210  = srcf(src1 + n);        \
+					__m128 win3210    = winf(win  + n);        \
+					__m128 dest6420_a = _mm_mul_ps(src0_3210, win3210);   \
+					__m128 dest7531_a = _mm_mul_ps(src1_3210, win3210);   \
+					__m128 dest3120_a = _mm_movelh_ps(dest6420_a, dest7531_a);  \
+					__m128 dest6475_a = _mm_movehl_ps(dest6420_a, dest7531_a);  \
+					__m128 dest3210_a = _mm_shuffle_ps(dest3120_a, dest3120_a, _MM_SHUFFLE(3,1,2,0)); \
+					__m128 dest7654_a = _mm_shuffle_ps(dest6475_a, dest6475_a, _MM_SHUFFLE(1,3,0,2)); \
+					destf(dest+n*2  , _mm_add_ps(destlf(dest+n*2  ), dest3210_a)); \
+					destf(dest+n*2+4, _mm_add_ps(destlf(dest+n*2+4), dest7654_a)); \
 				} \
 				break
 
 			if(len >= 4)
 				switch(condition)
 				{
-					R(0, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_load_ps , simde_mm_load_ps );
-					R(1, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_load_ps , simde_mm_loadu_ps);
-					R(2, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_loadu_ps, simde_mm_load_ps );
-					R(3, simde_mm_store_ps , simde_mm_load_ps ,simde_mm_loadu_ps, simde_mm_loadu_ps);
-					R(4, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_load_ps , simde_mm_load_ps );
-					R(5, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_load_ps , simde_mm_loadu_ps);
-					R(6, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_loadu_ps, simde_mm_load_ps );
-					R(7, simde_mm_storeu_ps, simde_mm_loadu_ps,simde_mm_loadu_ps, simde_mm_loadu_ps);
+					R(0, _mm_store_ps , _mm_load_ps ,_mm_load_ps , _mm_load_ps );
+					R(1, _mm_store_ps , _mm_load_ps ,_mm_load_ps , _mm_loadu_ps);
+					R(2, _mm_store_ps , _mm_load_ps ,_mm_loadu_ps, _mm_load_ps );
+					R(3, _mm_store_ps , _mm_load_ps ,_mm_loadu_ps, _mm_loadu_ps);
+					R(4, _mm_storeu_ps, _mm_loadu_ps,_mm_load_ps , _mm_load_ps );
+					R(5, _mm_storeu_ps, _mm_loadu_ps,_mm_load_ps , _mm_loadu_ps);
+					R(6, _mm_storeu_ps, _mm_loadu_ps,_mm_loadu_ps, _mm_load_ps );
+					R(7, _mm_storeu_ps, _mm_loadu_ps,_mm_loadu_ps, _mm_loadu_ps);
 				}
 
 #undef R

@@ -45,173 +45,173 @@
 
 #ifdef	_MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4700)	// ignore simde_mm_empty request.
+#pragma warning(disable : 4700)	// ignore _mm_empty request.
 #endif
 static inline void cft1st(int n, float * __restrict a, float * __restrict w)
 {
 	int		j, k1, k2;
 
-	simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+	__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
 //#pragma warning(disable : 592)
-	XMM0	 = simde_mm_loadl_pi(XMM0, (simde__m64*)(a   ));
-	XMM2	 = simde_mm_loadl_pi(XMM2, (simde__m64*)(a+ 2));
+	XMM0	 = _mm_loadl_pi(XMM0, (__m64*)(a   ));
+	XMM2	 = _mm_loadl_pi(XMM2, (__m64*)(a+ 2));
 //#pragma warning(default : 592)
-	XMM0	 = simde_mm_loadh_pi(XMM0, (simde__m64*)(a+ 4));
-	XMM2	 = simde_mm_loadh_pi(XMM2, (simde__m64*)(a+ 6));
+	XMM0	 = _mm_loadh_pi(XMM0, (__m64*)(a+ 4));
+	XMM2	 = _mm_loadh_pi(XMM2, (__m64*)(a+ 6));
 	XMM1	 = XMM0;
-	XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-	XMM1	 = simde_mm_sub_ps(XMM1, XMM2);
+	XMM0	 = _mm_add_ps(XMM0, XMM2);
+	XMM1	 = _mm_sub_ps(XMM1, XMM2);
 	XMM2	 = XMM0;
 	XMM3	 = XMM1;
-	XMM0	 = simde_mm_movelh_ps(XMM0, XMM0);
-	XMM2	 = simde_mm_movehl_ps(XMM2, XMM2);
-	XMM1	 = simde_mm_movelh_ps(XMM1, XMM1);
-	XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(2,3,2,3));
-	XMM2	 = simde_mm_xor_ps(XMM2, PM128(PCS_RRNN));
-	XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_RNNR));
-	XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-	XMM1	 = simde_mm_add_ps(XMM1, XMM3);
-	simde_mm_storel_pi((simde__m64*)(a   ), XMM0);
-	simde_mm_storeh_pi((simde__m64*)(a+ 4), XMM0);
-	simde_mm_storel_pi((simde__m64*)(a+ 2), XMM1);
-	simde_mm_storeh_pi((simde__m64*)(a+ 6), XMM1);
-	XMM0	 = simde_mm_loadl_pi(XMM0, (simde__m64*)(a+ 8));
-	XMM2	 = simde_mm_loadl_pi(XMM2, (simde__m64*)(a+10));
-	XMM0	 = simde_mm_loadh_pi(XMM0, (simde__m64*)(a+12));
-	XMM2	 = simde_mm_loadh_pi(XMM2, (simde__m64*)(a+14));
+	XMM0	 = _mm_movelh_ps(XMM0, XMM0);
+	XMM2	 = _mm_movehl_ps(XMM2, XMM2);
+	XMM1	 = _mm_movelh_ps(XMM1, XMM1);
+	XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(2,3,2,3));
+	XMM2	 = _mm_xor_ps(XMM2, PM128(PCS_RRNN));
+	XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_RNNR));
+	XMM0	 = _mm_add_ps(XMM0, XMM2);
+	XMM1	 = _mm_add_ps(XMM1, XMM3);
+	_mm_storel_pi((__m64*)(a   ), XMM0);
+	_mm_storeh_pi((__m64*)(a+ 4), XMM0);
+	_mm_storel_pi((__m64*)(a+ 2), XMM1);
+	_mm_storeh_pi((__m64*)(a+ 6), XMM1);
+	XMM0	 = _mm_loadl_pi(XMM0, (__m64*)(a+ 8));
+	XMM2	 = _mm_loadl_pi(XMM2, (__m64*)(a+10));
+	XMM0	 = _mm_loadh_pi(XMM0, (__m64*)(a+12));
+	XMM2	 = _mm_loadh_pi(XMM2, (__m64*)(a+14));
 	XMM1	 = XMM0;
-	XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-	XMM1	 = simde_mm_sub_ps(XMM1, XMM2);
+	XMM0	 = _mm_add_ps(XMM0, XMM2);
+	XMM1	 = _mm_sub_ps(XMM1, XMM2);
 	XMM2	 = XMM0;
 	XMM3	 = XMM1;
-	XMM0	 = simde_mm_shuffle_ps(XMM0, XMM0, SIMDE_MM_SHUFFLE(0,3,1,0));
-	XMM2	 = simde_mm_shuffle_ps(XMM2, XMM2, SIMDE_MM_SHUFFLE(2,1,3,2));
-	XMM1	 = simde_mm_shuffle_ps(XMM1, XMM1, SIMDE_MM_SHUFFLE(2,3,1,0));
-	XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(1,0,2,3));
-	XMM2	 = simde_mm_xor_ps(XMM2, PM128(PCS_RRNN));
-	XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_RNNR));
-	XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-	XMM1	 = simde_mm_add_ps(XMM1, XMM3);
-	simde_mm_storel_pi((simde__m64*)(a+ 8), XMM0);
-	simde_mm_storeh_pi((simde__m64*)(a+12), XMM0);
+	XMM0	 = _mm_shuffle_ps(XMM0, XMM0, _MM_SHUFFLE(0,3,1,0));
+	XMM2	 = _mm_shuffle_ps(XMM2, XMM2, _MM_SHUFFLE(2,1,3,2));
+	XMM1	 = _mm_shuffle_ps(XMM1, XMM1, _MM_SHUFFLE(2,3,1,0));
+	XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(1,0,2,3));
+	XMM2	 = _mm_xor_ps(XMM2, PM128(PCS_RRNN));
+	XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_RNNR));
+	XMM0	 = _mm_add_ps(XMM0, XMM2);
+	XMM1	 = _mm_add_ps(XMM1, XMM3);
+	_mm_storel_pi((__m64*)(a+ 8), XMM0);
+	_mm_storeh_pi((__m64*)(a+12), XMM0);
 	XMM2	 = XMM1;
-	XMM3	 = simde_mm_load_ss(w+2);
-	XMM1	 = simde_mm_shuffle_ps(XMM1, XMM1, SIMDE_MM_SHUFFLE(3,3,0,0));
-	XMM2	 = simde_mm_shuffle_ps(XMM2, XMM2, SIMDE_MM_SHUFFLE(2,2,1,1));
-	XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(0,0,0,0));
-	XMM2	 = simde_mm_xor_ps(XMM2, PM128(PCS_NRNR));
-	XMM1	 = simde_mm_add_ps(XMM1, XMM2);
-	XMM1	 = simde_mm_mul_ps(XMM1, XMM3);
-	simde_mm_storel_pi((simde__m64*)(a+10), XMM1);
-	simde_mm_storeh_pi((simde__m64*)(a+14), XMM1);
+	XMM3	 = _mm_load_ss(w+2);
+	XMM1	 = _mm_shuffle_ps(XMM1, XMM1, _MM_SHUFFLE(3,3,0,0));
+	XMM2	 = _mm_shuffle_ps(XMM2, XMM2, _MM_SHUFFLE(2,2,1,1));
+	XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(0,0,0,0));
+	XMM2	 = _mm_xor_ps(XMM2, PM128(PCS_NRNR));
+	XMM1	 = _mm_add_ps(XMM1, XMM2);
+	XMM1	 = _mm_mul_ps(XMM1, XMM3);
+	_mm_storel_pi((__m64*)(a+10), XMM1);
+	_mm_storeh_pi((__m64*)(a+14), XMM1);
 	k1 = 0;
 	for (j = 16; j < n; j += 16) {
 		k1		+= 2;
 		k2		 = 2 * k1;
 //#pragma warning(disable : 592)
-		XMM4	 = simde_mm_loadh_pi(XMM4, (simde__m64*)(w+k1	 ));
-		XMM5	 = simde_mm_loadl_pi(XMM5, (simde__m64*)(w+k2	 ));
+		XMM4	 = _mm_loadh_pi(XMM4, (__m64*)(w+k1	 ));
+		XMM5	 = _mm_loadl_pi(XMM5, (__m64*)(w+k2	 ));
 //#pragma warning(default : 592)
 		XMM0	 = XMM5;
 		XMM1	 = XMM4;
-		XMM0	 = simde_mm_shuffle_ps(XMM0, XMM0, SIMDE_MM_SHUFFLE(0,1,0,1));
-		XMM1	 = simde_mm_shuffle_ps(XMM1, XMM1, SIMDE_MM_SHUFFLE(3,3,3,3));
-		XMM0	 = simde_mm_mul_ps(XMM0, XMM1);
-		XMM0	 = simde_mm_add_ps(XMM0, XMM0);
-		XMM0	 = simde_mm_sub_ps(XMM0, XMM5);
-		XMM0	 = simde_mm_xor_ps(XMM0, PM128(PCS_NRNR));
-		XMM5	 = simde_mm_movelh_ps(XMM5, XMM0);
+		XMM0	 = _mm_shuffle_ps(XMM0, XMM0, _MM_SHUFFLE(0,1,0,1));
+		XMM1	 = _mm_shuffle_ps(XMM1, XMM1, _MM_SHUFFLE(3,3,3,3));
+		XMM0	 = _mm_mul_ps(XMM0, XMM1);
+		XMM0	 = _mm_add_ps(XMM0, XMM0);
+		XMM0	 = _mm_sub_ps(XMM0, XMM5);
+		XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_NRNR));
+		XMM5	 = _mm_movelh_ps(XMM5, XMM0);
 
-		XMM0	 = simde_mm_loadl_pi(XMM0, (simde__m64*)(a+j	 ));
-		XMM2	 = simde_mm_loadl_pi(XMM2, (simde__m64*)(a+j+ 2));
-		XMM0	 = simde_mm_loadh_pi(XMM0, (simde__m64*)(a+j+ 4));
-		XMM2	 = simde_mm_loadh_pi(XMM2, (simde__m64*)(a+j+ 6));
+		XMM0	 = _mm_loadl_pi(XMM0, (__m64*)(a+j	 ));
+		XMM2	 = _mm_loadl_pi(XMM2, (__m64*)(a+j+ 2));
+		XMM0	 = _mm_loadh_pi(XMM0, (__m64*)(a+j+ 4));
+		XMM2	 = _mm_loadh_pi(XMM2, (__m64*)(a+j+ 6));
 		XMM1	 = XMM0;
-		XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-		XMM1	 = simde_mm_sub_ps(XMM1, XMM2);
+		XMM0	 = _mm_add_ps(XMM0, XMM2);
+		XMM1	 = _mm_sub_ps(XMM1, XMM2);
 		XMM2	 = XMM0;
 		XMM3	 = XMM1;
-		XMM0	 = simde_mm_movelh_ps(XMM0, XMM0);
-		XMM2	 = simde_mm_movehl_ps(XMM2, XMM2);
-		XMM1	 = simde_mm_movelh_ps(XMM1, XMM1);
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(2,3,2,3));
-		XMM2	 = simde_mm_xor_ps(XMM2, PM128(PCS_RRNN));
-		XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_RNNR));
-		XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-		XMM1	 = simde_mm_add_ps(XMM1, XMM3);
-		simde_mm_storel_pi((simde__m64*)(a+j	 ), XMM0);
+		XMM0	 = _mm_movelh_ps(XMM0, XMM0);
+		XMM2	 = _mm_movehl_ps(XMM2, XMM2);
+		XMM1	 = _mm_movelh_ps(XMM1, XMM1);
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(2,3,2,3));
+		XMM2	 = _mm_xor_ps(XMM2, PM128(PCS_RRNN));
+		XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_RNNR));
+		XMM0	 = _mm_add_ps(XMM0, XMM2);
+		XMM1	 = _mm_add_ps(XMM1, XMM3);
+		_mm_storel_pi((__m64*)(a+j	 ), XMM0);
 		XMM2	 = XMM0;
 		XMM3	 = XMM4;
-		XMM2	 = simde_mm_shuffle_ps(XMM2, XMM2, SIMDE_MM_SHUFFLE(2,3,2,3));
-		XMM4	 = simde_mm_shuffle_ps(XMM4, XMM4, SIMDE_MM_SHUFFLE(2,2,2,2));
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(3,3,3,3));
-		XMM0	 = simde_mm_mul_ps(XMM0, XMM4);
-		XMM2	 = simde_mm_mul_ps(XMM2, XMM3);
-		XMM2	 = simde_mm_xor_ps(XMM2, PM128(PCS_NRNR));
-		XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-		simde_mm_storeh_pi((simde__m64*)(a+j+ 4), XMM0);
+		XMM2	 = _mm_shuffle_ps(XMM2, XMM2, _MM_SHUFFLE(2,3,2,3));
+		XMM4	 = _mm_shuffle_ps(XMM4, XMM4, _MM_SHUFFLE(2,2,2,2));
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(3,3,3,3));
+		XMM0	 = _mm_mul_ps(XMM0, XMM4);
+		XMM2	 = _mm_mul_ps(XMM2, XMM3);
+		XMM2	 = _mm_xor_ps(XMM2, PM128(PCS_NRNR));
+		XMM0	 = _mm_add_ps(XMM0, XMM2);
+		_mm_storeh_pi((__m64*)(a+j+ 4), XMM0);
 		XMM4	 = XMM1;
 		XMM3	 = XMM5;
-		XMM4	 = simde_mm_shuffle_ps(XMM4, XMM4, SIMDE_MM_SHUFFLE(2,3,0,1));
-		XMM5	 = simde_mm_shuffle_ps(XMM5, XMM5, SIMDE_MM_SHUFFLE(2,2,0,0));
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(3,3,1,1));
-		XMM1	 = simde_mm_mul_ps(XMM1, XMM5);
-		XMM4	 = simde_mm_mul_ps(XMM4, XMM3);
-		XMM4	 = simde_mm_xor_ps(XMM4, PM128(PCS_NRNR));
-		XMM1	 = simde_mm_add_ps(XMM1, XMM4);
-		simde_mm_storel_pi((simde__m64*)(a+j+ 2), XMM1);
-		simde_mm_storeh_pi((simde__m64*)(a+j+ 6), XMM1);
-		XMM4	 = simde_mm_loadh_pi(XMM4, (simde__m64*)(w+k1	 ));
-		XMM5	 = simde_mm_loadl_pi(XMM5, (simde__m64*)(w+k2+2));
+		XMM4	 = _mm_shuffle_ps(XMM4, XMM4, _MM_SHUFFLE(2,3,0,1));
+		XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,2,0,0));
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(3,3,1,1));
+		XMM1	 = _mm_mul_ps(XMM1, XMM5);
+		XMM4	 = _mm_mul_ps(XMM4, XMM3);
+		XMM4	 = _mm_xor_ps(XMM4, PM128(PCS_NRNR));
+		XMM1	 = _mm_add_ps(XMM1, XMM4);
+		_mm_storel_pi((__m64*)(a+j+ 2), XMM1);
+		_mm_storeh_pi((__m64*)(a+j+ 6), XMM1);
+		XMM4	 = _mm_loadh_pi(XMM4, (__m64*)(w+k1	 ));
+		XMM5	 = _mm_loadl_pi(XMM5, (__m64*)(w+k2+2));
 		XMM0	 = XMM5;
 		XMM1	 = XMM4;
-		XMM0	 = simde_mm_shuffle_ps(XMM0, XMM0, SIMDE_MM_SHUFFLE(0,1,0,1));
-		XMM1	 = simde_mm_shuffle_ps(XMM1, XMM1, SIMDE_MM_SHUFFLE(2,2,2,2));
-		XMM0	 = simde_mm_mul_ps(XMM0, XMM1);
-		XMM0	 = simde_mm_add_ps(XMM0, XMM0);
-		XMM0	 = simde_mm_sub_ps(XMM0, XMM5);
-		XMM0	 = simde_mm_xor_ps(XMM0, PM128(PCS_NRNR));
-		XMM5	 = simde_mm_movelh_ps(XMM5, XMM0);
+		XMM0	 = _mm_shuffle_ps(XMM0, XMM0, _MM_SHUFFLE(0,1,0,1));
+		XMM1	 = _mm_shuffle_ps(XMM1, XMM1, _MM_SHUFFLE(2,2,2,2));
+		XMM0	 = _mm_mul_ps(XMM0, XMM1);
+		XMM0	 = _mm_add_ps(XMM0, XMM0);
+		XMM0	 = _mm_sub_ps(XMM0, XMM5);
+		XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_NRNR));
+		XMM5	 = _mm_movelh_ps(XMM5, XMM0);
 
-		XMM0	 = simde_mm_loadl_pi(XMM0, (simde__m64*)(a+j+ 8));
-		XMM2	 = simde_mm_loadl_pi(XMM2, (simde__m64*)(a+j+10));
-		XMM0	 = simde_mm_loadh_pi(XMM0, (simde__m64*)(a+j+12));
-		XMM2	 = simde_mm_loadh_pi(XMM2, (simde__m64*)(a+j+14));
+		XMM0	 = _mm_loadl_pi(XMM0, (__m64*)(a+j+ 8));
+		XMM2	 = _mm_loadl_pi(XMM2, (__m64*)(a+j+10));
+		XMM0	 = _mm_loadh_pi(XMM0, (__m64*)(a+j+12));
+		XMM2	 = _mm_loadh_pi(XMM2, (__m64*)(a+j+14));
 		XMM1	 = XMM0;
-		XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-		XMM1	 = simde_mm_sub_ps(XMM1, XMM2);
+		XMM0	 = _mm_add_ps(XMM0, XMM2);
+		XMM1	 = _mm_sub_ps(XMM1, XMM2);
 		XMM2	 = XMM0;
 		XMM3	 = XMM1;
-		XMM0	 = simde_mm_movelh_ps(XMM0, XMM0);
-		XMM2	 = simde_mm_movehl_ps(XMM2, XMM2);
-		XMM1	 = simde_mm_movelh_ps(XMM1, XMM1);
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(2,3,2,3));
-		XMM2	 = simde_mm_xor_ps(XMM2, PM128(PCS_RRNN));
-		XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_RNNR));
-		XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-		XMM1	 = simde_mm_add_ps(XMM1, XMM3);
-		simde_mm_storel_pi((simde__m64*)(a+j+ 8), XMM0);
+		XMM0	 = _mm_movelh_ps(XMM0, XMM0);
+		XMM2	 = _mm_movehl_ps(XMM2, XMM2);
+		XMM1	 = _mm_movelh_ps(XMM1, XMM1);
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(2,3,2,3));
+		XMM2	 = _mm_xor_ps(XMM2, PM128(PCS_RRNN));
+		XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_RNNR));
+		XMM0	 = _mm_add_ps(XMM0, XMM2);
+		XMM1	 = _mm_add_ps(XMM1, XMM3);
+		_mm_storel_pi((__m64*)(a+j+ 8), XMM0);
 		XMM2	 = XMM0;
 		XMM3	 = XMM4;
-		XMM0	 = simde_mm_shuffle_ps(XMM0, XMM0, SIMDE_MM_SHUFFLE(2,3,2,3));
-		XMM4	 = simde_mm_shuffle_ps(XMM4, XMM4, SIMDE_MM_SHUFFLE(2,2,2,2));
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(3,3,3,3));
-		XMM0	 = simde_mm_mul_ps(XMM0, XMM4);
-		XMM2	 = simde_mm_mul_ps(XMM2, XMM3);
-		XMM0	 = simde_mm_xor_ps(XMM0, PM128(PCS_NRNR));
-		XMM0	 = simde_mm_sub_ps(XMM0, XMM2);
-		simde_mm_storeh_pi((simde__m64*)(a+j+12), XMM0);
+		XMM0	 = _mm_shuffle_ps(XMM0, XMM0, _MM_SHUFFLE(2,3,2,3));
+		XMM4	 = _mm_shuffle_ps(XMM4, XMM4, _MM_SHUFFLE(2,2,2,2));
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(3,3,3,3));
+		XMM0	 = _mm_mul_ps(XMM0, XMM4);
+		XMM2	 = _mm_mul_ps(XMM2, XMM3);
+		XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_NRNR));
+		XMM0	 = _mm_sub_ps(XMM0, XMM2);
+		_mm_storeh_pi((__m64*)(a+j+12), XMM0);
 		XMM4	 = XMM1;
 		XMM3	 = XMM5;
-		XMM4	 = simde_mm_shuffle_ps(XMM4, XMM4, SIMDE_MM_SHUFFLE(2,3,0,1));
-		XMM5	 = simde_mm_shuffle_ps(XMM5, XMM5, SIMDE_MM_SHUFFLE(2,2,0,0));
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(3,3,1,1));
-		XMM1	 = simde_mm_mul_ps(XMM1, XMM5);
-		XMM4	 = simde_mm_mul_ps(XMM4, XMM3);
-		XMM4	 = simde_mm_xor_ps(XMM4, PM128(PCS_NRNR));
-		XMM1	 = simde_mm_add_ps(XMM1, XMM4);
-		simde_mm_storel_pi((simde__m64*)(a+j+10), XMM1);
-		simde_mm_storeh_pi((simde__m64*)(a+j+14), XMM1);
+		XMM4	 = _mm_shuffle_ps(XMM4, XMM4, _MM_SHUFFLE(2,3,0,1));
+		XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,2,0,0));
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(3,3,1,1));
+		XMM1	 = _mm_mul_ps(XMM1, XMM5);
+		XMM4	 = _mm_mul_ps(XMM4, XMM3);
+		XMM4	 = _mm_xor_ps(XMM4, PM128(PCS_NRNR));
+		XMM1	 = _mm_add_ps(XMM1, XMM4);
+		_mm_storel_pi((__m64*)(a+j+10), XMM1);
+		_mm_storeh_pi((__m64*)(a+j+14), XMM1);
 	}
 }
 
@@ -220,112 +220,112 @@ static inline void cftmdl(int n, int l, float * __restrict a, float * __restrict
 {
 	int j, j1, j2, j3, k, k1, k2, m, m2;
 	float wk1r, wk1i, wk2r, wk2i, wk3r, wk3i;
-	simde__m128	XMM6;
-	simde__m128	pwk1r, pwk1i, pwk2r, pwk2i, pwk3r, pwk3i;
+	__m128	XMM6;
+	__m128	pwk1r, pwk1i, pwk2r, pwk2i, pwk3r, pwk3i;
 
 	m = l << 2;
 	for (j = 0; j < l; j += 4) {
-		simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+		__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
 
 		j1 = j	+ l;
 		j2 = j1 + l;
 		j3 = j2 + l;
 
 #if	defined(__GNUC__)
-		XMM0	 = simde_mm_load_ps(a+j );
-		XMM2	 = simde_mm_load_ps(a+j2);
+		XMM0	 = _mm_load_ps(a+j );
+		XMM2	 = _mm_load_ps(a+j2);
 		XMM1	 = XMM0;
 		XMM3	 = XMM2;
-		XMM0	 = simde_mm_add_ps(XMM0, PM128(a+j1));
-		XMM1	 = simde_mm_sub_ps(XMM1, PM128(a+j1));
-		XMM2	 = simde_mm_add_ps(XMM2, PM128(a+j3));
-		XMM3	 = simde_mm_sub_ps(XMM3, PM128(a+j3));
+		XMM0	 = _mm_add_ps(XMM0, PM128(a+j1));
+		XMM1	 = _mm_sub_ps(XMM1, PM128(a+j1));
+		XMM2	 = _mm_add_ps(XMM2, PM128(a+j3));
+		XMM3	 = _mm_sub_ps(XMM3, PM128(a+j3));
 #else
-		XMM0	 = simde_mm_load_ps(a+j );
-		XMM4	 = simde_mm_load_ps(a+j1);
-		XMM2	 = simde_mm_load_ps(a+j2);
-		XMM5	 = simde_mm_load_ps(a+j3);
+		XMM0	 = _mm_load_ps(a+j );
+		XMM4	 = _mm_load_ps(a+j1);
+		XMM2	 = _mm_load_ps(a+j2);
+		XMM5	 = _mm_load_ps(a+j3);
 		XMM1	 = XMM0;
 		XMM3	 = XMM2;
-		XMM0	 = simde_mm_add_ps(XMM0, XMM4);
-		XMM2	 = simde_mm_add_ps(XMM2, XMM5);
-		XMM1	 = simde_mm_sub_ps(XMM1, XMM4);
-		XMM3	 = simde_mm_sub_ps(XMM3, XMM5);
+		XMM0	 = _mm_add_ps(XMM0, XMM4);
+		XMM2	 = _mm_add_ps(XMM2, XMM5);
+		XMM1	 = _mm_sub_ps(XMM1, XMM4);
+		XMM3	 = _mm_sub_ps(XMM3, XMM5);
 #endif
 		XMM4	 = XMM0;
 		XMM5	 = XMM1;
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(2,3,0,1));
-		XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-		XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_NRNR));
-		XMM4	 = simde_mm_sub_ps(XMM4, XMM2);
-		XMM1	 = simde_mm_add_ps(XMM1, XMM3);
-		XMM5	 = simde_mm_sub_ps(XMM5, XMM3);
-		simde_mm_store_ps(a+j , XMM0);
-		simde_mm_store_ps(a+j1, XMM1);
-		simde_mm_store_ps(a+j2, XMM4);
-		simde_mm_store_ps(a+j3, XMM5);
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(2,3,0,1));
+		XMM0	 = _mm_add_ps(XMM0, XMM2);
+		XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_NRNR));
+		XMM4	 = _mm_sub_ps(XMM4, XMM2);
+		XMM1	 = _mm_add_ps(XMM1, XMM3);
+		XMM5	 = _mm_sub_ps(XMM5, XMM3);
+		_mm_store_ps(a+j , XMM0);
+		_mm_store_ps(a+j1, XMM1);
+		_mm_store_ps(a+j2, XMM4);
+		_mm_store_ps(a+j3, XMM5);
 	}
-	XMM6	 = simde_mm_set1_ps(w[2]);
+	XMM6	 = _mm_set1_ps(w[2]);
 	for (j = m; j < l + m; j += 4) {
-		simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+		__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
 
 		j1 = j	+ l;
 		j2 = j1 + l;
 		j3 = j2 + l;
 
 #if	defined(__GNUC__)
-		XMM0	 = simde_mm_load_ps(a+j );
-		XMM2	 = simde_mm_load_ps(a+j2);
+		XMM0	 = _mm_load_ps(a+j );
+		XMM2	 = _mm_load_ps(a+j2);
 		XMM1	 = XMM0;
 		XMM3	 = XMM2;
-		XMM0	 = simde_mm_add_ps(XMM0, PM128(a+j1));
-		XMM1	 = simde_mm_sub_ps(XMM1, PM128(a+j1));
-		XMM2	 = simde_mm_add_ps(XMM2, PM128(a+j3));
-		XMM3	 = simde_mm_sub_ps(XMM3, PM128(a+j3));
+		XMM0	 = _mm_add_ps(XMM0, PM128(a+j1));
+		XMM1	 = _mm_sub_ps(XMM1, PM128(a+j1));
+		XMM2	 = _mm_add_ps(XMM2, PM128(a+j3));
+		XMM3	 = _mm_sub_ps(XMM3, PM128(a+j3));
 #else
-		XMM0	 = simde_mm_load_ps(a+j );
-		XMM4	 = simde_mm_load_ps(a+j1);
-		XMM2	 = simde_mm_load_ps(a+j2);
-		XMM5	 = simde_mm_load_ps(a+j3);
+		XMM0	 = _mm_load_ps(a+j );
+		XMM4	 = _mm_load_ps(a+j1);
+		XMM2	 = _mm_load_ps(a+j2);
+		XMM5	 = _mm_load_ps(a+j3);
 		XMM1	 = XMM0;
 		XMM3	 = XMM2;
-		XMM0	 = simde_mm_add_ps(XMM0, XMM4);
-		XMM2	 = simde_mm_add_ps(XMM2, XMM5);
-		XMM1	 = simde_mm_sub_ps(XMM1, XMM4);
-		XMM3	 = simde_mm_sub_ps(XMM3, XMM5);
+		XMM0	 = _mm_add_ps(XMM0, XMM4);
+		XMM2	 = _mm_add_ps(XMM2, XMM5);
+		XMM1	 = _mm_sub_ps(XMM1, XMM4);
+		XMM3	 = _mm_sub_ps(XMM3, XMM5);
 #endif
 
 		XMM4	 = XMM0;
 		XMM5	 = XMM0;
-		XMM4	 = simde_mm_shuffle_ps(XMM4, XMM2, SIMDE_MM_SHUFFLE(3,1,2,0));	/* (x2i_1,x2i_0,x0r_1,x0r_0) */
-		XMM5	 = simde_mm_shuffle_ps(XMM5, XMM2, SIMDE_MM_SHUFFLE(2,0,3,1));	/* (x2r_1,x2r_0,x0i_1,x0i_0) */
-		XMM4	 = simde_mm_shuffle_ps(XMM4, XMM4, SIMDE_MM_SHUFFLE(1,3,0,2));	/* (x0r_1,x2i_1,x0r_0,x2i_0) */
-		XMM5	 = simde_mm_shuffle_ps(XMM5, XMM5, SIMDE_MM_SHUFFLE(3,1,2,0));	/* (x2r_1,x0i_1,x2r_0,x0i_0) */
-		XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-		XMM4	 = simde_mm_sub_ps(XMM4, XMM5);
-		simde_mm_store_ps(a+j , XMM0);
-		simde_mm_store_ps(a+j2, XMM4);
+		XMM4	 = _mm_shuffle_ps(XMM4, XMM2, _MM_SHUFFLE(3,1,2,0));	/* (x2i_1,x2i_0,x0r_1,x0r_0) */
+		XMM5	 = _mm_shuffle_ps(XMM5, XMM2, _MM_SHUFFLE(2,0,3,1));	/* (x2r_1,x2r_0,x0i_1,x0i_0) */
+		XMM4	 = _mm_shuffle_ps(XMM4, XMM4, _MM_SHUFFLE(1,3,0,2));	/* (x0r_1,x2i_1,x0r_0,x2i_0) */
+		XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(3,1,2,0));	/* (x2r_1,x0i_1,x2r_0,x0i_0) */
+		XMM0	 = _mm_add_ps(XMM0, XMM2);
+		XMM4	 = _mm_sub_ps(XMM4, XMM5);
+		_mm_store_ps(a+j , XMM0);
+		_mm_store_ps(a+j2, XMM4);
 
 		XMM0	 = XMM1;												/* x1  */
 		XMM2	 = XMM3;												/* x3  */
-		XMM0	 = simde_mm_shuffle_ps(XMM0, XMM0, SIMDE_MM_SHUFFLE(2,2,0,0));	/* x1r */
-		XMM1	 = simde_mm_shuffle_ps(XMM1, XMM1, SIMDE_MM_SHUFFLE(3,3,1,1));	/* x1i */
-		XMM2	 = simde_mm_shuffle_ps(XMM2, XMM2, SIMDE_MM_SHUFFLE(2,2,0,0));	/* x3r */
-		XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(3,3,1,1));	/* x3i */
+		XMM0	 = _mm_shuffle_ps(XMM0, XMM0, _MM_SHUFFLE(2,2,0,0));	/* x1r */
+		XMM1	 = _mm_shuffle_ps(XMM1, XMM1, _MM_SHUFFLE(3,3,1,1));	/* x1i */
+		XMM2	 = _mm_shuffle_ps(XMM2, XMM2, _MM_SHUFFLE(2,2,0,0));	/* x3r */
+		XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(3,3,1,1));	/* x3i */
 		XMM4	 = XMM0;												/* x1r */
 		XMM5	 = XMM1;												/* x1i */
-		XMM0	 = simde_mm_sub_ps(XMM0, XMM3);								/* x1r - x3i */
-		XMM1	 = simde_mm_add_ps(XMM1, XMM2);								/* x1i + x3r */
-		XMM2	 = simde_mm_sub_ps(XMM2, XMM5);								/* x3r - x1i */
-		XMM3	 = simde_mm_add_ps(XMM3, XMM4);								/* x3i + x1r */
-		XMM1	 = simde_mm_xor_ps(XMM1, PM128(PCS_NRNR));
-		XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_NRNR));
-		XMM0	 = simde_mm_add_ps(XMM0, XMM1);
-		XMM2	 = simde_mm_add_ps(XMM2, XMM3);
-		XMM0	 = simde_mm_mul_ps(XMM0, XMM6);
-		XMM2	 = simde_mm_mul_ps(XMM2, XMM6);
-		simde_mm_store_ps(a+j1, XMM0);
-		simde_mm_store_ps(a+j3, XMM2);
+		XMM0	 = _mm_sub_ps(XMM0, XMM3);								/* x1r - x3i */
+		XMM1	 = _mm_add_ps(XMM1, XMM2);								/* x1i + x3r */
+		XMM2	 = _mm_sub_ps(XMM2, XMM5);								/* x3r - x1i */
+		XMM3	 = _mm_add_ps(XMM3, XMM4);								/* x3i + x1r */
+		XMM1	 = _mm_xor_ps(XMM1, PM128(PCS_NRNR));
+		XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_NRNR));
+		XMM0	 = _mm_add_ps(XMM0, XMM1);
+		XMM2	 = _mm_add_ps(XMM2, XMM3);
+		XMM0	 = _mm_mul_ps(XMM0, XMM6);
+		XMM2	 = _mm_mul_ps(XMM2, XMM6);
+		_mm_store_ps(a+j1, XMM0);
+		_mm_store_ps(a+j3, XMM2);
 	}
 	k1 = 0;
 	m2 = 2 * m;
@@ -338,154 +338,154 @@ static inline void cftmdl(int n, int l, float * __restrict a, float * __restrict
 		wk1i = w[k2 + 1];
 		wk3r = wk1r - 2 * wk2i * wk1i;
 		wk3i = 2 * wk2i * wk1r - wk1i;
-		pwk1r	 = simde_mm_set1_ps(wk1r);
-		pwk1i	 = simde_mm_set1_ps(wk1i);
-		pwk2r	 = simde_mm_set1_ps(wk2r);
-		pwk2i	 = simde_mm_set1_ps(wk2i);
-		pwk3r	 = simde_mm_set1_ps(wk3r);
-		pwk3i	 = simde_mm_set1_ps(wk3i);
-		pwk1i	 = simde_mm_xor_ps(pwk1i, PM128(PCS_NRNR));
-		pwk2i	 = simde_mm_xor_ps(pwk2i, PM128(PCS_NRNR));
-		pwk3i	 = simde_mm_xor_ps(pwk3i, PM128(PCS_NRNR));
+		pwk1r	 = _mm_set1_ps(wk1r);
+		pwk1i	 = _mm_set1_ps(wk1i);
+		pwk2r	 = _mm_set1_ps(wk2r);
+		pwk2i	 = _mm_set1_ps(wk2i);
+		pwk3r	 = _mm_set1_ps(wk3r);
+		pwk3i	 = _mm_set1_ps(wk3i);
+		pwk1i	 = _mm_xor_ps(pwk1i, PM128(PCS_NRNR));
+		pwk2i	 = _mm_xor_ps(pwk2i, PM128(PCS_NRNR));
+		pwk3i	 = _mm_xor_ps(pwk3i, PM128(PCS_NRNR));
 		for (j = k; j < l + k; j += 4) {
-			simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+			__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
 
 			j1 = j	+ l;
 			j2 = j1 + l;
 			j3 = j2 + l;
 #if	defined(__GNUC__)
-			XMM0	 = simde_mm_load_ps(a+j );
-			XMM2	 = simde_mm_load_ps(a+j2);
+			XMM0	 = _mm_load_ps(a+j );
+			XMM2	 = _mm_load_ps(a+j2);
 			XMM1	 = XMM0;
 			XMM3	 = XMM2;
-			XMM0	 = simde_mm_add_ps(XMM0, PM128(a+j1));
-			XMM1	 = simde_mm_sub_ps(XMM1, PM128(a+j1));
-			XMM2	 = simde_mm_add_ps(XMM2, PM128(a+j3));
-			XMM3	 = simde_mm_sub_ps(XMM3, PM128(a+j3));
+			XMM0	 = _mm_add_ps(XMM0, PM128(a+j1));
+			XMM1	 = _mm_sub_ps(XMM1, PM128(a+j1));
+			XMM2	 = _mm_add_ps(XMM2, PM128(a+j3));
+			XMM3	 = _mm_sub_ps(XMM3, PM128(a+j3));
 #else
-			XMM0	 = simde_mm_load_ps(a+j );
-			XMM4	 = simde_mm_load_ps(a+j1);
-			XMM2	 = simde_mm_load_ps(a+j2);
-			XMM5	 = simde_mm_load_ps(a+j3);
+			XMM0	 = _mm_load_ps(a+j );
+			XMM4	 = _mm_load_ps(a+j1);
+			XMM2	 = _mm_load_ps(a+j2);
+			XMM5	 = _mm_load_ps(a+j3);
 			XMM1	 = XMM0;
 			XMM3	 = XMM2;
-			XMM0	 = simde_mm_add_ps(XMM0, XMM4);
-			XMM2	 = simde_mm_add_ps(XMM2, XMM5);
-			XMM1	 = simde_mm_sub_ps(XMM1, XMM4);
-			XMM3	 = simde_mm_sub_ps(XMM3, XMM5);
+			XMM0	 = _mm_add_ps(XMM0, XMM4);
+			XMM2	 = _mm_add_ps(XMM2, XMM5);
+			XMM1	 = _mm_sub_ps(XMM1, XMM4);
+			XMM3	 = _mm_sub_ps(XMM3, XMM5);
 #endif
 
 			XMM4	 = XMM0;
 			XMM5	 = XMM0;
 			XMM6	 = XMM2;
-			XMM5	 = simde_mm_shuffle_ps(XMM5, XMM5, SIMDE_MM_SHUFFLE(2,3,0,1));
-			XMM6	 = simde_mm_shuffle_ps(XMM6, XMM6, SIMDE_MM_SHUFFLE(2,3,0,1));
-			XMM4	 = simde_mm_sub_ps(XMM4, XMM2);
-			XMM5	 = simde_mm_sub_ps(XMM5, XMM6);
-			XMM4	 = simde_mm_mul_ps(XMM4, pwk2r);
-			XMM5	 = simde_mm_mul_ps(XMM5, pwk2i);
-			XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-			XMM4	 = simde_mm_add_ps(XMM4, XMM5);
-			simde_mm_store_ps(a+j , XMM0);
-			simde_mm_store_ps(a+j2, XMM4);
+			XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,3,0,1));
+			XMM6	 = _mm_shuffle_ps(XMM6, XMM6, _MM_SHUFFLE(2,3,0,1));
+			XMM4	 = _mm_sub_ps(XMM4, XMM2);
+			XMM5	 = _mm_sub_ps(XMM5, XMM6);
+			XMM4	 = _mm_mul_ps(XMM4, pwk2r);
+			XMM5	 = _mm_mul_ps(XMM5, pwk2i);
+			XMM0	 = _mm_add_ps(XMM0, XMM2);
+			XMM4	 = _mm_add_ps(XMM4, XMM5);
+			_mm_store_ps(a+j , XMM0);
+			_mm_store_ps(a+j2, XMM4);
 
 			XMM0	 = XMM1;
 			XMM5	 = XMM3;
 			XMM4	 = XMM1;
-			XMM5	 = simde_mm_shuffle_ps(XMM5, XMM5, SIMDE_MM_SHUFFLE(2,3,0,1));
-			XMM4	 = simde_mm_shuffle_ps(XMM4, XMM4, SIMDE_MM_SHUFFLE(2,3,0,1));
+			XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,3,0,1));
+			XMM4	 = _mm_shuffle_ps(XMM4, XMM4, _MM_SHUFFLE(2,3,0,1));
 			XMM2	 = XMM4;
-			XMM5	 = simde_mm_xor_ps(XMM5, PM128(PCS_NRNR));
-			XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_NRNR));
-			XMM1	 = simde_mm_add_ps(XMM1, XMM5);
-			XMM4	 = simde_mm_sub_ps(XMM4, XMM3);
-			XMM0	 = simde_mm_sub_ps(XMM0, XMM5);
-			XMM2	 = simde_mm_add_ps(XMM2, XMM3);
-			XMM1	 = simde_mm_mul_ps(XMM1, pwk1r);
-			XMM4	 = simde_mm_mul_ps(XMM4, pwk1i);
-			XMM0	 = simde_mm_mul_ps(XMM0, pwk3r);
-			XMM2	 = simde_mm_mul_ps(XMM2, pwk3i);
-			XMM1	 = simde_mm_add_ps(XMM1, XMM4);
-			XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-			simde_mm_store_ps(a+j1, XMM1);
-			simde_mm_store_ps(a+j3, XMM0);
+			XMM5	 = _mm_xor_ps(XMM5, PM128(PCS_NRNR));
+			XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_NRNR));
+			XMM1	 = _mm_add_ps(XMM1, XMM5);
+			XMM4	 = _mm_sub_ps(XMM4, XMM3);
+			XMM0	 = _mm_sub_ps(XMM0, XMM5);
+			XMM2	 = _mm_add_ps(XMM2, XMM3);
+			XMM1	 = _mm_mul_ps(XMM1, pwk1r);
+			XMM4	 = _mm_mul_ps(XMM4, pwk1i);
+			XMM0	 = _mm_mul_ps(XMM0, pwk3r);
+			XMM2	 = _mm_mul_ps(XMM2, pwk3i);
+			XMM1	 = _mm_add_ps(XMM1, XMM4);
+			XMM0	 = _mm_add_ps(XMM0, XMM2);
+			_mm_store_ps(a+j1, XMM1);
+			_mm_store_ps(a+j3, XMM0);
 		}
 		wk1r = w[k2 + 2];
 		wk1i = w[k2 + 3];
 		wk3r = wk1r - 2 * wk2r * wk1i;
 		wk3i = 2 * wk2r * wk1r - wk1i;
-		pwk1r	 = simde_mm_set1_ps(wk1r);
-		pwk1i	 = simde_mm_set1_ps(wk1i);
-		pwk2r	 = simde_mm_set1_ps(wk2r);
-		pwk2i	 = simde_mm_set1_ps(wk2i);
-		pwk3r	 = simde_mm_set1_ps(wk3r);
-		pwk3i	 = simde_mm_set1_ps(wk3i);
-		pwk1i	 = simde_mm_xor_ps(pwk1i, PM128(PCS_NRNR));
-		pwk2r	 = simde_mm_xor_ps(pwk2r, PM128(PCS_NRNR));
-		pwk3i	 = simde_mm_xor_ps(pwk3i, PM128(PCS_NRNR));
+		pwk1r	 = _mm_set1_ps(wk1r);
+		pwk1i	 = _mm_set1_ps(wk1i);
+		pwk2r	 = _mm_set1_ps(wk2r);
+		pwk2i	 = _mm_set1_ps(wk2i);
+		pwk3r	 = _mm_set1_ps(wk3r);
+		pwk3i	 = _mm_set1_ps(wk3i);
+		pwk1i	 = _mm_xor_ps(pwk1i, PM128(PCS_NRNR));
+		pwk2r	 = _mm_xor_ps(pwk2r, PM128(PCS_NRNR));
+		pwk3i	 = _mm_xor_ps(pwk3i, PM128(PCS_NRNR));
 		for (j = k + m; j < l + (k + m); j += 4) {
-			simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+			__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
 
 			j1 = j	+ l;
 			j2 = j1 + l;
 			j3 = j2 + l;
 
 #if	defined(__GNUC__)
-			XMM0	 = simde_mm_load_ps(a+j );
-			XMM2	 = simde_mm_load_ps(a+j2);
+			XMM0	 = _mm_load_ps(a+j );
+			XMM2	 = _mm_load_ps(a+j2);
 			XMM1	 = XMM0;
 			XMM3	 = XMM2;
-			XMM0	 = simde_mm_add_ps(XMM0, PM128(a+j1));
-			XMM1	 = simde_mm_sub_ps(XMM1, PM128(a+j1));
-			XMM2	 = simde_mm_add_ps(XMM2, PM128(a+j3));
-			XMM3	 = simde_mm_sub_ps(XMM3, PM128(a+j3));
+			XMM0	 = _mm_add_ps(XMM0, PM128(a+j1));
+			XMM1	 = _mm_sub_ps(XMM1, PM128(a+j1));
+			XMM2	 = _mm_add_ps(XMM2, PM128(a+j3));
+			XMM3	 = _mm_sub_ps(XMM3, PM128(a+j3));
 #else
-			XMM0	 = simde_mm_load_ps(a+j );
-			XMM4	 = simde_mm_load_ps(a+j1);
-			XMM2	 = simde_mm_load_ps(a+j2);
-			XMM5	 = simde_mm_load_ps(a+j3);
+			XMM0	 = _mm_load_ps(a+j );
+			XMM4	 = _mm_load_ps(a+j1);
+			XMM2	 = _mm_load_ps(a+j2);
+			XMM5	 = _mm_load_ps(a+j3);
 			XMM1	 = XMM0;
 			XMM3	 = XMM2;
-			XMM0	 = simde_mm_add_ps(XMM0, XMM4);
-			XMM2	 = simde_mm_add_ps(XMM2, XMM5);
-			XMM1	 = simde_mm_sub_ps(XMM1, XMM4);
-			XMM3	 = simde_mm_sub_ps(XMM3, XMM5);
+			XMM0	 = _mm_add_ps(XMM0, XMM4);
+			XMM2	 = _mm_add_ps(XMM2, XMM5);
+			XMM1	 = _mm_sub_ps(XMM1, XMM4);
+			XMM3	 = _mm_sub_ps(XMM3, XMM5);
 #endif
 
 			XMM4	 = XMM0;
 			XMM5	 = XMM0;
 			XMM6	 = XMM2;
-			XMM5	 = simde_mm_shuffle_ps(XMM5, XMM5, SIMDE_MM_SHUFFLE(2,3,0,1));
-			XMM6	 = simde_mm_shuffle_ps(XMM6, XMM6, SIMDE_MM_SHUFFLE(2,3,0,1));
-			XMM4	 = simde_mm_sub_ps(XMM4, XMM2);
-			XMM5	 = simde_mm_sub_ps(XMM5, XMM6);
-			XMM4	 = simde_mm_mul_ps(XMM4, pwk2i);
-			XMM5	 = simde_mm_mul_ps(XMM5, pwk2r);
-			XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-			XMM5	 = simde_mm_sub_ps(XMM5, XMM4);
-			simde_mm_store_ps(a+j , XMM0);
-			simde_mm_store_ps(a+j2, XMM5);
+			XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,3,0,1));
+			XMM6	 = _mm_shuffle_ps(XMM6, XMM6, _MM_SHUFFLE(2,3,0,1));
+			XMM4	 = _mm_sub_ps(XMM4, XMM2);
+			XMM5	 = _mm_sub_ps(XMM5, XMM6);
+			XMM4	 = _mm_mul_ps(XMM4, pwk2i);
+			XMM5	 = _mm_mul_ps(XMM5, pwk2r);
+			XMM0	 = _mm_add_ps(XMM0, XMM2);
+			XMM5	 = _mm_sub_ps(XMM5, XMM4);
+			_mm_store_ps(a+j , XMM0);
+			_mm_store_ps(a+j2, XMM5);
 
 			XMM0	 = XMM1;
 			XMM5	 = XMM3;
 			XMM4	 = XMM1;
-			XMM5	 = simde_mm_shuffle_ps(XMM5, XMM5, SIMDE_MM_SHUFFLE(2,3,0,1));
-			XMM4	 = simde_mm_shuffle_ps(XMM4, XMM4, SIMDE_MM_SHUFFLE(2,3,0,1));
+			XMM5	 = _mm_shuffle_ps(XMM5, XMM5, _MM_SHUFFLE(2,3,0,1));
+			XMM4	 = _mm_shuffle_ps(XMM4, XMM4, _MM_SHUFFLE(2,3,0,1));
 			XMM2	 = XMM4;
-			XMM5	 = simde_mm_xor_ps(XMM5, PM128(PCS_NRNR));
-			XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_NRNR));
-			XMM1	 = simde_mm_add_ps(XMM1, XMM5);
-			XMM4	 = simde_mm_sub_ps(XMM4, XMM3);
-			XMM0	 = simde_mm_sub_ps(XMM0, XMM5);
-			XMM2	 = simde_mm_add_ps(XMM2, XMM3);
-			XMM1	 = simde_mm_mul_ps(XMM1, pwk1r);
-			XMM4	 = simde_mm_mul_ps(XMM4, pwk1i);
-			XMM0	 = simde_mm_mul_ps(XMM0, pwk3r);
-			XMM2	 = simde_mm_mul_ps(XMM2, pwk3i);
-			XMM1	 = simde_mm_add_ps(XMM1, XMM4);
-			XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-			simde_mm_store_ps(a+j1, XMM1);
-			simde_mm_store_ps(a+j3, XMM0);
+			XMM5	 = _mm_xor_ps(XMM5, PM128(PCS_NRNR));
+			XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_NRNR));
+			XMM1	 = _mm_add_ps(XMM1, XMM5);
+			XMM4	 = _mm_sub_ps(XMM4, XMM3);
+			XMM0	 = _mm_sub_ps(XMM0, XMM5);
+			XMM2	 = _mm_add_ps(XMM2, XMM3);
+			XMM1	 = _mm_mul_ps(XMM1, pwk1r);
+			XMM4	 = _mm_mul_ps(XMM4, pwk1i);
+			XMM0	 = _mm_mul_ps(XMM0, pwk3r);
+			XMM2	 = _mm_mul_ps(XMM2, pwk3i);
+			XMM1	 = _mm_add_ps(XMM1, XMM4);
+			XMM0	 = _mm_add_ps(XMM0, XMM2);
+			_mm_store_ps(a+j1, XMM1);
+			_mm_store_ps(a+j3, XMM0);
 		}
 	}
 }
@@ -510,27 +510,27 @@ static inline void bitrv2(int n, int * __restrict ip, float * __restrict a)
 	if ((m << 3) == l) {
 		for (k = 0; k < m; k++) {
 			for (j = 0; j < k; j++) {
-				simde__m128	X0, Y0, X1, Y1;
+				__m128	X0, Y0, X1, Y1;
 				j1 = 2 * j + ip[k];
 				k1 = 2 * k + ip[j];
 //#pragma warning(disable : 592)
-				X0	 = simde_mm_loadl_pi(X0, (simde__m64*)(a+j1	  ));
-				Y0	 = simde_mm_loadl_pi(Y0, (simde__m64*)(a+k1	  ));
-				X1	 = simde_mm_loadl_pi(X1, (simde__m64*)(a+j1+m2*2));
-				Y1	 = simde_mm_loadl_pi(Y1, (simde__m64*)(a+k1+m2  ));
+				X0	 = _mm_loadl_pi(X0, (__m64*)(a+j1	  ));
+				Y0	 = _mm_loadl_pi(Y0, (__m64*)(a+k1	  ));
+				X1	 = _mm_loadl_pi(X1, (__m64*)(a+j1+m2*2));
+				Y1	 = _mm_loadl_pi(Y1, (__m64*)(a+k1+m2  ));
 //#pragma warning(default : 592)
-				X0	 = simde_mm_loadh_pi(X0, (simde__m64*)(a+j1+m2  ));
-				Y0	 = simde_mm_loadh_pi(Y0, (simde__m64*)(a+k1+m2*2));
-				X1	 = simde_mm_loadh_pi(X1, (simde__m64*)(a+j1+m2*3));
-				Y1	 = simde_mm_loadh_pi(Y1, (simde__m64*)(a+k1+m2*3));
-				simde_mm_storel_pi((simde__m64*)(a+k1		), X0);
-				simde_mm_storel_pi((simde__m64*)(a+j1		), Y0);
-				simde_mm_storel_pi((simde__m64*)(a+k1+m2	), X1);
-				simde_mm_storel_pi((simde__m64*)(a+j1+m2*2), Y1);
-				simde_mm_storeh_pi((simde__m64*)(a+k1+m2*2), X0);
-				simde_mm_storeh_pi((simde__m64*)(a+j1+m2	), Y0);
-				simde_mm_storeh_pi((simde__m64*)(a+k1+m2*3), X1);
-				simde_mm_storeh_pi((simde__m64*)(a+j1+m2*3), Y1);
+				X0	 = _mm_loadh_pi(X0, (__m64*)(a+j1+m2  ));
+				Y0	 = _mm_loadh_pi(Y0, (__m64*)(a+k1+m2*2));
+				X1	 = _mm_loadh_pi(X1, (__m64*)(a+j1+m2*3));
+				Y1	 = _mm_loadh_pi(Y1, (__m64*)(a+k1+m2*3));
+				_mm_storel_pi((__m64*)(a+k1		), X0);
+				_mm_storel_pi((__m64*)(a+j1		), Y0);
+				_mm_storel_pi((__m64*)(a+k1+m2	), X1);
+				_mm_storel_pi((__m64*)(a+j1+m2*2), Y1);
+				_mm_storeh_pi((__m64*)(a+k1+m2*2), X0);
+				_mm_storeh_pi((__m64*)(a+j1+m2	), Y0);
+				_mm_storeh_pi((__m64*)(a+k1+m2*3), X1);
+				_mm_storeh_pi((__m64*)(a+j1+m2*3), Y1);
 			}
 			j1 = 2 * k + m2 + ip[k];
 			k1 = j1 + m2;
@@ -546,19 +546,19 @@ static inline void bitrv2(int n, int * __restrict ip, float * __restrict a)
 	} else {
 		for (k = 1; k < m; k++) {
 			for (j = 0; j < k; j++) {
-				simde__m128	X,	Y;
+				__m128	X,	Y;
 				j1 = 2 * j + ip[k];
 				k1 = 2 * k + ip[j];
 //#pragma warning(disable : 592)
-				X	 = simde_mm_loadl_pi(X, (simde__m64*)(a+j1   ));
-				Y	 = simde_mm_loadl_pi(Y, (simde__m64*)(a+k1   ));
+				X	 = _mm_loadl_pi(X, (__m64*)(a+j1   ));
+				Y	 = _mm_loadl_pi(Y, (__m64*)(a+k1   ));
 //#pragma warning(default : 592)
-				X	 = simde_mm_loadh_pi(X, (simde__m64*)(a+j1+m2));
-				Y	 = simde_mm_loadh_pi(Y, (simde__m64*)(a+k1+m2));
-				simde_mm_storel_pi((simde__m64*)(a+k1	  ), X);
-				simde_mm_storel_pi((simde__m64*)(a+j1	  ), Y);
-				simde_mm_storeh_pi((simde__m64*)(a+k1+m2), X);
-				simde_mm_storeh_pi((simde__m64*)(a+j1+m2), Y);
+				X	 = _mm_loadh_pi(X, (__m64*)(a+j1+m2));
+				Y	 = _mm_loadh_pi(Y, (__m64*)(a+k1+m2));
+				_mm_storel_pi((__m64*)(a+k1	  ), X);
+				_mm_storel_pi((__m64*)(a+j1	  ), Y);
+				_mm_storeh_pi((__m64*)(a+k1+m2), X);
+				_mm_storeh_pi((__m64*)(a+j1+m2), Y);
 			}
 		}
 	}
@@ -579,77 +579,77 @@ static inline void cftfsub(int n, float * __restrict a, float * __restrict w)
 	}
 	if ((l << 2) == n) {
 		for (j = 0; j < l; j += 4) {
-			simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+			__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
 
 			j1 = j	+ l;
 			j2 = j1 + l;
 			j3 = j2 + l;
 
 #if	defined(__GNUC__)
-			XMM0	 = simde_mm_load_ps(a+j );
-			XMM2	 = simde_mm_load_ps(a+j2);
+			XMM0	 = _mm_load_ps(a+j );
+			XMM2	 = _mm_load_ps(a+j2);
 			XMM1	 = XMM0;
 			XMM3	 = XMM2;
-			XMM0	 = simde_mm_add_ps(XMM0, PM128(a+j1));
-			XMM1	 = simde_mm_sub_ps(XMM1, PM128(a+j1));
-			XMM2	 = simde_mm_add_ps(XMM2, PM128(a+j3));
-			XMM3	 = simde_mm_sub_ps(XMM3, PM128(a+j3));
+			XMM0	 = _mm_add_ps(XMM0, PM128(a+j1));
+			XMM1	 = _mm_sub_ps(XMM1, PM128(a+j1));
+			XMM2	 = _mm_add_ps(XMM2, PM128(a+j3));
+			XMM3	 = _mm_sub_ps(XMM3, PM128(a+j3));
 #else
-			XMM0	 = simde_mm_load_ps(a+j );
-			XMM4	 = simde_mm_load_ps(a+j1);
-			XMM2	 = simde_mm_load_ps(a+j2);
-			XMM5	 = simde_mm_load_ps(a+j3);
+			XMM0	 = _mm_load_ps(a+j );
+			XMM4	 = _mm_load_ps(a+j1);
+			XMM2	 = _mm_load_ps(a+j2);
+			XMM5	 = _mm_load_ps(a+j3);
 			XMM1	 = XMM0;
 			XMM3	 = XMM2;
-			XMM0	 = simde_mm_add_ps(XMM0, XMM4);
-			XMM2	 = simde_mm_add_ps(XMM2, XMM5);
-			XMM1	 = simde_mm_sub_ps(XMM1, XMM4);
-			XMM3	 = simde_mm_sub_ps(XMM3, XMM5);
+			XMM0	 = _mm_add_ps(XMM0, XMM4);
+			XMM2	 = _mm_add_ps(XMM2, XMM5);
+			XMM1	 = _mm_sub_ps(XMM1, XMM4);
+			XMM3	 = _mm_sub_ps(XMM3, XMM5);
 #endif
 			XMM4	 = XMM0;
 			XMM5	 = XMM1;
-			XMM3	 = simde_mm_shuffle_ps(XMM3, XMM3, SIMDE_MM_SHUFFLE(2,3,0,1));
-			XMM0	 = simde_mm_add_ps(XMM0, XMM2);
-			XMM4	 = simde_mm_sub_ps(XMM4, XMM2);
-			XMM3	 = simde_mm_xor_ps(XMM3, PM128(PCS_NRNR));
-			simde_mm_store_ps(a+j , XMM0);
-			simde_mm_store_ps(a+j2, XMM4);
-			XMM1	 = simde_mm_add_ps(XMM1, XMM3);
-			XMM5	 = simde_mm_sub_ps(XMM5, XMM3);
-			simde_mm_store_ps(a+j1, XMM1);
-			simde_mm_store_ps(a+j3, XMM5);
+			XMM3	 = _mm_shuffle_ps(XMM3, XMM3, _MM_SHUFFLE(2,3,0,1));
+			XMM0	 = _mm_add_ps(XMM0, XMM2);
+			XMM4	 = _mm_sub_ps(XMM4, XMM2);
+			XMM3	 = _mm_xor_ps(XMM3, PM128(PCS_NRNR));
+			_mm_store_ps(a+j , XMM0);
+			_mm_store_ps(a+j2, XMM4);
+			XMM1	 = _mm_add_ps(XMM1, XMM3);
+			XMM5	 = _mm_sub_ps(XMM5, XMM3);
+			_mm_store_ps(a+j1, XMM1);
+			_mm_store_ps(a+j3, XMM5);
 		}
 	} else {
 		for (j = 0; j < l; j += 8)
 		{
-			simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
+			__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5;
 			j1 = j + l;
 
 #if	defined(__GNUC__)
-			XMM0	 = simde_mm_load_ps(a+j	 );
-			XMM1	 = simde_mm_load_ps(a+j+ 4);
+			XMM0	 = _mm_load_ps(a+j	 );
+			XMM1	 = _mm_load_ps(a+j+ 4);
 			XMM2	 = XMM0;
 			XMM3	 = XMM1;
-			XMM0	 = simde_mm_add_ps(XMM0, PM128(a+j1	));
-			XMM1	 = simde_mm_add_ps(XMM1, PM128(a+j1+4));
-			XMM2	 = simde_mm_sub_ps(XMM2, PM128(a+j1	));
-			XMM3	 = simde_mm_sub_ps(XMM3, PM128(a+j1+4));
+			XMM0	 = _mm_add_ps(XMM0, PM128(a+j1	));
+			XMM1	 = _mm_add_ps(XMM1, PM128(a+j1+4));
+			XMM2	 = _mm_sub_ps(XMM2, PM128(a+j1	));
+			XMM3	 = _mm_sub_ps(XMM3, PM128(a+j1+4));
 #else
-			XMM0	 = simde_mm_load_ps(a+j	 );
-			XMM4	 = simde_mm_load_ps(a+j1	 );
-			XMM1	 = simde_mm_load_ps(a+j+ 4);
-			XMM5	 = simde_mm_load_ps(a+j1+4);
+			XMM0	 = _mm_load_ps(a+j	 );
+			XMM4	 = _mm_load_ps(a+j1	 );
+			XMM1	 = _mm_load_ps(a+j+ 4);
+			XMM5	 = _mm_load_ps(a+j1+4);
 			XMM2	 = XMM0;
 			XMM3	 = XMM1;
-			XMM0	 = simde_mm_add_ps(XMM0, XMM4);
-			XMM1	 = simde_mm_add_ps(XMM1, XMM5);
-			XMM2	 = simde_mm_sub_ps(XMM2, XMM4);
-			XMM3	 = simde_mm_sub_ps(XMM3, XMM5);
+			XMM0	 = _mm_add_ps(XMM0, XMM4);
+			XMM1	 = _mm_add_ps(XMM1, XMM5);
+			XMM2	 = _mm_sub_ps(XMM2, XMM4);
+			XMM3	 = _mm_sub_ps(XMM3, XMM5);
 #endif
-			simde_mm_store_ps(a+j   , XMM0);
-			simde_mm_store_ps(a+j +4, XMM1);
-			simde_mm_store_ps(a+j1  , XMM2);
-			simde_mm_store_ps(a+j1+4, XMM3);
+			_mm_store_ps(a+j   , XMM0);
+			_mm_store_ps(a+j +4, XMM1);
+			_mm_store_ps(a+j1  , XMM2);
+			_mm_store_ps(a+j1+4, XMM3);
 		}
 	}
 }
@@ -682,39 +682,39 @@ static inline void rftfsub(int n, float * __restrict a, int nc, float * __restri
 	kk	+= ks;
 	for(;j<m;j+=4)
 	{
-		simde__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6;
+		__m128	XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6;
 		k	 = n - j;
-		XMM0	 = simde_mm_load_ss(PFV_0P5);
-		XMM1	 = simde_mm_load_ss(c+kk	  );
+		XMM0	 = _mm_load_ss(PFV_0P5);
+		XMM1	 = _mm_load_ss(c+kk	  );
 //#pragma warning(disable : 592)
-		XMM6	 = simde_mm_loadl_pi(XMM6, (simde__m64*)(a+k+2));
+		XMM6	 = _mm_loadl_pi(XMM6, (__m64*)(a+k+2));
 //#pragma warning(default : 592)
 		XMM2	 = XMM0;
-		XMM3	 = simde_mm_load_ss(c+kk+ks);
-		XMM4	 = simde_mm_load_ss(c+nc-kk	 );
-		XMM5	 = simde_mm_load_ss(c+nc-kk-ks);
-		XMM6	 = simde_mm_loadh_pi(XMM6, (simde__m64*)(a+k	));
-		XMM0	 = simde_mm_sub_ss(XMM0, XMM4);
-		XMM2	 = simde_mm_sub_ss(XMM2, XMM5);
+		XMM3	 = _mm_load_ss(c+kk+ks);
+		XMM4	 = _mm_load_ss(c+nc-kk	 );
+		XMM5	 = _mm_load_ss(c+nc-kk-ks);
+		XMM6	 = _mm_loadh_pi(XMM6, (__m64*)(a+k	));
+		XMM0	 = _mm_sub_ss(XMM0, XMM4);
+		XMM2	 = _mm_sub_ss(XMM2, XMM5);
 		XMM4	 = XMM6;
-		XMM5	 = simde_mm_load_ps(a+j);
-		XMM6	 = simde_mm_xor_ps(XMM6, PM128(PCS_NRNR));
-		XMM0	 = simde_mm_shuffle_ps(XMM0, XMM2, SIMDE_MM_SHUFFLE(0,0,0,0));
-		XMM1	 = simde_mm_shuffle_ps(XMM1, XMM3, SIMDE_MM_SHUFFLE(0,0,0,0));
-		XMM6	 = simde_mm_add_ps(XMM6, XMM5);
+		XMM5	 = _mm_load_ps(a+j);
+		XMM6	 = _mm_xor_ps(XMM6, PM128(PCS_NRNR));
+		XMM0	 = _mm_shuffle_ps(XMM0, XMM2, _MM_SHUFFLE(0,0,0,0));
+		XMM1	 = _mm_shuffle_ps(XMM1, XMM3, _MM_SHUFFLE(0,0,0,0));
+		XMM6	 = _mm_add_ps(XMM6, XMM5);
 		XMM2	 = XMM6;
-		XMM2	 = simde_mm_shuffle_ps(XMM2, XMM2, SIMDE_MM_SHUFFLE(2,3,0,1));
-		XMM6	 = simde_mm_mul_ps(XMM6, XMM0);
-		XMM2	 = simde_mm_mul_ps(XMM2, XMM1);
-		XMM2	 = simde_mm_xor_ps(XMM2, PM128(PCS_NRNR));
-		XMM6	 = simde_mm_add_ps(XMM6, XMM2);
+		XMM2	 = _mm_shuffle_ps(XMM2, XMM2, _MM_SHUFFLE(2,3,0,1));
+		XMM6	 = _mm_mul_ps(XMM6, XMM0);
+		XMM2	 = _mm_mul_ps(XMM2, XMM1);
+		XMM2	 = _mm_xor_ps(XMM2, PM128(PCS_NRNR));
+		XMM6	 = _mm_add_ps(XMM6, XMM2);
 		XMM0	 = XMM6;
-		XMM5	 = simde_mm_sub_ps(XMM5, XMM6);
-		XMM0	 = simde_mm_xor_ps(XMM0, PM128(PCS_NRNR));
-		simde_mm_store_ps(a+j, XMM5);
-		XMM4	 = simde_mm_sub_ps(XMM4, XMM0);
-		simde_mm_storel_pi((simde__m64*)(a+k+2), XMM4);
-		simde_mm_storeh_pi((simde__m64*)(a+k	), XMM4);
+		XMM5	 = _mm_sub_ps(XMM5, XMM6);
+		XMM0	 = _mm_xor_ps(XMM0, PM128(PCS_NRNR));
+		_mm_store_ps(a+j, XMM5);
+		XMM4	 = _mm_sub_ps(XMM4, XMM0);
+		_mm_storel_pi((__m64*)(a+k+2), XMM4);
+		_mm_storeh_pi((__m64*)(a+k	), XMM4);
 		kk	+= ks*2;
 	}
 }
@@ -742,21 +742,21 @@ static inline void cftbsub(int n, float * __restrict a, float * __restrict w)
 			j2 = j1 + l;
 			j3 = j2 + l;
 
-			simde__m128 j2j0, j3j1, x1x0, x3x2;
+			__m128 j2j0, j3j1, x1x0, x3x2;
 
-			j2j0 = simde_mm_loadl_pi(j2j0, (simde__m64*)(a+j	));
-			j2j0 = simde_mm_loadh_pi(j2j0, (simde__m64*)(a+j2 ));
-			j3j1 = simde_mm_loadl_pi(j3j1, (simde__m64*)(a+j1 ));
-			j3j1 = simde_mm_loadh_pi(j3j1, (simde__m64*)(a+j3 ));
+			j2j0 = _mm_loadl_pi(j2j0, (__m64*)(a+j	));
+			j2j0 = _mm_loadh_pi(j2j0, (__m64*)(a+j2 ));
+			j3j1 = _mm_loadl_pi(j3j1, (__m64*)(a+j1 ));
+			j3j1 = _mm_loadh_pi(j3j1, (__m64*)(a+j3 ));
 
-			x1x0 = simde_mm_add_ps(
-					simde_mm_xor_ps(simde_mm_shuffle_ps(j2j0, j2j0, SIMDE_MM_SHUFFLE(1, 0, 1, 0)), PM128(PCS_RNRN)),
-					simde_mm_xor_ps(simde_mm_shuffle_ps(j3j1, j3j1, SIMDE_MM_SHUFFLE(1, 0, 1, 0)), PM128(PCS_NRRN))
+			x1x0 = _mm_add_ps(
+					_mm_xor_ps(_mm_shuffle_ps(j2j0, j2j0, _MM_SHUFFLE(1, 0, 1, 0)), PM128(PCS_RNRN)),
+					_mm_xor_ps(_mm_shuffle_ps(j3j1, j3j1, _MM_SHUFFLE(1, 0, 1, 0)), PM128(PCS_NRRN))
 					);
 
-			x3x2 = simde_mm_add_ps(
-							   simde_mm_shuffle_ps(j2j0, j2j0, SIMDE_MM_SHUFFLE(3, 2, 3, 2)),
-					simde_mm_xor_ps(simde_mm_shuffle_ps(j3j1, j3j1, SIMDE_MM_SHUFFLE(3, 2, 3, 2)), PM128(PCS_RRNN))
+			x3x2 = _mm_add_ps(
+							   _mm_shuffle_ps(j2j0, j2j0, _MM_SHUFFLE(3, 2, 3, 2)),
+					_mm_xor_ps(_mm_shuffle_ps(j3j1, j3j1, _MM_SHUFFLE(3, 2, 3, 2)), PM128(PCS_RRNN))
 					);
 /*
 			x0r =  a[j	   ] + a[j1	   ];
@@ -769,25 +769,25 @@ static inline void cftbsub(int n, float * __restrict a, float * __restrict w)
 			x3r =  a[j2	   ] - a[j3	   ];
 			x3i =  a[j2 + 1] - a[j3 + 1];
 */
-			simde__m128 t, m;
-			simde__m128 x3r_x3i_x2i_x2r =
-				simde_mm_shuffle_ps(x3x2, x3x2, SIMDE_MM_SHUFFLE(2,3,1,0));
+			__m128 t, m;
+			__m128 x3r_x3i_x2i_x2r =
+				_mm_shuffle_ps(x3x2, x3x2, _MM_SHUFFLE(2,3,1,0));
 
 
-			m = simde_mm_xor_ps(x3r_x3i_x2i_x2r, PM128(PCS_NNNR));
-			t = simde_mm_sub_ps(x1x0, m);
-			simde_mm_storel_pi((simde__m64*)(a + j ), t);
-			simde_mm_storeh_pi((simde__m64*)(a + j1), t);
+			m = _mm_xor_ps(x3r_x3i_x2i_x2r, PM128(PCS_NNNR));
+			t = _mm_sub_ps(x1x0, m);
+			_mm_storel_pi((__m64*)(a + j ), t);
+			_mm_storeh_pi((__m64*)(a + j1), t);
 /*
 			a[j		] = x0r + x2r;
 			a[j	 + 1] = x0i - x2i;
 			a[j1	] = x1r - x3i;
 			a[j1 + 1] = x1i - x3r;
 */
-			m = simde_mm_xor_ps(x3r_x3i_x2i_x2r, PM128(PCS_NNNR));
-			t = simde_mm_add_ps(x1x0, m);
-			simde_mm_storel_pi((simde__m64*)(a + j2), t);
-			simde_mm_storeh_pi((simde__m64*)(a + j3), t);
+			m = _mm_xor_ps(x3r_x3i_x2i_x2r, PM128(PCS_NNNR));
+			t = _mm_add_ps(x1x0, m);
+			_mm_storel_pi((__m64*)(a + j2), t);
+			_mm_storeh_pi((__m64*)(a + j3), t);
 /*
 			a[j2	] = x0r - x2r;
 			a[j2 + 1] = x0i + x2i;
@@ -801,26 +801,26 @@ static inline void cftbsub(int n, float * __restrict a, float * __restrict w)
 		/* ... sse code does not work here ... */
 		/* might it be faster using fpu code ? */
 /*
-			simde__m128 a0;
-			simde__m128 a1;
-			simde__m128 x0i_x0r;
-			a0 = simde_mm_loadl_pi(a0, (simde__m64*)(a + j  ));
-			a1 = simde_mm_loadl_pi(a1, (simde__m64*)(a + j1 ));
-			a0 = simde_mm_xor_ps(a0 , PM128(PCS_NNRN));
-			a1 = simde_mm_xor_ps(a1 , PM128(PCS_NNRN));
+			__m128 a0;
+			__m128 a1;
+			__m128 x0i_x0r;
+			a0 = _mm_loadl_pi(a0, (__m64*)(a + j  ));
+			a1 = _mm_loadl_pi(a1, (__m64*)(a + j1 ));
+			a0 = _mm_xor_ps(a0 , PM128(PCS_NNRN));
+			a1 = _mm_xor_ps(a1 , PM128(PCS_NNRN));
 
-			x0i_x0r = simde_mm_sub_ps(a0, a1);
+			x0i_x0r = _mm_sub_ps(a0, a1);
 */
 
 			x0r =  a[j	   ] - (+ a[j1	  ]);
 			x0i = -a[j	+ 1] - (- a[j1 + 1]);
 /*
-			simde_mm_storel_pi((simde__m64*)(a + j ), simde_mm_add_ps(a0, a1));
+			_mm_storel_pi((__m64*)(a + j ), _mm_add_ps(a0, a1));
 */
 			a[j		] =	 a[j	 ] + a[j1	 ];
 			a[j	 + 1] = -a[j  + 1] - a[j1 + 1];
 /*
-			simde_mm_storel_pi((simde__m64*)(a + j1), x0i_x0r);
+			_mm_storel_pi((__m64*)(a + j1), x0i_x0r);
 */
 			a[j1	] = x0r;
 			a[j1 + 1] = x0i;

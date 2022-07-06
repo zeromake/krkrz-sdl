@@ -3,31 +3,27 @@
 #define __SIMD_DEF_X86_X64_H__
 
 
-#if defined(__vita__) || defined(__SWITCH__)
-#include <simde/simde/simde-common.h>
-#undef SIMDE_HAVE_FENV_H
+#ifdef TVP_COMPILING_KRKRSDL2
+// Used: SSE SSE2 SSE3 SSSE3 AVX AVX2
+#include "SIMDeRenames.h"
+#else
+#include <intrin.h>
 #endif
-#include <simde/x86/sse.h>
-#include <simde/x86/sse2.h>
-#include <simde/x86/sse3.h>
-#include <simde/x86/ssse3.h>
-#include <simde/x86/avx.h>
-#include <simde/x86/avx2.h>
 
 #ifdef _MSC_VER
-#ifndef simde_mm_srli_pi64
-#define simde_mm_srli_pi64 simde_mm_srli_si64
+#ifndef _mm_srli_pi64
+#define _mm_srli_pi64 _mm_srli_si64
 #endif
-#ifndef simde_mm_slli_pi64
-#define simde_mm_slli_pi64 simde_mm_slli_si64
+#ifndef _mm_slli_pi64
+#define _mm_slli_pi64 _mm_slli_si64
 #endif
 #pragma warning(push)
-#pragma warning(disable : 4799)	// ignore simde_mm_empty request.
-#ifndef simde_mm_cvtsi64_m64
-__inline simde__m64 simde_mm_cvtsi64_m64( __int64 v ) { simde__m64 ret; ret.m64_i64 = v; return ret; }
+#pragma warning(disable : 4799)	// ignore _mm_empty request.
+#ifndef _mm_cvtsi64_m64
+__inline __m64 _mm_cvtsi64_m64( __int64 v ) { __m64 ret; ret.m64_i64 = v; return ret; }
 #endif
-#ifndef simde_mm_cvtm64_si64
-__inline __int64 simde_mm_cvtm64_si64( simde__m64 v ) { return v.m64_i64; }
+#ifndef _mm_cvtm64_si64
+__inline __int64 _mm_cvtm64_si64( __m64 v ) { return v.m64_i64; }
 #endif
 #pragma warning(pop)
 #endif

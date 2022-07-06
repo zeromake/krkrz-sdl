@@ -12,7 +12,7 @@
 
 #include <algorithm>
 #include "SoundBufferBaseImpl.h"
-#if 1 || defined(WIN32)
+#if defined(TVP_COMPILING_KRKRSDL2) || defined(WIN32)
 #include "WaveImpl.h"
 #endif
 #if 0
