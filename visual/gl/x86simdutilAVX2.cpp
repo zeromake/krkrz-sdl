@@ -310,4 +310,3 @@ __m256 mm256_cos_ps(__m256 x) {
 #endif
   return y;
 }
-

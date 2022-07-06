@@ -429,4 +429,3 @@ void TVPAlphaColorMat_sse2_c(tjs_uint32 *dest, tjs_uint32 color, tjs_int len ) {
 }
 
 
-

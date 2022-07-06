@@ -375,4 +375,3 @@ void TVPUnivTransBlend_switch_d_sse2_c(tjs_uint32 *dest, const tjs_uint32 *src1,
 	sse2_univ_trans_switch<sse2_univ_trans_d_blend_func>(dest,src1,src2,rule,table,len,src1lv,src2lv);
 }
 
-

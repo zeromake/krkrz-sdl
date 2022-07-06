@@ -80,6 +80,7 @@ void TVPInializeFontRasterizers() {
 #ifdef _WIN32
 		TVPFontRasterizers[FONT_RASTER_GDI] = new GDIFontRasterizer();
 #endif
+
 		TVPFontSystem = new FontSystem();
 		TVPFontRasterizersInit = true;
 	}

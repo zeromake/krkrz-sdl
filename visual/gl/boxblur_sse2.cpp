@@ -1,5 +1,4 @@
 
-
 #include "tjsCommHead.h"
 #include "tvpgl.h"
 #include "tvpgl_ia32_intf.h"
@@ -619,4 +618,3 @@ void TVPDoBoxBlurAvg32_d_sse2_c(tjs_uint32 *dest, tjs_uint32 *sum, const tjs_uin
 // _mm_ cvtepu8_epi32 も使える
 // _mm_mul_epu32 で 64bit * 2 で mul できる
 // _mm_unpacklo_epi32
-

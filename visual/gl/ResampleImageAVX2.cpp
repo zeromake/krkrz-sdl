@@ -1287,4 +1287,3 @@ void TVPResampleImageAVX2( const tTVPResampleClipping &clip, const tTVPImageCopy
 		break;
 	}
 }
-

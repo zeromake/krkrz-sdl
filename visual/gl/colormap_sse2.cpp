@@ -1,5 +1,4 @@
 
-
 #include "tjsCommHead.h"
 #include "tvpgl.h"
 #include "tvpgl_ia32_intf.h"
@@ -777,4 +776,3 @@ void TVPBindMaskToMain_sse2_c(tjs_uint32 *main, const tjs_uint8 *mask, tjs_int l
 	sse2_bind_mask_to_main_functor func;
 	apply_color_map_func_sse2( main, mask, len , func );
 }
-

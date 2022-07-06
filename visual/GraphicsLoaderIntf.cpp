@@ -1045,7 +1045,6 @@ static void * TVPLoadGraphic_ScanLineCallback(void *callbackdata, tjs_int y)
 		{
 			tjs_uint32 * sl =
 				(tjs_uint32*)data->Dest->GetScanLineForWrite(data->ScanLineNum);
-
 			if((data->ColorKey & 0xff000000) == 0x00000000)
 			{
 				// make alpha from color key

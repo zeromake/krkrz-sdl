@@ -93,7 +93,6 @@ inline __m128 m128_hsum_sse1_ps( __m128 sum ) {
 	sum = _mm_shuffle_ps( sum, tmp, _MM_SHUFFLE(2,3,0,1) );
 	return _mm_add_ps( sum, tmp );
 }
-
 /**
  * SSEで4要素の合計値を求める
  * 合計値は全要素に入る

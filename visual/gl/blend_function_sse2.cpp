@@ -1937,4 +1937,3 @@ void BlendTest_sse2_c() {
 }
 
 #endif	// SIMD_BLEND_TEST
-
