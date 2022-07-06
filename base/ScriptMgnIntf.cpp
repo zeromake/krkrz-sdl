@@ -33,6 +33,8 @@
 #include "tjsRandomGenerator.h"
 #include "SysInitIntf.h"
 #include "PhaseVocoderFilter.h"
+#ifdef WIN32
+#endif
 #if 1
 #include "BasicDrawDevice.h"
 #endif
@@ -239,6 +241,8 @@ void TVPInitScriptEngine()
 	/* Window and its drawdevices */
 	iTJSDispatch2 * windowclass = NULL;
 	REGISTER_OBJECT(Window, (windowclass = TVPCreateNativeClass_Window()));
+#ifdef WIN32
+#endif
 #if 1
 	dsp = new tTJSNC_BasicDrawDevice();
 	val = tTJSVariant(dsp);

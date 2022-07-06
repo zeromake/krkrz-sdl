@@ -44,6 +44,12 @@
 #define _XMMLIB_H_INCLUDED
 
 #include "tjsCommHead.h"
+#if 0
+#include <malloc.h>
+#endif
+#if defined(_M_IX86)||defined(_M_X64)
+#endif
+#if 1
 #include <memory.h>
 
 //---------------------------------------------------------------------------
@@ -55,7 +61,9 @@
 #endif
 
 
-
+#if	(defined(__SSE__)&&defined(__GNUC__))||defined(_MSC_VER)
+#endif
+#if 1
 #if __cplusplus >= 201703L
 #define register
 #endif
@@ -98,8 +106,12 @@ typedef union __declspec(intrin_type) __declspec(align(16)) __m128x{
 	float			sf[4];
 	__m64			pi64[2];
 	__m128			ps;
+#ifdef	__SSE2__
+#endif
+#if 1
 	__m128i			pi;
 	__m128d			pd;
+#endif
 } __m128x;
 
 #elif	defined(__GNUC__)
@@ -108,8 +120,12 @@ typedef union {
 	float			sf[4];
 	__m64			pi64[2];
 	__m128			ps;
+#ifdef	__SSE2__
+#endif
+#if 1
 	__m128i			pi;
 	__m128d			pd;
+#endif
 } __m128x __attribute__((aligned(16)));
 
 #endif
@@ -199,6 +215,7 @@ inline float _mm_min_horz(__m128 x)
 	return _mm_cvtss_f32(x);
 }
 
+#endif /* (defined(__SSE__)&&defined(__GNUC__))||defined(_MSC_VER) */
 
 
 /**
@@ -214,4 +231,5 @@ inline bool IsAlignedTo128bits(const void * p)
 
 //---------------------------------------------------------------------------
 
+#endif
 #endif /* _XMMLIB_H_INCLUDED */

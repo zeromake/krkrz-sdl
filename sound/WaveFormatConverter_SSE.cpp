@@ -16,7 +16,12 @@
 #ifdef TVP_COMPILING_KRKRSDL2
 // Used: SSE4.1
 #include "SIMDeRenames.h"
+#else
+#include <smmintrin.h>
 #endif
+#if defined(_M_IX86)||defined(_M_X64)
+#endif
+#if 1
 //---------------------------------------------------------------------------
 
 _ALIGN16(const float) TJS_V_VEC_REDUCE[4] =
@@ -43,6 +48,8 @@ static inline void Float32ToInt16_sse2( tjs_uint16 * d, const float * s ) {
 	__m128i mhi = _mm_cvtps_epi32( _mm_mul_ps( *(__m128*)(s + 4), PM128(TJS_V_VEC_MAGNIFY) ) );
 	_mm_store_si128( (__m128i *)d, _mm_packs_epi32(mlo, mlo) );
 }
+#ifdef TJS_64BIT_OS
+#endif
 #if 1
 // 64bit の時は MMX を使わず、SSE2/SSE で処理
 #define Int16ToFloat32_sse Int16ToFloat32_sse2
@@ -157,3 +164,4 @@ void PCMConvertLoopFloat32ToInt16_sse(void * __restrict dest, const void * __res
 	}
 }
 //---------------------------------------------------------------------------
+#endif

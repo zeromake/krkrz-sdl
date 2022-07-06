@@ -52,6 +52,9 @@
 #include <wchar.h>
 #include <stdlib.h>
 #include <stdio.h>
+#if 0
+#include <malloc.h>
+#endif
 #include <stddef.h>
 #include <stdint.h>
 

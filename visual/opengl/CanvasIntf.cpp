@@ -11,10 +11,10 @@
 #include "LayerIntf.h"
 #include "RectItf.h"
 #include "OpenGLHeader.h"
-#ifdef _WIN32
-#include "OpenGLScreen.h"
-#else
+#ifdef TVP_COMPILING_KRKRSDL2
 #include "OpenGLScreenSDL2.h"
+#else
+#include "OpenGLScreen.h"
 #endif
 #include "WindowIntf.h"
 #include "Application.h"
@@ -282,12 +282,12 @@ void tTJSNI_Canvas::BeginDrawing()
 	glClearColor( c.r/255.0f, c.g/255.0f, c.b/255.0f, c.a/255.0f );
 	glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 
-#ifdef _WIN32
-	EGLint sw = GLScreen->GetSurfaceWidth();
-	EGLint sh = GLScreen->GetSurfaceHeight();
-#else
+#ifdef TVP_COMPILING_KRKRSDL2
 	EGLint sw = 0, sh = 0;
 	GLScreen->GetDrawableSize(sw, sh);
+#else
+	EGLint sw = GLScreen->GetSurfaceWidth();
+	EGLint sh = GLScreen->GetSurfaceHeight();
 #endif
 	glViewport( 0, 0, sw, sh );
 	PrevViewportWidth = sw;

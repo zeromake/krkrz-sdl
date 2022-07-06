@@ -61,6 +61,8 @@ extern void InterleaveOverlappingWindow(float * __restrict dest, const float * _
 	float * __restrict win, int numch, size_t srcofs, size_t len);
 extern void DeinterleaveApplyingWindow(float * __restrict dest[], const float * __restrict src,
 					float * __restrict win, int numch, size_t destofs, size_t len);
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
+#endif
 #ifdef TVP_COMPILING_KRKRSDL2
 extern void InterleaveOverlappingWindow_sse(float * __restrict dest, const float * __restrict const * __restrict src,
 					float * __restrict win, int numch, size_t srcofs, size_t len);
@@ -327,6 +329,8 @@ bool tRisaPhaseVocoderDSP::GetOutputBuffer(
 //---------------------------------------------------------------------------
 tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 {
+#if defined(_M_IX86) || defined(_M_X64) || defined(__i386__) || defined(__x86_64__)
+#endif
 #ifdef TVP_COMPILING_KRKRSDL2
 	bool use_sse =
 			(TVPCPUType & TVP_CPU_HAS_MMX) &&
@@ -393,20 +397,23 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		InputBuffer.GetReadPointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
+#endif
 #ifdef TVP_COMPILING_KRKRSDL2
-		if( use_sse )
-		{
+		if( use_sse ) {
 			DeinterleaveApplyingWindow_sse(AnalWork, p1, InputWindow, Channels, 0, p1len);
 			if(p2)
 				DeinterleaveApplyingWindow_sse(AnalWork, p2, InputWindow + p1len, Channels, p1len, p2len);
-		}
-		else
-#endif
-		{
+		} else {
 			DeinterleaveApplyingWindow(AnalWork, p1, InputWindow, Channels, 0, p1len);
 			if(p2)
 				DeinterleaveApplyingWindow(AnalWork, p2, InputWindow + p1len, Channels, p1len, p2len);
 		}
+#else
+		DeinterleaveApplyingWindow(AnalWork, p1, InputWindow, Channels, 0, p1len);
+		if(p2)
+			DeinterleaveApplyingWindow(AnalWork, p2, InputWindow + p1len, Channels, p1len, p2len);
+#endif
 	}
 
 	// チャンネルごとに処理
@@ -417,16 +424,14 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		//------------------------------------------------
 
 		// 演算の根幹部分を実行する
-#ifdef TVP_COMPILING_KRKRSDL2
-		if(use_sse)
-		{
-			ProcessCore_sse(ch);
-		}
-		else
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
 #endif
-		{
-			ProcessCore(ch);
-		}
+#ifdef TVP_COMPILING_KRKRSDL2
+		if(use_sse) ProcessCore_sse(ch);
+		else ProcessCore(ch);
+#else
+		ProcessCore(ch);
+#endif
 	}
 
 	// 窓関数を適用しつつ、SynthWork から出力バッファに書き込む
@@ -437,20 +442,23 @@ tRisaPhaseVocoderDSP::tStatus tRisaPhaseVocoderDSP::Process()
 		OutputBuffer.GetWritePointer(FrameSize*Channels, p1, p1len, p2, p2len);
 		p1len /= Channels;
 		p2len /= Channels;
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
+#endif
 #ifdef TVP_COMPILING_KRKRSDL2
-		if( use_sse )
-		{
+		if( use_sse ) {
 			InterleaveOverlappingWindow_sse(p1, SynthWork, OutputWindow, Channels, 0, p1len);
 			if(p2)
 				InterleaveOverlappingWindow_sse(p2, SynthWork, OutputWindow + p1len, Channels, p1len, p2len);
-		}
-		else
-#endif
-		{
+		} else {
 			InterleaveOverlappingWindow(p1, SynthWork, OutputWindow, Channels, 0, p1len);
 			if(p2)
 				InterleaveOverlappingWindow(p2, SynthWork, OutputWindow + p1len, Channels, p1len, p2len);
 		}
+#else
+		InterleaveOverlappingWindow(p1, SynthWork, OutputWindow, Channels, 0, p1len);
+		if(p2)
+			InterleaveOverlappingWindow(p2, SynthWork, OutputWindow + p1len, Channels, p1len, p2len);
+#endif
 	}
 
 	// LastSynthPhase を再調整するか
@@ -700,7 +708,6 @@ void tRisaPhaseVocoderDSP::ProcessCore(int ch)
 //---------------------------------------------------------------------------
 
 
-#ifdef TVP_COMPILING_KRKRSDL2
 /*
 	このソースコードでは詳しいアルゴリズムの説明は行わない。
 	基本的な流れはプレーンなC言語版と変わりないので、
@@ -708,6 +715,9 @@ void tRisaPhaseVocoderDSP::ProcessCore(int ch)
 */
 
 //---------------------------------------------------------------------------
+#if 0 && (defined(_M_IX86)||defined(_M_X64))
+#endif
+#ifdef TVP_COMPILING_KRKRSDL2
 //---------------------------------------------------------------------------
 void tRisaPhaseVocoderDSP::ProcessCore_sse(int ch)
 {
@@ -935,5 +945,5 @@ void tRisaPhaseVocoderDSP::ProcessCore_sse(int ch)
 	synthwork[1] = 0.0; // synthwork[1] = nyquist freq. power (どっちみち使えないので0に)
 	rdft_sse(FrameSize, -1, synthwork, FFTWorkIp, FFTWorkW); // Inverse Real DFT
 }
-#endif
 //---------------------------------------------------------------------------
+#endif

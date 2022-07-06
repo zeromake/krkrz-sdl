@@ -19,6 +19,8 @@
 #endif
 #include "tjsVariantString.h"
 
+#if defined (__clang__) && (ANDROID)
+#endif
 #if 1
 template<typename T>
 tjs_string to_format_str( T value, const tjs_char* format ) {
@@ -149,7 +151,9 @@ public:
 	const tjs_string AsStdString() const
 	{
 		if(!Ptr) return tjs_string(TJS_W(""));
-#if 1 || defined(UNICODE)
+#ifdef UNICODE
+#endif
+#if 1
 		return tjs_string(c_str());
 #else
 			// this constant string value must match std::string in type

@@ -184,6 +184,8 @@ void  InterleaveOverlappingWindow(float * __restrict dest,
 
 //---------------------------------------------------------------------------
 
+#if 0 && defined(_M_IX86)||defined(_M_X64)
+#endif
 #ifdef TVP_COMPILING_KRKRSDL2
 //---------------------------------------------------------------------------
 // 定数など
@@ -361,6 +363,9 @@ static inline void VFast_sincos_F4_SSE2(__m128 v, __m128 &sin, __m128 &cos)
 	sin = _mm_mul_ps(s1, fixmag1);
 //	sin=madd(s1, fixmag1, (float)(0.0));
 }
+#if defined(_M_IX86)
+#endif
+#if 1
 static inline void VFast_sincos_F4_SSE(__m128 v, __m128 &sin, __m128 &cos)
 {
 	__m128 s1, s2, c1, c2, fixmag1;
@@ -445,8 +450,10 @@ static inline void VFast_sincos_F4_SSE(__m128 v, __m128 &sin, __m128 &cos)
 
 	_mm_empty();
 }
+#elif defined(_M_X64)
 #if 0
 #define VFast_sincos_F4_SSE VFast_sincos_F4_SSE2
+#endif
 #endif
 //---------------------------------------------------------------------------
 
@@ -488,6 +495,9 @@ static inline __m128 Wrap_Pi_F4_SSE2(__m128 v)
 	// 戻る
 	return v;
 }
+#if defined(_M_IX86)
+#endif
+#if 1
 static inline __m128 Wrap_Pi_F4_SSE(__m128 v)
 {
 	// v を M_PI で割る
@@ -543,9 +553,11 @@ static inline __m128 Wrap_Pi_F4_SSE(__m128 v)
 	// 戻る
 	return v;
 }
-#if 0
+#elif defined(_M_X64)
 // x64 の時はSSE2を使う
+#if 0
 #define Wrap_Pi_F4_SSE Wrap_Pi_F4_SSE2
+#endif
 #endif
 //---------------------------------------------------------------------------
 

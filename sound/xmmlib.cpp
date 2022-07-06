@@ -47,7 +47,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if 0
+#include <malloc.h>
+#endif
 #include "xmmlib.h"
+#if defined(_M_IX86)||defined(_M_X64)
+#endif
+#if 1
 
 
 //---------------------------------------------------------------------------
@@ -103,3 +109,4 @@ _ALIGN16(const float) PFV_0P5[4]		 = {0.5f,	0.5f,	0.5f,	0.5f};
 
 //---------------------------------------------------------------------------
 
+#endif

@@ -7,6 +7,8 @@
 #define __NATIVE_FILE_H__
 
 #include <stdio.h>
+#ifdef ANDROID
+#endif
 #if 1
 #include "CharacterSet.h"
 #endif
@@ -23,6 +25,8 @@ public:
 
 	bool Open( const tjs_char* filename, const tjs_char* mode ) {
 		Close();
+#ifndef ANDROID
+#endif
 #if 0
 		fp_ = _wfopen(filename, mode);
 		return fp_ != NULL;

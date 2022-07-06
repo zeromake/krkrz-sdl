@@ -184,6 +184,8 @@ tjs_int TVPTLG5DecompressSlide_sse2_c( tjs_uint8 *out, const tjs_uint8 *in, tjs_
 					}
 					continue;
 				}
+#if 0
+#endif
 #if 1
 				while(mlen--) {
 					out[0] = text[r++] = text[mpos++]; out++;

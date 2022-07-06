@@ -89,7 +89,7 @@ void TVPClearAllWindowInputEvents()
 //---------------------------------------------------------------------------
 
 
-#ifdef _WIN32
+#ifndef TVP_COMPILING_KRKRSDL2
 //---------------------------------------------------------------------------
 bool TVPIsWaitVSync()
 {
@@ -1002,6 +1002,8 @@ TJS_END_NATIVE_METHOD_DECL(/*func. name*/showModal)
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/setMaskRegion)
 {
+#ifdef ANDROID
+#endif
 #if 0
 	return TJS_E_NOTIMPL;
 #else
@@ -1017,6 +1019,8 @@ TJS_END_NATIVE_METHOD_DECL(/*func. name*/setMaskRegion)
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/removeMaskRegion)
 {
+#ifdef ANDROID
+#endif
 #if 0
 	return TJS_E_NOTIMPL;
 #else
@@ -1948,6 +1952,8 @@ TJS_BEGIN_NATIVE_PROP_DECL(imeMode) // not defaultImeMode
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
+#ifdef ANDROID
+#endif
 #if 0
 		return TJS_E_NOTIMPL;
 #else
@@ -1960,6 +1966,8 @@ TJS_BEGIN_NATIVE_PROP_DECL(imeMode) // not defaultImeMode
 
 	TJS_BEGIN_NATIVE_PROP_SETTER
 	{
+#ifdef ANDROID
+#endif
 #if 0
 		return TJS_E_NOTIMPL;
 #else
@@ -1976,6 +1984,8 @@ TJS_BEGIN_NATIVE_PROP_DECL(mouseCursorState)
 {
 	TJS_BEGIN_NATIVE_PROP_GETTER
 	{
+#ifdef ANDROID
+#endif
 #if 0
 		return TJS_E_NOTIMPL;
 #else
@@ -1988,6 +1998,8 @@ TJS_BEGIN_NATIVE_PROP_DECL(mouseCursorState)
 
 	TJS_BEGIN_NATIVE_PROP_SETTER
 	{
+#ifdef ANDROID
+#endif
 #if 0
 		return TJS_E_NOTIMPL;
 #else

@@ -39,7 +39,9 @@
 #include "FontSystem.h"
 #include "tjsDictionary.h"
 
-#ifndef _WIN32
+#ifdef __ANDROID__
+#endif
+#ifdef TVP_COMPILING_KRKRSDL2
 #include "VirtualKey.h"
 #endif
 

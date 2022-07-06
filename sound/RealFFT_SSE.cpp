@@ -12,6 +12,9 @@
 //---------------------------------------------------------------------------
 
 #include "tjsCommHead.h"
+#if defined(_M_IX86)||defined(_M_X64)
+#endif
+#if 1
 #include "xmmlib.h"
 
 /*
@@ -954,3 +957,4 @@ void rdft_sse(int n, int isgn, float * __restrict a, int * __restrict ip, float 
 
 
 //---------------------------------------------------------------------------
+#endif

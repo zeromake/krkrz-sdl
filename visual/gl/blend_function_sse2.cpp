@@ -1534,13 +1534,10 @@ void TVPGL_SSE2_Init() {
 		}
 
 		// pixel format convert
-		if( TVPCPUType & TVP_CPU_HAS_SSSE3 )
-		{
+		if( TVPCPUType & TVP_CPU_HAS_SSSE3 ) {
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_ssse3_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_ssse3_c;
-		}
-		else
-		{
+		} else {
 			TVPConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 			TVPBLConvert24BitTo32Bit = TVPConvert24BitTo32Bit_sse2_c;
 		}
@@ -1574,6 +1571,8 @@ void TVPGL_SSE2_Init() {
 		TVPTLG5ComposeColors4To4 = TVPTLG5ComposeColors4To4_sse2_c;
 		//TVPTLG6DecodeGolombValuesForFirst	// MMXを積極的に使ったものはなく、SIMD化しづらそうなためSSE2版未実装
 		//TVPTLG6DecodeGolombValues			// MMXを積極的に使ったものはなく、SIMD化しづらそうなためSSE2版未実装
+#ifdef TJS_64BIT_OS
+#endif
 #if 0
 		// MMX版の方が速いので、64bitでのみ有効に
 		TVPTLG6DecodeLineGeneric = TVPTLG6DecodeLineGeneric_sse2_c;
@@ -1593,9 +1592,7 @@ void TVPGL_SSE2_Init() {
 		if( TVPCPUType & TVP_CPU_HAS_SSSE3 ) {
 			TVPReverse8 = TVPReverse8_ssse3_c;
 			TVPDoGrayScale = TVPDoGrayScale_ssse3_c;
-		}
-		else
-		{
+		} else {
 			TVPReverse8 = TVPReverse8_sse2_c;
 			TVPDoGrayScale = TVPDoGrayScale_sse2_c;
 		}

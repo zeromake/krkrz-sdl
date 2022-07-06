@@ -39,7 +39,9 @@ void tTVPGraphicHandlerType::Load( void* formatdata, void *callbackdata, tTVPGra
 {
 	if( LoadHandler == NULL ) TVPThrowExceptionMessage(TVPUnknownGraphicFormat, TJS_W("unknown"));
 
-#if defined(_WIN32) || 1
+#ifdef _WIN32
+#endif
+#if 1
 	if( IsPlugin )
 	{
 		tTVPIStreamAdapter *istream = new tTVPIStreamAdapter(src);
@@ -66,7 +68,9 @@ void tTVPGraphicHandlerType::Save( const ttstr & storagename, const ttstr & mode
 	if( SaveHandler == NULL ) TVPThrowExceptionMessage(TVPUnknownGraphicFormat, mode );
 
 	tTJSBinaryStream *stream = TVPCreateStream(TVPNormalizeStorageName(storagename), TJS_BS_WRITE);
-#if defined(_WIN32) || 1
+#ifdef _WIN32
+#endif
+#if 1
 	if( IsPlugin )
 	{
 		tTVPIStreamAdapter *istream = new tTVPIStreamAdapter(stream);
@@ -96,7 +100,9 @@ void tTVPGraphicHandlerType::Header( tTJSBinaryStream *src, iTJSDispatch2** dic 
 {
 	if( HeaderHandler == NULL ) TVPThrowExceptionMessage(TVPUnknownGraphicFormat, TJS_W("unknown") );
 
-#if defined(_WIN32) || 1
+#ifdef _WIN32
+#endif
+#if 1
 	if( IsPlugin )
 	{
 		tTVPIStreamAdapter *istream = new tTVPIStreamAdapter(src);
@@ -1635,7 +1641,7 @@ static bool TVPInternalLoadGraphic(tTVPBaseBitmap *dest, const ttstr &_name,
 		keyidx = -1;
 	}
 
-#ifndef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
 	if (!TVPLoadEmscriptenPreloadedData(handler->FormatData, (void*)&data, TVPLoadGraphic_SizeCallback,
 		TVPLoadGraphic_ScanLineCallback, TVPLoadGraphic_MetaInfoPushCallback,
 		name, keyidx, mode))

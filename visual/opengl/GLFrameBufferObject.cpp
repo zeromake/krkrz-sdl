@@ -2,10 +2,10 @@
 #include "tjsCommHead.h"
 #include "GLFrameBufferObject.h"
 #include "DebugIntf.h"
-#if _WIN32
-#include "OpenGLScreen.h"
-#else
+#ifdef TVP_COMPILING_KRKRSDL2
 #include "OpenGLScreenSDL2.h"
+#else
+#include "OpenGLScreen.h"
 #endif
 #include "BitmapIntf.h"
 #include "LayerBitmapIntf.h"

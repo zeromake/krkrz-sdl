@@ -15,14 +15,14 @@
 #include "SysInitIntf.h"
 #include "ThreadIntf.h"
 
-#ifdef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
+#include <SDL.h>
+#else
 #ifdef _WIN32
 #include <mmsystem.h>
 #else
 #include <time.h>
 #endif
-#else
-#include <SDL.h>
 #endif
 
 #if 0
@@ -44,7 +44,7 @@ public:
 //---------------------------------------------------------------------------
 #endif
 
-#ifdef _WIN32
+#ifndef TVP_COMPILING_KRKRSDL2
 //---------------------------------------------------------------------------
 // 64bit may enough to hold usual time count.
 // ( 32bit is clearly insufficient )
@@ -61,7 +61,9 @@ static tTJSCriticalSection TVPTickWatchCS;
 //---------------------------------------------------------------------------
 tjs_uint32 TVPGetRoughTickCount32()
 {
-#ifdef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
+	return SDL_GetTicks();
+#else
 #ifdef _WIN32
 	return timeGetTime();	// win32 mmsystem.h
 #else
@@ -70,15 +72,13 @@ tjs_uint32 TVPGetRoughTickCount32()
 	//clock_gettime( CLOCK_BOOTTIME, &now );
 	return static_cast<tjs_uint32>( now.tv_sec * 1000LL + now.tv_nsec / 1000000LL );
 #endif
-#else
-	return SDL_GetTicks();
 #endif
 //	return TVPTickCounter.Count();
 }
 
 
 //---------------------------------------------------------------------------
-#ifdef _WIN32
+#ifndef TVP_COMPILING_KRKRSDL2
 static tjs_uint TVPCheckTickOverflow()
 {
 	tjs_uint curtick;
@@ -173,14 +173,14 @@ static tTVPAtExit TVPWatchThreadUninitAtExit(TVP_ATEXIT_PRI_SHUTDOWN,
 //---------------------------------------------------------------------------
 tjs_uint64 TVPGetTickCount()
 {
-#ifdef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
+	return TVPGetRoughTickCount32();
+#else
 	TVPWatchThreadInit();
 
 	tjs_uint curtick = TVPCheckTickOverflow();
 
 	return curtick + TVPTickCountBias;
-#else
-	return TVPGetRoughTickCount32();
 #endif
 }
 //---------------------------------------------------------------------------
@@ -192,7 +192,7 @@ tjs_uint64 TVPGetTickCount()
 //---------------------------------------------------------------------------
 void TVPStartTickCount()
 {
-#ifdef _WIN32
+#ifndef TVP_COMPILING_KRKRSDL2
 	TVPWatchThreadInit();
 #endif
 }

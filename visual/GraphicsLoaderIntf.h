@@ -13,7 +13,7 @@
 #define GraphicsLoaderIntfH
 
 
-#ifndef _WIN32
+#ifdef TVP_COMPILING_KRKRSDL2
 #include "istream_compat.h"
 #endif
 #include "drawable.h"
@@ -283,7 +283,9 @@ extern void TVPLoadGraphic(tTVPBaseBitmap *dest, const ttstr &name, tjs_int keyi
 	#define BI_BITFIELDS	3
 #endif
 
-#if defined(__WIN32__) || 1
+#ifdef __WIN32__
+#endif
+#if 1
 #pragma pack(push, 1)
 #endif
 struct TVP_WIN_BITMAPFILEHEADER
@@ -308,7 +310,9 @@ struct TVP_WIN_BITMAPINFOHEADER
 	tjs_uint32	biClrUsed;
 	tjs_uint32	biClrImportant;
 };
-#if defined(__WIN32__) || 1
+#ifdef __WIN32__
+#endif
+#if 1
 #pragma pack(pop)
 #endif
 

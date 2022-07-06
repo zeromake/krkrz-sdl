@@ -18,14 +18,13 @@
 #include <vector>
 
 #ifdef _WIN32
+#endif
+#if 1
 #include "tvpgl_ia32_intf.h"
 #else
-#if 0
 #include "DetectCPU.h"
 #endif
-#include "tvpgl_ia32_intf.h"
 #include "DetectCPU.h"
-#endif
 #include "LayerBitmapIntf.h"
 #include "LayerBitmapImpl.h"
 #include "WeightFunctor.h"
@@ -710,18 +709,15 @@ void TVPResampleImage( const tTVPRect &cliprect, tTVPBaseBitmap *dest, const tTV
 	tjs_uint32 CpuFeature = TVPGetCPUType();
 #endif
 	try {
+#if 0 && defined(_WIN32)
+#endif
 #ifdef TVP_COMPILING_KRKRSDL2
-		if (0) {}
-		else if( (CpuFeature & TVP_CPU_HAS_AVX2) )
-		{
+		if( (CpuFeature & TVP_CPU_HAS_AVX2) ) {
 			TVPResampleImageAVX2( clip, func, dest, destrect, src, srcrect, type, typeopt );
-		}
-		else if( (CpuFeature & TVP_CPU_HAS_SSE2) )
-		{
+		} else if( (CpuFeature & TVP_CPU_HAS_SSE2) ) {
 			// TODO SSE2版は、Android でもx86の時使えるが、x86のandroid intel止めてしまったから不要か？
 			TVPResampleImageSSE2( clip, func, dest, destrect, src, srcrect, type, typeopt );
-		}
-		else
+		} else
 #endif
 		{
 			 // Cバージョンは固定小数点版なし。遅くなる。

@@ -21,6 +21,8 @@
 template <typename base_type>
 struct tTVPARGB
 {
+#if TJS_HOST_IS_LITTLE_ENDIAN
+#endif
 #if 1
 	base_type b;
 	base_type g;

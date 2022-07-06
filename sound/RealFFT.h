@@ -27,7 +27,11 @@
 //---------------------------------------------------------------------------
 
 void rdft(int, int, float * __restrict, int * __restrict, float * __restrict);
+#if defined(_M_IX86)||defined(_M_X64)
+#endif
+#if 1
 void rdft_sse(int, int, float * __restrict, int * __restrict, float * __restrict);
+#endif
 
 //---------------------------------------------------------------------------
 

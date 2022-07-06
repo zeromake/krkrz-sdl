@@ -2,11 +2,11 @@
 #ifndef OpenGLHeaderH
 #define OpenGLHeaderH
 
-#if defined(KRKRZ_ENABLE_CANVAS) || defined(_WIN32)
+#if (defined(KRKRZ_ENABLE_CANVAS) && defined(TVP_COMPILING_KRKRSDL2)) || (defined(WIN32) && !defined(TVP_COMPILING_KRKRSDL2))
 #ifdef __EMSCRIPTEN__
 #include <EGL/egl.h>
 #include <GLES3/gl31.h>
-#elif !defined(_WIN32)
+#elif defined(TVP_COMPILING_KRKRSDL2)
 #include "OpenGLHeaderSDL2.h"
 #else
 #ifdef WIN32
