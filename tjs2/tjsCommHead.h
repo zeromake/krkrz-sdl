@@ -19,10 +19,14 @@
 #ifdef __WIN32__
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
+#ifndef TVP_COMPILING_KRKRSDL2
 #include "targetver.h"
+#endif
 #include <windows.h>
 
+#if 0
 #include <vector>
+#endif
 
 #ifdef  _DEBUG
 #define _CRTDBG_MAP_ALLOC

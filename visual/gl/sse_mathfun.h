@@ -95,6 +95,7 @@ _PS_CONST(cephes_log_p8, + 3.3333331174E-1f);
 _PS_CONST(cephes_log_q1, -2.12194440e-4f);
 _PS_CONST(cephes_log_q2, 0.693359375f);
 
+#if 0
 #if defined (__MINGW32__)
 
 /* the ugly part below: many versions of gcc used to be completely buggy with respect to some intrinsics
@@ -142,6 +143,7 @@ inline __m128 my_cmpeq_ps(__m128 a, const __m128 b) {
 #define _mm_cmplt_ps my_cmplt_ps
 #define _mm_cmpgt_ps my_cmpgt_ps
 #define _mm_cmpeq_ps my_cmpeq_ps
+#endif
 #endif
 
 #ifndef USE_SSE2

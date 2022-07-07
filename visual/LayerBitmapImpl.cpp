@@ -26,6 +26,8 @@
 #include "StorageIntf.h"
 #include "DebugIntf.h"
 #ifdef _WIN32
+#endif
+#if defined(_WIN32) && !defined(TVP_COMPILING_KRKRSDL2)
 #include "WindowFormUnit.h"
 #endif
 #include "UtilStreams.h"
@@ -39,6 +41,8 @@
 #include "FreeType.h"
 #include "FreeTypeFontRasterizer.h"
 #ifdef _WIN32
+#endif
+#if defined(_WIN32) && !defined(TVP_COMPILING_KRKRSDL2)
 #include "TVPSysFont.h"
 #include "GDIFontRasterizer.h"
 #endif
@@ -78,6 +82,8 @@ void TVPInializeFontRasterizers() {
 	if( TVPFontRasterizersInit == false ) {
 		TVPFontRasterizers[FONT_RASTER_FREE_TYPE] = new FreeTypeFontRasterizer();
 #ifdef _WIN32
+#endif
+#if defined(_WIN32) && !defined(TVP_COMPILING_KRKRSDL2)
 		TVPFontRasterizers[FONT_RASTER_GDI] = new GDIFontRasterizer();
 #endif
 
@@ -382,6 +388,8 @@ tTVPBitmap::tTVPBitmap(tjs_uint width, tjs_uint height, tjs_uint bpp, bool unpad
 {
 	// tTVPBitmap constructor
 #ifdef _WIN32
+#endif
+#if defined(_WIN32) && !defined(TVP_COMPILING_KRKRSDL2)
 	TVPInitWindowOptions(); // ensure window/bitmap usage options are initialized
 #endif
 	RefCount = 1;
@@ -393,6 +401,8 @@ tTVPBitmap::tTVPBitmap(tjs_uint width, tjs_uint height, tjs_uint bpp, void* bits
 {
 	// tTVPBitmap constructor
 #ifdef _WIN32
+#endif
+#if defined(_WIN32) && !defined(TVP_COMPILING_KRKRSDL2)
 	TVPInitWindowOptions(); // ensure window/bitmap usage options are initialized
 #endif
 	RefCount = 1;
@@ -434,6 +444,8 @@ tTVPBitmap::tTVPBitmap(const tTVPBitmap & r)
 {
 	// constructor for cloning bitmap
 #ifdef _WIN32
+#endif
+#if defined(_WIN32) && !defined(TVP_COMPILING_KRKRSDL2)
 	TVPInitWindowOptions(); // ensure window/bitmap usage options are initialized
 #endif
 	RefCount = 1;

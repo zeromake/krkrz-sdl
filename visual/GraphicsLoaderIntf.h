@@ -13,7 +13,9 @@
 #define GraphicsLoaderIntfH
 
 
-#ifdef TVP_COMPILING_KRKRSDL2
+#ifdef _WIN32
+#include <objidl.h>
+#else
 #include "istream_compat.h"
 #endif
 #include "drawable.h"

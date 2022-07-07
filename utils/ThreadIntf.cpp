@@ -136,7 +136,7 @@ tTVPThreadPriority tTVPThread::GetPriority()
 	return ttpNormal;
 #else
 #ifdef _WIN32
-	int n = ::GetThreadPriority( GetHandle());
+	int n = ::GetThreadPriority( (HANDLE)GetHandle());
 	switch(n)
 	{
 	case THREAD_PRIORITY_IDLE:			return ttpIdle;
@@ -223,7 +223,7 @@ void tTVPThread::SetPriority(tTVPThreadPriority pri)
 	case ttpTimeCritical:	npri = THREAD_PRIORITY_TIME_CRITICAL;	break;
 	}
 
-	::SetThreadPriority( GetHandle(), npri);
+	::SetThreadPriority( (HANDLE)(GetHandle()), npri);
 #elif defined(__EMSCRIPTEN__) || defined(__SWITCH__)
 #else
 	if (!GetHandle())
@@ -493,7 +493,7 @@ void DrawThreadPool::PoolThread( tjs_int taskNum ) {
 		th->StartTread();
 #ifndef KRKRZ_USE_SDL_THREADS
 #ifdef _WIN32
-		::SetThreadIdealProcessor( th->GetHandle(), processor_ids[workers.size() % processor_ids.size()] );
+		::SetThreadIdealProcessor( (HANDLE)(th->GetHandle()), processor_ids[workers.size() % processor_ids.size()] );
 #elif defined( __MACH__ )
 		thread_affinity_policy_data_t policy = { static_cast<int>(workers.size()) };
 		thread_policy_set( pthread_mach_thread_np( th->GetHandle() ), THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1);

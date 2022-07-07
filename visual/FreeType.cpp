@@ -744,6 +744,8 @@ tFreeTypeFace::tFreeTypeFace(const std::vector<tjs_string> &fontname, tjs_uint32
 			Faces[i]->Face.reset( FreeTypeFaceList->GetFace( fontname[i], options ) );
 		}
 #ifdef _WIN32
+#endif
+#ifndef TVP_COMPILING_KRKRSDL2
 		if( Faces[i]->Face == nullptr )
 		{
 			if( options & TVP_FACE_OPTIONS_FILE )
