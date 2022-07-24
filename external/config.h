@@ -13,3 +13,8 @@
 #define STDC_HEADERS 1
 #define USE_ALLOCA 1
 #define OPUS_BUILD 1
+
+#include "pnglibconf.h"
+#ifdef PNG_STDIO_SUPPORTED
+#undef PNG_STDIO_SUPPORTED
+#endif
