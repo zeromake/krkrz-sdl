@@ -1490,10 +1490,13 @@ void TVPGL_SSE2_Init() {
 		TVPStretchConstAlphaBlend_d = TVPStretchConstAlphaBlend_d_sse2_c;
 		TVPStretchConstAlphaBlend_a = TVPStretchConstAlphaBlend_a_sse2_c;
 		TVPStretchColorCopy = TVPStretchColorCopy_sse2_c;
+#if 0
+		// FIXME: These functions cause data abort on ARM
 		TVPInterpStretchCopy = TVPInterpStretchCopy_sse2_c;
 		TVPInterpStretchAdditiveAlphaBlend = TVPInterpStretchAdditiveAlphaBlend_sse2_c;
 		TVPInterpStretchAdditiveAlphaBlend_o = TVPInterpStretchAdditiveAlphaBlend_o_sse2_c;
 		TVPInterpStretchConstAlphaBlend = TVPInterpStretchConstAlphaBlend_sse2_c;
+#endif
 		// TVPFastLinearInterpH2F	// 使われなくなっているので未実装
 		// TVPFastLinearInterpH2B	// 使われなくなっているので未実装
 		// TVPFastLinearInterpV2	// 使われなくなっているので未実装
