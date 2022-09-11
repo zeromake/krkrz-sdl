@@ -1521,8 +1521,11 @@ void TVPGL_SSE2_Init() {
 		TVPLinTransConstAlphaBlend_HDA = TVPLinTransConstAlphaBlend_HDA_sse2_c;
 		TVPLinTransConstAlphaBlend_d = TVPLinTransConstAlphaBlend_d_sse2_c;
 		TVPLinTransConstAlphaBlend_a = TVPLinTransConstAlphaBlend_a_sse2_c;
+#if 0
+		// FIXME: These functions cause data abort on ARM
 		TVPInterpLinTransCopy = TVPInterpLinTransCopy_sse2_c;
 		TVPInterpLinTransConstAlphaBlend = TVPInterpLinTransConstAlphaBlend_sse2_c;
+#endif
 
 		// Box Blur ( TODO 実環境で要テスト)
 		TVPAddSubVertSum16 = TVPAddSubVertSum16_sse2_c;
