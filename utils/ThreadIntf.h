@@ -227,4 +227,6 @@ TJS_EXP_FUNC_DEF(void, TVPBeginThreadTask, (tjs_int num));
 TJS_EXP_FUNC_DEF(void, TVPExecThreadTask, (TVP_THREAD_TASK_FUNC func, TVP_THREAD_PARAM param));
 TJS_EXP_FUNC_DEF(void, TVPEndThreadTask, ());
 
+void TVPAddOnThreadExitEvent(const std::function<void()> &ev);
+void TVPOnThreadExited();
 #endif

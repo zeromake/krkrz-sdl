@@ -539,6 +539,19 @@ void TVPEndThreadTask( void ) {
 	TVPTheadPool.WaitForTask();
 }
 //---------------------------------------------------------------------------
+std::vector<std::function<void()>> _OnThreadExitedEvents;
+
+void TVPOnThreadExited() {
+	for (const auto &ev : _OnThreadExitedEvents) {
+		ev();
+	}
+	_OnThreadExitedEvents.clear();
+}
+
+void TVPAddOnThreadExitEvent(const std::function<void()> &ev)
+{
+	_OnThreadExitedEvents.emplace_back(ev);
+}
 //---------------------------------------------------------------------------
 
 

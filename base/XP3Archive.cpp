@@ -39,7 +39,11 @@ void TVPSetXP3ArchiveExtractionFilter(tTVPXP3ArchiveExtractionFilter filter)
 	TVPXP3ArchiveExtractionFilter = filter;
 }
 //---------------------------------------------------------------------------
-
+static tTVPXP3ArchiveContentFilter TVPXP3ArchiveContentFilter = nullptr;
+void TVPSetXP3ArchiveContentFilter(tTVPXP3ArchiveContentFilter filter)
+{
+	TVPXP3ArchiveContentFilter = filter;
+}
 
 
 //---------------------------------------------------------------------------
@@ -557,13 +561,24 @@ tTJSBinaryStream * tTVPXP3Archive::CreateStreamByIndex(tjs_uint idx)
 
 	tArchiveItem &item = ItemVector[idx];
 
-	tTJSBinaryStream *stream = TVPGetCachedArchiveHandle(this, Name);
+	tTJSBinaryStream *stream = TVPGetCachedArchiveHandle(this, ArchiveName);
 
-	tTJSBinaryStream *out;
+	tTVPXP3ArchiveStream *out;
 	try
 	{
 		out = new tTVPXP3ArchiveStream(this, idx, &(item.Segments), stream,
 			item.OrgSize);
+		if (TVPXP3ArchiveContentFilter) {
+			tjs_int result = TVPXP3ArchiveContentFilter(item.Name, ArchiveName, item.OrgSize, &out->GetFilterContext());
+#define XP3_CONTENT_FILTER_FETCH_FULLDATA 1
+			if (result == XP3_CONTENT_FILTER_FETCH_FULLDATA) {
+				tTVPMemoryStream *memstr = new tTVPMemoryStream();
+				memstr->SetSize(item.OrgSize);
+				out->ReadBuffer(memstr->GetInternalBuffer(), item.OrgSize);
+				delete out;
+				return memstr;
+			}
+		}
 	}
 	catch(...)
 	{
@@ -1018,9 +1033,9 @@ tjs_uint TJS_INTF_METHOD tTVPXP3ArchiveStream::Read(void *buffer, tjs_uint read_
 		if(TVPXP3ArchiveExtractionFilter)
 		{
 			tTVPXP3ExtractionFilterInfo info(CurPos, (tjs_uint8*)buffer + write_size,
-				one_size, Owner->GetFileHash(StorageIndex));
+				one_size, Owner->GetFileHash(StorageIndex), Owner->GetName(StorageIndex));
 			TVPXP3ArchiveExtractionFilter
-				( (tTVPXP3ExtractionFilterInfo*) &info );
+				( (tTVPXP3ExtractionFilterInfo*) &info, &FilterContext);
 		}
 
 		// adjust members

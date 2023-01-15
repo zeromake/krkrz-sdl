@@ -30,6 +30,10 @@
 	to input/output text files.
 */
 
+#ifndef TVP_TEXT_READ_ANSI_MBCS
+#define TVP_TEXT_READ_ANSI_MBCS 1
+#endif
+
 #ifdef TVP_TEXT_READ_ANSI_MBCS
 static ttstr DefaultReadEncoding = TJS_W("Shift_JIS");
 #else

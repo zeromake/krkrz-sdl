@@ -63,6 +63,7 @@ private:
 
 	tTJSHashTable<ttstr, tjs_uint, tTJSHashFunc<ttstr>, 1024> Hash;
 	bool Init;
+public:
 	ttstr ArchiveName;
 
 public:
