@@ -1744,6 +1744,7 @@ TJS_BEGIN_NATIVE_PROP_DECL(layerTop)
 	TJS_END_NATIVE_PROP_SETTER
 }
 TJS_END_NATIVE_PROP_DECL(layerTop)
+#endif
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_PROP_DECL(innerSunken)
 {
@@ -1764,7 +1765,6 @@ TJS_BEGIN_NATIVE_PROP_DECL(innerSunken)
 	TJS_END_NATIVE_PROP_SETTER
 }
 TJS_END_NATIVE_PROP_DECL(innerSunken)
-#endif
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_PROP_DECL(innerWidth)
 {

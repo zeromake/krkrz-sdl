@@ -124,6 +124,103 @@ void tTVPGraphicHandlerType::Header( tTJSBinaryStream *src, iTJSDispatch2** dic 
 }
 
 //---------------------------------------------------------------------------
+// void TVPLoadHeaderWEBP(void* formatdata, tTJSBinaryStream *src, iTJSDispatch2** dic);
+// void TVPLoadWEBP(void* formatdata, void *callbackdata,
+// 	tTVPGraphicSizeCallback sizecallback, tTVPGraphicScanLineCallback scanlinecallback,
+// 	tTVPMetaInfoPushCallback metainfopushcallback, tTJSBinaryStream *src, tjs_int keyidx,
+// 	tTVPGraphicLoadMode mode);
+
+static void TVPLoadGraphicRouter(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback sizecallback,
+	tTVPGraphicScanLineCallback scanlinecallback, tTVPMetaInfoPushCallback metainfopushcallback,
+	tTJSBinaryStream *src, tjs_int keyidx, tTVPGraphicLoadMode mode) {
+	uint8_t header[16];
+	tjs_uint64 origSrcPos = src->GetPosition();
+	ttstr unsupport = TJS_W("");
+	if (src->Read(header, sizeof(header)) == sizeof(header)) {
+		src->SetPosition(origSrcPos);
+#define CALL_LOAD_FUNC(f) f(formatdata, callbackdata, sizecallback, scanlinecallback, metainfopushcallback, src, keyidx, mode)
+		if (!memcmp(header, "BM", 2)) {
+			return CALL_LOAD_FUNC(TVPLoadBMP);
+		}
+		if (!memcmp(header, "\x89PNG", 4)) {
+			return CALL_LOAD_FUNC(TVPLoadPNG);
+		}
+		if (!memcmp(header, "TLG", 3)) {
+			return CALL_LOAD_FUNC(TVPLoadTLG);
+		}
+		if (!memcmp(header, "\xFF\xD8\xFF", 3) &&
+			header[3] >= 0xE0 && header[3] <= 0xEF ) {
+			return CALL_LOAD_FUNC(TVPLoadJPEG);
+		}
+		// if (!memcmp(header, "BPG", 3)) {
+		// 	return CALL_LOAD_FUNC(TVPLoadBPG);
+		// }
+		if (!memcmp(header, "RIFF", 4) && !memcmp(header + 8, "WEBPVP8", 7)) {
+			// return CALL_LOAD_FUNC(TVPLoadWEBP);
+			unsupport = TJS_W("webp");
+		}
+#if 0 && defined(_WIN32)
+		if (!memcmp(header, "\x49\x49\xbc\x01", 4)) {
+			return CALL_LOAD_FUNC(TVPLoadJXR);
+		}
+#endif
+		// if (!memcmp(header, "PVR\3", 4)) {
+		// 	return CALL_LOAD_FUNC(TVPLoadPVRv3);
+		// }
+#undef CALL_LOAD_FUNC
+	}
+	if (unsupport != TJS_W("")) {
+		TVPThrowExceptionMessage(TVPImageLoadError, TJS_W("Invalid image: ") + unsupport);
+	} else {
+		TVPThrowExceptionMessage(TVPImageLoadError, TJS_W("Invalid image"));
+	}
+}
+
+static void TVPLoadHeaderRouter(void* formatdata, tTJSBinaryStream *src, iTJSDispatch2** dic) {
+	uint8_t header[16];
+	tjs_uint64 origSrcPos = src->GetPosition();
+	ttstr unsupport = TJS_W("");
+	if (src->Read(header, sizeof(header)) == sizeof(header)) {
+		src->SetPosition(origSrcPos);
+#define CALL_LOAD_FUNC(f) f(formatdata, src, dic)
+		if (!memcmp(header, "BM", 2)) {
+			return CALL_LOAD_FUNC(TVPLoadHeaderBMP);
+		}
+		if (!memcmp(header, "\x89PNG", 4)) {
+			return CALL_LOAD_FUNC(TVPLoadHeaderPNG);
+		}
+		if (!memcmp(header, "TLG", 3)) {
+			return CALL_LOAD_FUNC(TVPLoadHeaderTLG);
+		}
+		if (!memcmp(header, "\xFF\xD8\xFF", 3) &&
+			header[3] >= 0xE0 && header[3] <= 0xEF) {
+			return CALL_LOAD_FUNC(TVPLoadHeaderJPG);
+		}
+		// if (!memcmp(header, "BPG", 3)) {
+		// 	return CALL_LOAD_FUNC(TVPLoadHeaderBPG);
+		// }
+		if (!memcmp(header, "RIFF", 4) && !memcmp(header + 8, "WEBPVP8", 7)) {
+			// return CALL_LOAD_FUNC(TVPLoadHeaderWEBP);
+			unsupport = TJS_W("webp");
+		}
+#if 0 && defined(_WIN32)
+		if (!memcmp(header, "\x49\x49\xbc\x01", 4)) {
+			return CALL_LOAD_FUNC(TVPLoadHeaderJXR);
+		}
+#endif
+		// if (!memcmp(header, "PVR\3", 4)) {
+		// 	return CALL_LOAD_FUNC(TVPLoadHeaderPVRv3);
+		// }
+#undef CALL_LOAD_FUNC
+	}
+	if (unsupport != TJS_W("")) {
+		TVPThrowExceptionMessage(TVPImageLoadError, TJS_W("Invalid image: ") + unsupport);
+	} else {
+		TVPThrowExceptionMessage(TVPImageLoadError, TJS_W("Invalid image"));
+	}
+}
+
+//---------------------------------------------------------------------------
 
 bool TVPAcceptSaveAsBMP( void* formatdata, const ttstr & type, class iTJSDispatch2** dic )
 {
@@ -161,23 +258,25 @@ public:
 	{
 		// register some native-supported formats
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".bmp"), TVPLoadBMP, TVPLoadHeaderBMP, TVPSaveAsBMP, TVPAcceptSaveAsBMP, NULL));
+			TJS_W(".webp"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, nullptr, nullptr, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".dib"), TVPLoadBMP, TVPLoadHeaderBMP, TVPSaveAsBMP, TVPAcceptSaveAsBMP, NULL));
+			TJS_W(".bmp"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsBMP, TVPAcceptSaveAsBMP, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".jpeg"), TVPLoadJPEG, TVPLoadHeaderJPG, TVPSaveAsJPG, TVPAcceptSaveAsJPG, NULL));
+			TJS_W(".dib"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsBMP, TVPAcceptSaveAsBMP, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".jpg"), TVPLoadJPEG, TVPLoadHeaderJPG, TVPSaveAsJPG, TVPAcceptSaveAsJPG, NULL));
+			TJS_W(".jpeg"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsJPG, TVPAcceptSaveAsJPG, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".jif"), TVPLoadJPEG, TVPLoadHeaderJPG, TVPSaveAsJPG, TVPAcceptSaveAsJPG, NULL));
+			TJS_W(".jpg"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsJPG, TVPAcceptSaveAsJPG, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".png"), TVPLoadPNG, TVPLoadHeaderPNG, TVPSaveAsPNG, TVPAcceptSaveAsPNG, NULL));
+			TJS_W(".jif"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsJPG, TVPAcceptSaveAsJPG, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".tlg"), TVPLoadTLG, TVPLoadHeaderTLG, TVPSaveAsTLG, TVPAcceptSaveAsTLG, NULL));
+			TJS_W(".png"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsPNG, TVPAcceptSaveAsPNG, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".tlg5"), TVPLoadTLG, TVPLoadHeaderTLG, TVPSaveAsTLG, TVPAcceptSaveAsTLG, NULL));
+			TJS_W(".tlg"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsTLG, TVPAcceptSaveAsTLG, NULL));
 		Handlers.push_back(tTVPGraphicHandlerType(
-			TJS_W(".tlg6"), TVPLoadTLG, TVPLoadHeaderTLG, TVPSaveAsTLG, TVPAcceptSaveAsTLG, NULL));
+			TJS_W(".tlg5"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsTLG, TVPAcceptSaveAsTLG, NULL));
+		Handlers.push_back(tTVPGraphicHandlerType(
+			TJS_W(".tlg6"), TVPLoadGraphicRouter, TVPLoadHeaderRouter, TVPSaveAsTLG, TVPAcceptSaveAsTLG, NULL));
 #if 0 && defined(_WIN32)
 		Handlers.push_back(tTVPGraphicHandlerType(
 			TJS_W(".jxr"), TVPLoadJXR, TVPLoadHeaderJXR, TVPSaveAsJXR, TVPAcceptSaveAsJXR, NULL));
