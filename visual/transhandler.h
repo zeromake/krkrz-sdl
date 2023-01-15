@@ -16,6 +16,7 @@
 #include "tjsErrorDefs.h"
 #include "drawable.h"
 
+#undef LoadImage
 /*[*/
 //---------------------------------------------------------------------------
 // tTVPTransType

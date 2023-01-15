@@ -20,6 +20,7 @@
 #include "TickCount.h"
 #include "DebugIntf.h"
 
+#undef LoadImage
 
 // #define TVP_TRANS_SHOW_FPS
 

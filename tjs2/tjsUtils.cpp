@@ -221,6 +221,31 @@ void TJSAlignedDealloc(void *ptr)
 //---------------------------------------------------------------------------
 
 
+void tTJSSpinLock::lock() {
+	while (atom_lock.test_and_set(std::memory_order_acquire)) {
+		std::this_thread::yield();
+//		TVPRelinquishCPU();
+	}
+}
+
+void tTJSSpinLock::unlock() {
+	atom_lock.clear(std::memory_order_release);
+}
+
+tTJSSpinLock::tTJSSpinLock() {
+	unlock();
+}
+
+tTJSSpinLockHolder::tTJSSpinLockHolder(tTJSSpinLock &lock) {
+	lock.lock();
+	Lock = &lock;
+}
+
+tTJSSpinLockHolder::~tTJSSpinLockHolder() {
+	if (Lock) {
+		Lock->unlock();
+	}
+}
 
 //---------------------------------------------------------------------------
 // floating-point class checker

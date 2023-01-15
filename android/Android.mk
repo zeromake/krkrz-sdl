@@ -152,6 +152,7 @@ $(LOCAL_PATH)/utils/VelocityTracker.cpp \
 $(LOCAL_PATH)/utils/android/ClipboardImpl.cpp \
 $(LOCAL_PATH)/utils/android/ThreadImpl.cpp \
 $(LOCAL_PATH)/utils/android/TVPTimer.cpp \
+$(LOCAL_PATH)/utils/KAGParser.cpp \
 $(LOCAL_PATH)/visual/BitmapIntf.cpp \
 $(LOCAL_PATH)/visual/BitmapLayerTreeOwner.cpp \
 $(LOCAL_PATH)/visual/CharacterData.cpp \

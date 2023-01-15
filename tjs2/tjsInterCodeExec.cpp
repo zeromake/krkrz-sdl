@@ -11,7 +11,6 @@
 
 #include "tjsCommHead.h"
 
-#include "tjsInterCodeExec.h"
 #include "tjsInterCodeGen.h"
 #include "tjsScriptBlock.h"
 #include "tjsError.h"
@@ -21,11 +20,14 @@
 #include "tjsArray.h"
 #include "tjsDebug.h"
 #include "tjsOctPack.h"
+#include "tjsInterCodeExec.h"
+
 
 #ifdef ENABLE_DEBUGGER
 #include "debugger.h"
 #endif // ENABLE_DEBUGGER
 
+#undef GetMessage
 namespace TJS
 {
 //---------------------------------------------------------------------------

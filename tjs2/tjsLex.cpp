@@ -23,6 +23,7 @@
 
 #include <ctype.h>
 
+#undef GetMessage
 namespace TJS
 {
 

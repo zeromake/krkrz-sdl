@@ -164,6 +164,7 @@ utils/TVPTimer.cpp
 utils/uni_cp932.cpp
 utils/VelocityTracker.cpp
 utils/android/ClipboardImpl.cpp
+utils/KAGParser.cpp
 visual/BitmapIntf.cpp
 visual/BitmapLayerTreeOwner.cpp
 visual/CharacterData.cpp

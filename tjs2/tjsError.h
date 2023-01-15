@@ -13,6 +13,8 @@
 #ifndef tjsErrorH
 #define tjsErrorH
 
+#undef GetMessage
+
 #ifndef TJS_DECL_MESSAGE_BODY
 
 #include <stdexcept>

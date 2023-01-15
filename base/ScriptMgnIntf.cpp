@@ -65,6 +65,9 @@
 #include "VertexBinderIntf.h"
 #endif
 
+#include "KAGParser.h"
+#include "MenuItemImpl.h"
+
 //---------------------------------------------------------------------------
 // global variables
 //---------------------------------------------------------------------------
@@ -229,6 +232,9 @@ void TVPInitScriptEngine()
 	REGISTER_OBJECT(VertexBinder, TVPCreateNativeClass_VertexBinder());
 #endif
 
+	/* KAG special support */
+	REGISTER_OBJECT(KAGParser, TVPCreateNativeClass_KAGParser());
+
 	/* WaveSoundBuffer and its filters */
 	iTJSDispatch2 * waveclass = NULL;
 	REGISTER_OBJECT( WaveSoundBuffer, ( waveclass = TVPCreateNativeClass_SoundBuffer() ) );
@@ -249,6 +255,10 @@ void TVPInitScriptEngine()
 	dsp->Release();
 	windowclass->PropSet(TJS_MEMBERENSURE|TJS_IGNOREPROP|TJS_STATICMEMBER,
 		TJS_W("BasicDrawDevice"), NULL, &val, windowclass);
+	windowclass->PropSet(TJS_MEMBERENSURE|TJS_IGNOREPROP|TJS_STATICMEMBER,
+		TJS_W("PassThroughDrawDevice"), NULL, &val, windowclass); // compatible for old version kr2
+
+	REGISTER_OBJECT(MenuItem, TVPCreateNativeClass_MenuItem()); // register "menu" to windowclass
 #endif
 	// Add Extension Classes
 	TVPCauseAtInstallExtensionClass( global );

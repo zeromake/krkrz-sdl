@@ -103,18 +103,29 @@ extern size_t TJS_wcstombs(tjs_nchar *s, const tjs_char *pwcs, size_t n);
 extern int TJS_mbtowc(tjs_char *pwc, const tjs_nchar *s, size_t n);
 extern int TJS_wctomb(tjs_nchar *s, tjs_char wc);
 
+
 #ifdef __cplusplus
+#ifdef UNICODE
+#define __tjs_isspace iswspace
+#define __tjs_isdigit iswdigit
+#define __tjs_isalpha iswalpha
+#else
+#define __tjs_isspace isspace
+#define __tjs_isdigit isdigit
+#define __tjs_isalpha isalpha
+#endif
+
 inline bool TJS_iswspace(tjs_char ch) {
 	// the standard iswspace misses when non-zero page code
-	if(ch&0xff00) return false; else return 0!=::isspace(ch);
+	if(ch&0xff00) return false; else return 0!=::__tjs_isspace(ch);
 }
 inline bool TJS_iswdigit(tjs_char ch) {
 	// the standard iswdigit misses when non-zero page code
-	if(ch&0xff00) return false; else return 0!=::isdigit(ch);
+	if(ch&0xff00) return false; else return 0!=::__tjs_isdigit(ch);
 }
 inline bool TJS_iswalpha(tjs_char ch) {
 	// the standard iswalpha misses when non-zero page code
-	if(ch&0xff00) return true; else return 0!=::isalpha(ch);
+	if(ch&0xff00) return true; else return 0!=::__tjs_isalpha(ch);
 }
 #endif
 
@@ -128,7 +139,7 @@ inline bool TJS_iswalpha(tjs_char ch) {
 #elif defined(__GNUC__)
 	#define TJS_cdecl
 	#define TJS_timezone timezone
-#elif __WIN32__
+#elif defined(__WIN32__) || defined(_WIN32)
 	#define TJS_cdecl __cdecl
 	#define TJS_timezone _timezone
 #endif
