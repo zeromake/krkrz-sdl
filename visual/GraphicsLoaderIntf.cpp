@@ -124,11 +124,16 @@ void tTVPGraphicHandlerType::Header( tTJSBinaryStream *src, iTJSDispatch2** dic 
 }
 
 //---------------------------------------------------------------------------
-// void TVPLoadHeaderWEBP(void* formatdata, tTJSBinaryStream *src, iTJSDispatch2** dic);
-// void TVPLoadWEBP(void* formatdata, void *callbackdata,
-// 	tTVPGraphicSizeCallback sizecallback, tTVPGraphicScanLineCallback scanlinecallback,
-// 	tTVPMetaInfoPushCallback metainfopushcallback, tTJSBinaryStream *src, tjs_int keyidx,
-// 	tTVPGraphicLoadMode mode);
+extern void _TVPLoadHeaderWEBP(void* formatdata, tTJSBinaryStream *src, iTJSDispatch2** dic);
+extern void _TVPLoadWEBP(
+	void* formatdata,
+	void *callbackdata,
+	tTVPGraphicSizeCallback sizecallback,
+	tTVPGraphicScanLineCallback scanlinecallback,
+	tTVPMetaInfoPushCallback metainfopushcallback,
+	tTJSBinaryStream *src,
+	tjs_int keyidx,
+	tTVPGraphicLoadMode mode);
 
 static void TVPLoadGraphicRouter(void* formatdata, void *callbackdata, tTVPGraphicSizeCallback sizecallback,
 	tTVPGraphicScanLineCallback scanlinecallback, tTVPMetaInfoPushCallback metainfopushcallback,
@@ -156,8 +161,8 @@ static void TVPLoadGraphicRouter(void* formatdata, void *callbackdata, tTVPGraph
 		// 	return CALL_LOAD_FUNC(TVPLoadBPG);
 		// }
 		if (!memcmp(header, "RIFF", 4) && !memcmp(header + 8, "WEBPVP8", 7)) {
-			// return CALL_LOAD_FUNC(TVPLoadWEBP);
-			unsupport = TJS_W("webp");
+			return CALL_LOAD_FUNC(_TVPLoadWEBP);
+			// unsupport = TJS_W("webp");
 		}
 #if 0 && defined(_WIN32)
 		if (!memcmp(header, "\x49\x49\xbc\x01", 4)) {
@@ -200,8 +205,8 @@ static void TVPLoadHeaderRouter(void* formatdata, tTJSBinaryStream *src, iTJSDis
 		// 	return CALL_LOAD_FUNC(TVPLoadHeaderBPG);
 		// }
 		if (!memcmp(header, "RIFF", 4) && !memcmp(header + 8, "WEBPVP8", 7)) {
-			// return CALL_LOAD_FUNC(TVPLoadHeaderWEBP);
-			unsupport = TJS_W("webp");
+			return CALL_LOAD_FUNC(_TVPLoadHeaderWEBP);
+			// unsupport = TJS_W("webp");
 		}
 #if 0 && defined(_WIN32)
 		if (!memcmp(header, "\x49\x49\xbc\x01", 4)) {
